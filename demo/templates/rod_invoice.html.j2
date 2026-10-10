@@ -1,0 +1,58 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page">
+  <div class="row" style="align-items:flex-start;border-bottom:2px solid #222;padding-bottom:12px">
+    <span class="mark" style="color:{{ color }}">{{ mono }}</span>
+    <div class="col">
+      <h1 style="font-size:26px">{% call f("supplier", supplier.name) %}{{ supplier.name }}{% endcall %}</h1>
+      <div class="small">{{ supplier.address }} · GSTIN 0{{ idx+3 }}SAMPLE{{ 1000+idx }}R1Z{{ idx }}</div>
+    </div>
+    <div class="right"><h2 style="font-size:22px">TAX INVOICE</h2><div class="small muted">Original for recipient</div></div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <div class="col box small">
+      <div class="muted">Bill to / Ship to</div>
+      <div style="font-weight:700;font-size:15px">{{ company.name }}</div>
+      <div>{{ company.address }}</div>
+      <div>GSTIN {{ company.gstin }}</div>
+    </div>
+    <div class="col box small">
+      <table>
+        <tr><td class="muted">Invoice No.</td><td>{% call f("invoice_no", inv.id) %}{{ inv.id }}{% endcall %}</td></tr>
+        <tr><td class="muted">Invoice Date</td><td>{% call f("invoice_date", date_s) %}{{ date_s }}{% endcall %}</td></tr>
+        <tr><td class="muted">E-way bill</td><td>SAMPLE-EWB-{{ 80000+idx*7 }}</td></tr>
+        <tr><td class="muted">Vehicle</td><td>PB-SAMPLE-{{ 10+idx }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <table class="grid" style="margin-top:18px">
+    <tr><th>#</th><th>Description of goods</th><th>HSN / CN code</th><th class="right">Quantity</th><th class="right">Rate (₹/t)</th><th class="right">Taxable value (₹)</th></tr>
+    <tr>
+      <td>1</td>
+      <td>{{ product_desc }}<br><span class="small">Grade: {% call f("grade", grade) %}{{ grade }}{% endcall %} · Coils, hot-rolled</span></td>
+      <td class="mono">{% call f("cn_code", cn_display, process=inv.process) %}{{ cn_display }}{% endcall %}</td>
+      <td class="right mono">{% call f("tonnes", tonnes_s, unit="t", num=tonnes, process=inv.process, label="Rod purchased") %}{{ tonnes_s }}{% endcall %} MT</td>
+      <td class="right mono">{{ rate_s }}</td>
+      <td class="right mono">{{ value_s }}</td>
+    </tr>
+    <tr><td colspan="5" class="right">IGST / CGST+SGST @ 18%</td><td class="right mono">{{ tax_s }}</td></tr>
+    <tr><th colspan="5" class="right">Invoice total (₹)</th><th class="right mono">{{ total_s }}</th></tr>
+  </table>
+  <h3 style="margin:20px 0 6px;font-size:16px">Mill test certificate (extract) — heat {{ heat }}</h3>
+  <table class="grid small">
+    <tr><th>C %</th><th>Mn %</th><th>Si %</th><th>Cr %</th><th>Ni %</th><th>Other alloy (total) %</th></tr>
+    <tr class="mono">
+      <td>{{ carbon }}</td>
+      <td>{% call f("mn_pct", comp.mn, unit="%", num=comp.mn, process=inv.process, label="Manganese") %}{{ comp.mn }}{% endcall %}</td>
+      <td>{{ si }}</td>
+      <td>{% call f("cr_pct", comp.cr, unit="%", num=comp.cr, process=inv.process, label="Chromium") %}{{ comp.cr }}{% endcall %}</td>
+      <td>{% call f("ni_pct", comp.ni, unit="%", num=comp.ni, process=inv.process, label="Nickel") %}{{ comp.ni }}{% endcall %}</td>
+      <td>{% call f("other_alloy_pct", comp.other, unit="%", num=comp.other, process=inv.process, label="Other alloy elements") %}{{ comp.other }}{% endcall %}</td>
+    </tr>
+  </table>
+  <div class="row" style="margin-top:26px">
+    <div class="col small muted">Certified that the particulars given above are true and correct. Goods once sold will not be taken back. Subject to SAMPLE jurisdiction.</div>
+    <div class="center small">For {{ supplier.name }}<br><br><span class="hand2">A. Sharma</span><br>Authorised signatory</div>
+  </div>
+  {{ watermark() }}
+</div></body></html>

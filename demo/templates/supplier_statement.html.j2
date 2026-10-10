@@ -1,0 +1,35 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page">
+  <div class="row" style="align-items:center;border-bottom:2px solid #222;padding-bottom:10px">
+    <span class="mark" style="color:#7a3b12">NW</span>
+    <div class="col"><h1 style="font-size:24px">{% call f("supplier", supplier.name) %}{{ supplier.name }}{% endcall %}</h1><div class="small">{{ supplier.address }}</div></div>
+    <div class="right small">Ref. {% call f("doc_no", st.doc_no) %}{{ st.doc_no }}{% endcall %}<br>Date: 05-10-2026</div>
+  </div>
+  <h2 style="margin:20px 0 4px;font-size:21px">Communication of embedded emissions to downstream users (CBAM)</h2>
+  <div class="small muted" style="margin-bottom:12px">Prepared under Regulation (EU) 2023/956 and Implementing Regulation (EU) 2025/2547 · SAMPLE data for demonstration</div>
+  <p>To: <b>{{ company.name }}</b>, {{ company.address }}</p>
+  <table class="grid">
+    <tr><th style="width:46%">Item</th><th>Value</th></tr>
+    <tr><td>Product (CN code)</td><td>Wire rod, carbon steel — CN {% call f("product_cn", st_cn, process="P1") %}{{ st_cn }}{% endcall %}</td></tr>
+    <tr><td>Reporting period covered</td><td>{% call f("period", st.period, process="P1") %}{{ st.period }}{% endcall %}</td></tr>
+    <tr><td>Production route</td><td>{% call f("route", st.route, process="P1") %}{{ st.route }}{% endcall %}</td></tr>
+    <tr><td>Specific embedded emissions (SEE), t CO2e/t</td><td class="monob" style="font-size:18px">{% call f("see", see_s, unit="t CO2e/t", num=st.see, process="P1", label="Rod SEE (supplier, verified)") %}{{ see_s }}{% endcall %}</td></tr>
+    <tr><td>Specific free allocation (SEFA, actual), t CO2e/t</td><td class="monob" style="font-size:18px">{% call f("sefa", sefa_s, unit="t CO2e/t", num=st.sefa, process="P1", label="Rod SEFA (supplier, verified)") %}{{ sefa_s }}{% endcall %}</td></tr>
+    <tr><td>Main reducing agent</td><td>{% call f("reducing_agent", st.reducing_agent, process="P1") %}{{ st.reducing_agent }}{% endcall %}</td></tr>
+    <tr><td>Scrap used per t crude steel (t)</td><td>{% call f("scrap_per_t", scrap_s, unit="t/t", num=st.scrap_per_t, process="P1") %}{{ scrap_s }}{% endcall %}</td></tr>
+    <tr><td>Share of pre-consumer scrap (%)</td><td>{% call f("pre_consumer_pct", pre_s, unit="%", num=st.pre_consumer_pct, process="P1") %}{{ pre_s }}{% endcall %}</td></tr>
+    <tr><td>Carbon price paid in country of origin</td><td>{{ st.carbon_price_paid }}</td></tr>
+  </table>
+  <h3 style="margin:22px 0 6px;font-size:17px">Verification</h3>
+  <table class="grid">
+    <tr><td style="width:46%">Verifier</td><td>{% call f("verifier", verifier.name, process="P1") %}{{ verifier.name }}{% endcall %}</td></tr>
+    <tr><td>Verification report no.</td><td>{% call f("verification_ref", st.verification_ref, process="P1") %}{{ st.verification_ref }}{% endcall %} dated {{ st.verification_date }}</td></tr>
+    <tr><td>Opinion</td><td>{% call f("opinion", st.opinion, process="P1") %}{{ st.opinion }}{% endcall %}</td></tr>
+  </table>
+  <div class="row" style="margin-top:30px;align-items:center">
+    <div class="col small muted">This communication contains installation-level data; it may be shared with the EU importer of the downstream goods.</div>
+    <div><span class="stamp">VERIFIED · SAMPLE</span></div>
+  </div>
+  {{ watermark() }}
+</div></body></html>

@@ -1,0 +1,52 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page">
+  <div class="band" style="background:#0f5d55">
+    <div class="row" style="align-items:center">
+      <span class="mark" style="color:#ffd27a">DC</span>
+      <div class="col"><h1 style="font-size:28px">{{ supplier.name }}</h1><div class="small">City Gas Distribution · {{ supplier.address }}</div></div>
+      <div class="right"><div style="font-size:20px;font-weight:700">PNG (Industrial) Bill</div><div class="small">Tax Invoice</div></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col box">
+      <div class="small muted">Customer</div>
+      <div style="font-weight:700">{{ company.name }}</div>
+      <div class="small">{{ company.address }}</div>
+      <div class="small">GSTIN {{ company.gstin }}</div>
+      <div class="small">CA No. 7100-SAMPLE-{{ "%04d" % (idx+311) }}</div>
+    </div>
+    <div class="col box">
+      <table class="small">
+        <tr><td class="muted">Bill No.</td><td>{% call f("invoice_no", bill_no) %}{{ bill_no }}{% endcall %}</td></tr>
+        <tr><td class="muted">Bill Date</td><td>{% call f("bill_date", bill_date) %}{{ bill_date }}{% endcall %}</td></tr>
+        <tr><td class="muted">Billing Period</td><td>{% call f("period_start", period_start, period=month) %}{{ period_start }}{% endcall %} to {% call f("period_end", period_end, period=month) %}{{ period_end }}{% endcall %}</td></tr>
+        <tr><td class="muted">Due Date</td><td>{{ due_date }}</td></tr>
+        <tr><td class="muted">Meter No.</td><td>DCG-M-SAMPLE-{{ 4400+idx }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <h3 style="margin:22px 0 8px">Consumption details</h3>
+  <table class="grid">
+    <tr><th>Previous reading (SCM)</th><th>Current reading (SCM)</th><th>Consumption (SCM)</th><th>Avg. GCV (kcal/SCM)</th><th>Energy (MMBtu, GCV)</th></tr>
+    <tr class="mono" style="font-size:17px">
+      <td>{{ prev }}</td><td>{{ curr }}</td>
+      <td>{% call f("scm", scm_s, unit="SCM", num=scm, period=month, label="Gas volume") %}{{ scm_s }}{% endcall %}</td>
+      <td>{% call f("gcv_kcal_per_scm", gcv_s, unit="kcal/SCM", num=gcv, period=month, label="Gross calorific value") %}{{ gcv_s }}{% endcall %}</td>
+      <td>{% call f("mmbtu", mmbtu_s, unit="MMBtu", num=mmbtu, period=month, label="Gas energy (GCV)") %}{{ mmbtu_s }}{% endcall %}</td>
+    </tr>
+  </table>
+  <h3 style="margin:22px 0 8px">Charges</h3>
+  <table class="grid">
+    <tr><th>Description</th><th class="right">Qty</th><th class="right">Rate (₹)</th><th class="right">Amount (₹)</th></tr>
+    <tr><td>Gas charges (PNG industrial)</td><td class="right mono">{{ scm_s }} SCM</td><td class="right mono">{{ rate }}</td><td class="right mono">{{ amount }}</td></tr>
+    <tr><td>Meter rent</td><td></td><td></td><td class="right mono">1,500.00</td></tr>
+    <tr><td>VAT on natural gas @ 14.3% (illustrative)</td><td></td><td></td><td class="right mono">{{ vat }}</td></tr>
+    <tr><th colspan="3">Total payable</th><th class="right mono">{{ total }}</th></tr>
+  </table>
+  <div class="row" style="margin-top:22px">
+    <div class="col small muted">Energy (MMBtu) = SCM × GCV (kcal/SCM) ÷ 251,996. GCV certified by the transporter for the billing month. For queries call the SAMPLE helpline.</div>
+    <div><span class="stamp">PAID · SAMPLE</span></div>
+  </div>
+  {{ watermark() }}
+</div></body></html>

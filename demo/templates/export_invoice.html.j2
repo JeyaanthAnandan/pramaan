@@ -1,0 +1,39 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page">
+  <div class="center" style="border-bottom:2px solid #222;padding-bottom:8px"><h1 style="font-size:26px;letter-spacing:2px">COMMERCIAL INVOICE / EXPORT INVOICE</h1><div class="small">Supply meant for export under LUT without payment of IGST (SAMPLE)</div></div>
+  <div class="row" style="margin-top:14px">
+    <div class="col box small"><div class="muted">Exporter</div><b style="font-size:15px">{{ company.name }}</b><div>{{ company.address }}</div><div>IEC {{ company.iec }} · GSTIN {{ company.gstin }}</div></div>
+    <div class="col box small">
+      <table>
+        <tr><td class="muted">Invoice No.</td><td>{% call f("invoice_no", exp.id) %}{{ exp.id }}{% endcall %}</td></tr>
+        <tr><td class="muted">Date</td><td>{% call f("invoice_date", date_s) %}{{ date_s }}{% endcall %}</td></tr>
+        <tr><td class="muted">Buyer's order</td><td>RB-PO-SAMPLE-{{ 7700+idx }}</td></tr>
+        <tr><td class="muted">Incoterms</td><td>CIF Hamburg</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <div class="col box small"><div class="muted">Consignee / Buyer</div><b style="font-size:15px">{% call f("buyer", buyer.name) %}{{ buyer.name }}{% endcall %}</b><div>{{ buyer.address }}</div><div>EORI {{ buyer.eori }}</div></div>
+    <div class="col box small"><table>
+      <tr><td class="muted">Port of loading</td><td>Mundra, India</td></tr><tr><td class="muted">Port of discharge</td><td>Hamburg, Germany</td></tr>
+      <tr><td class="muted">Country of origin</td><td>{% call f("country_of_origin", "India") %}India{% endcall %}</td></tr><tr><td class="muted">Final destination</td><td>Germany (EU)</td></tr></table></div>
+  </div>
+  <table class="grid" style="margin-top:16px">
+    <tr><th>#</th><th>Description</th><th>CN / HS code</th><th class="right">Packages</th><th class="right">Net weight (kg)</th><th class="right">Value (EUR)</th></tr>
+    {% for l in lines %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ l.desc }}</td>
+      <td class="mono" style="white-space:nowrap">{% call f("cn_code", l.cn_display, process=l.process, item=l.process) %}{{ l.cn_display }}{% endcall %}</td>
+      <td class="right mono">{{ l.pkgs }} pallets</td>
+      <td class="right mono">{% call f("net_mass_kg", l.kg_s, unit="kg", num=l.kg, process=l.process, item=l.process, period=exp.quarter, label="Net mass exported") %}{{ l.kg_s }}{% endcall %}</td>
+      <td class="right mono">{{ l.value_s }}</td>
+    </tr>
+    {% endfor %}
+    <tr><th colspan="4" class="right">Total</th><th class="right mono">{{ total_kg_s }}</th><th class="right mono">{{ total_value_s }}</th></tr>
+  </table>
+  <p class="small" style="margin-top:16px">We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct. CBAM embedded-emissions data for these goods: see Pramaan buyer link (provisional until verified).</p>
+  <div class="row" style="margin-top:20px"><div class="col"></div><div class="center small">For {{ company.short }}<br><br><span class="hand2">J. S. Gill</span><br>Director</div></div>
+  {{ watermark() }}
+</div></body></html>

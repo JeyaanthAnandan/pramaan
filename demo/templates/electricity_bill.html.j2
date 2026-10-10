@@ -1,0 +1,30 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page" style="font-family:'Courier','Deva'">
+  <div class="center" style="border-bottom:3px double #222;padding-bottom:10px">
+    <div class="monob" style="font-size:26px">{{ supplier.name }}</div>
+    <div class="small">{{ supplier.address }}</div>
+    <div class="monob" style="margin-top:6px">LARGE SUPPLY (LS) ENERGY BILL · <span class="deva">बिजली बिल</span></div>
+  </div>
+  <table style="margin-top:16px;font-size:15px">
+    <tr><td>Consumer</td><td>: {{ company.short }}</td><td>Account No.</td><td>: LS-SAMPLE-{{ 2200+idx }}</td></tr>
+    <tr><td>Address</td><td colspan="3">: {{ company.address }}</td></tr>
+    <tr><td>Bill No.</td><td>: {% call f("invoice_no", bill_no) %}{{ bill_no }}{% endcall %}</td><td>Bill Date</td><td>: {{ bill_date }}</td></tr>
+    <tr><td>Period</td><td colspan="3">: {% call f("period_start", period_start, period=month) %}{{ period_start }}{% endcall %} - {% call f("period_end", period_end, period=month) %}{{ period_end }}{% endcall %}</td></tr>
+    <tr><td>Sanctioned load</td><td>: 650 kW</td><td>Contract demand</td><td>: 500 kVA</td></tr>
+  </table>
+  <table class="grid" style="margin-top:18px;font-size:15px">
+    <tr><th>Parameter</th><th>Old reading</th><th>New reading</th><th>MF</th><th>Units</th></tr>
+    <tr><td>kWh (main)</td><td>{{ old_kwh }}</td><td>{{ new_kwh }}</td><td>1</td><td>{% call f("kwh", kwh_s, unit="kWh", num=kwh, period=month, label="Electricity consumed") %}{{ kwh_s }}{% endcall %}</td></tr>
+    <tr><td>Max demand (kVA)</td><td>-</td><td>-</td><td>1</td><td>{% call f("md_kva", md_s, unit="kVA", num=md, period=month, label="Maximum demand") %}{{ md_s }}{% endcall %}</td></tr>
+  </table>
+  <table class="grid" style="margin-top:18px;font-size:15px">
+    <tr><th>Charges</th><th class="right">Amount (Rs)</th></tr>
+    <tr><td>Energy charges</td><td class="right">{{ energy_amt }}</td></tr>
+    <tr><td>Fixed / demand charges</td><td class="right">{{ fixed_amt }}</td></tr>
+    <tr><td>Electricity duty + cess</td><td class="right">{{ duty_amt }}</td></tr>
+    <tr><th>Net amount</th><th class="right">{{ amount }}</th></tr>
+  </table>
+  <p class="small" style="margin-top:20px">Power factor 0.97 · Load factor 0.62 · Pay by due date to avoid surcharge (SAMPLE).</p>
+  {{ watermark() }}
+</div></body></html>

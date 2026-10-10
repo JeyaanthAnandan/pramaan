@@ -1,0 +1,26 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page notebook" style="padding-left:110px">
+  <div style="line-height:34px">
+    <div class="hand" style="font-size:30px;color:#9b1c1c"><span class="guru">ਸਕ੍ਰੈਪ ਰਜਿਸਟਰ</span> / <span class="deva">स्क्रैप लॉग</span> — {{ title_range }}</div>
+    <div class="hand" style="font-size:19px;color:#333"><span class="deva">कटिंग / टर्निंग स्क्रैप, टन में (वज़न काँटा पर्ची से)</span> · Bolt shop</div>
+  </div>
+  <table style="margin-top:34px;line-height:34px">
+    <tr class="hand" style="font-size:20px;color:#7a1d1d">
+      <td style="width:22%"><span class="guru">ਮਹੀਨਾ</span> / <span class="deva">महीना</span></td>
+      <td><span class="deva">कार्बन स्टील स्क्रैप</span> (t)</td>
+      <td><span class="deva">स्टेनलेस स्क्रैप</span> (t)</td>
+      <td><span class="guru">ਦਸਤਖ਼ਤ</span></td>
+    </tr>
+    {% for r in rows %}
+    <tr style="height:68px">
+      <td class="hand"><span class="deva">{{ r.hindi }}</span> {{ r.short }}</td>
+      <td class="hand2"><span style="display:inline-block;transform:rotate({{ r.rot[0] }}deg)">{% call f("scrap_t", r.s1, unit="t", num=r.s1, period=r.month, process="P1", label="Carbon steel scrap") %}{{ r.s1 }}{% endcall %}</span></td>
+      <td class="hand2"><span style="display:inline-block;transform:rotate({{ r.rot[1] }}deg)">{% if r.alt2 %}{% call f("scrap_t", r.s2, unit="t", num=r.s2, period=r.month, process="P2", alt=r.alt2, label="Stainless scrap") %}<span class="strike">{{ r.alt2 }}</span>{{ r.s2 }}{% endcall %}{% else %}{% call f("scrap_t", r.s2, unit="t", num=r.s2, period=r.month, process="P2", label="Stainless scrap") %}{{ r.s2 }}{% endcall %}{% endif %}</span></td>
+      <td class="hand2" style="font-size:22px">{{ r.sign }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="hand" style="margin-top:30px;font-size:18px;color:#333"><span class="deva">स्क्रैप कबाड़ी को बेचा गया — रसीदें फ़ाइल में</span> (scrap sold to dealer, receipts on file)</div>
+  {{ watermark() }}
+</div></body></html>

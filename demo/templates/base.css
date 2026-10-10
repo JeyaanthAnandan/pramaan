@@ -1,0 +1,40 @@
+@font-face { font-family: "NotoSans"; src: url("../fonts/NotoSans.ttf"); }
+@font-face { font-family: "Deva"; src: url("../fonts/NotoSansDevanagari.ttf"); }
+@font-face { font-family: "Guru"; src: url("../fonts/NotoSansGurmukhi.ttf"); }
+@font-face { font-family: "Kalam"; src: url("../fonts/Kalam-Regular.ttf"); }
+@font-face { font-family: "KalamB"; src: url("../fonts/Kalam-Bold.ttf"); }
+@font-face { font-family: "Caveat"; src: url("../fonts/Caveat.ttf"); }
+@font-face { font-family: "Courier"; src: url("../fonts/CourierPrime-Regular.ttf"); }
+@font-face { font-family: "CourierB"; src: url("../fonts/CourierPrime-Bold.ttf"); }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+body { width: 900px; font-family: "NotoSans", "Deva", "Guru", sans-serif; color: #1d1d1f; font-size: 15px; }
+.page { position: relative; width: 900px; min-height: 1180px; padding: 46px 52px 60px; background: #fdfcf8; overflow: hidden; }
+.page.notebook { background: #fbf7e9 repeating-linear-gradient(#fbf7e9 0 33px, #b9cfe6 33px 34px); }
+.page.notebook::before { content: ""; position: absolute; left: 88px; top: 0; bottom: 0; width: 2px; background: #e7a1a1; }
+.watermark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 5; }
+.watermark span { transform: rotate(-28deg); font: 700 74px "NotoSans"; color: rgba(200, 30, 30, 0.13); letter-spacing: 6px; white-space: nowrap; border: 6px solid rgba(200, 30, 30, 0.13); padding: 8px 26px; }
+.sample-foot { position: absolute; bottom: 18px; left: 52px; right: 52px; font-size: 11px; color: #8a1f1f; border-top: 1px dashed #c9a; padding-top: 6px; }
+.row { display: flex; gap: 18px; }
+.col { flex: 1; }
+.muted { color: #666; }
+.small { font-size: 12px; }
+.right { text-align: right; }
+.center { text-align: center; }
+h1, h2, h3 { margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+td, th { padding: 6px 8px; vertical-align: top; }
+.grid td, .grid th { border: 1px solid #6b6b6b; vertical-align: middle; }
+.grid th { background: #ece9df; font-size: 13px; text-align: left; }
+.box { border: 1.5px solid #333; padding: 10px 12px; }
+.hand { font-family: "Kalam", "Deva", "Guru"; color: #1f3a8a; font-size: 21px; }
+.hand2 { font-family: "Caveat", "Deva"; color: #20338a; font-size: 26px; }
+.strike { text-decoration: line-through; text-decoration-thickness: 2px; color: #3b4fa0; margin-right: 6px; }
+.mono { font-family: "Courier", monospace; }
+.monob { font-family: "CourierB", monospace; }
+.stamp { display: inline-block; border: 3px double #3a5ea8; color: #3a5ea8; padding: 6px 12px; transform: rotate(-6deg); font-weight: 700; font-size: 13px; }
+.deva { font-family: "Deva"; }
+.guru { font-family: "Guru"; }
+.band { margin: -46px -52px 18px; padding: 22px 52px; color: #fff; }
+.mark { display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; border: 3px solid currentColor; font-weight: 800; font-size: 20px; margin-right: 14px; }

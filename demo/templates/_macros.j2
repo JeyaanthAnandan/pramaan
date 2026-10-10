@@ -1,0 +1,8 @@
+{# A field the extractor must find. data-* attributes become ground truth; the visible text is what a reader sees. #}
+{% macro f(key, text, unit="", num=None, period=None, process=None, item=None, alt=None, label=None, cls="") -%}
+<span class="{{ cls }}" data-f="{{ key }}" data-text="{{ text }}" data-unit="{{ unit }}"{% if num is not none %} data-num="{{ num }}"{% endif %}{% if period %} data-period="{{ period }}"{% endif %}{% if process %} data-process="{{ process }}"{% endif %}{% if item %} data-item="{{ item }}"{% endif %}{% if alt %} data-alt="{{ alt }}"{% endif %}{% if label %} data-label="{{ label }}"{% endif %}>{{ caller() if caller else text }}</span>
+{%- endmacro %}
+{% macro watermark() -%}
+<div class="watermark"><span>SAMPLE — FICTIONAL</span></div>
+<div class="sample-foot">SAMPLE — FICTIONAL document generated for the Pramaan demo. Not a real bill, invoice or company. No real utility or company branding is used.</div>
+{%- endmacro %}

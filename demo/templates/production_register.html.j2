@@ -1,0 +1,44 @@
+{% from "_macros.j2" import f, watermark %}
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"></head><body>
+<div class="page" style="background:#f6f2e4">
+  <div class="center" style="border:2px solid #444;padding:10px;background:#efe9d3">
+    <div style="font-size:24px;font-weight:700"><span class="deva">उत्पादन रजिस्टर</span> · Production Register</div>
+    <div class="small">{{ company.short }} · Bolt shop (cold heading + heat treatment) · Page {{ page_no }}</div>
+  </div>
+  {% if opening %}
+  <div class="box" style="margin-top:14px;background:#fffdf3">
+    <b>Rod stock as on 01-01-2026 (opening) / <span class="deva">प्रारंभिक स्टॉक</span>:</b>
+    Carbon rod <span class="hand">{% call f("opening_stock_t", opening.P1, unit="t", num=opening.P1, process="P1", period="2026-01", label="Opening rod stock") %}{{ opening.P1 }}{% endcall %}</span> t ·
+    SS rod <span class="hand">{% call f("opening_stock_t", opening.P2, unit="t", num=opening.P2, process="P2", period="2026-01", label="Opening rod stock") %}{{ opening.P2 }}{% endcall %}</span> t
+  </div>
+  {% endif %}
+  <table class="grid" style="margin-top:16px;background:#fffdf3">
+    <tr>
+      <th style="width:16%"><span class="deva">महीना</span><br>Month</th>
+      <th><span class="deva">कार्बन बोल्ट उत्पादन</span><br>Carbon bolts produced (t)</th>
+      <th><span class="deva">स्टेनलेस बोल्ट उत्पादन</span><br>SS bolts produced (t)</th>
+      <th><span class="deva">कार्बन रॉड खपत</span><br>Carbon rod consumed (t)</th>
+      <th><span class="deva">SS रॉड खपत</span><br>SS rod consumed (t)</th>
+      <th style="width:12%">Sign</th>
+    </tr>
+    {% for r in rows %}
+    <tr style="height:66px">
+      <td style="font-weight:600">{{ r.label }}</td>
+      <td class="hand"><span style="display:inline-block;transform:rotate({{ r.rot[0] }}deg)">{% call f("produced_t", r.p1, unit="t", num=r.p1, period=r.month, process="P1", label="Carbon bolts produced") %}{{ r.p1 }}{% endcall %}</span></td>
+      <td class="hand"><span style="display:inline-block;transform:rotate({{ r.rot[1] }}deg)">{% call f("produced_t", r.p2, unit="t", num=r.p2, period=r.month, process="P2", label="Stainless bolts produced") %}{{ r.p2 }}{% endcall %}</span></td>
+      <td class="hand"><span style="display:inline-block;transform:rotate({{ r.rot[2] }}deg)">{% call f("rod_consumed_t", r.c1, unit="t", num=r.c1, period=r.month, process="P1", label="Carbon rod consumed") %}{{ r.c1 }}{% endcall %}</span></td>
+      <td class="hand"><span style="display:inline-block;transform:rotate({{ r.rot[3] }}deg)">{% call f("rod_consumed_t", r.c2, unit="t", num=r.c2, period=r.month, process="P2", label="Stainless rod consumed") %}{{ r.c2 }}{% endcall %}</span></td>
+      <td class="hand2" style="font-size:22px">{{ r.sign }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if closing %}
+  <div class="box" style="margin-top:14px;background:#fffdf3">
+    <b>Rod stock as on 30-09-2026 (closing) / <span class="deva">अंतिम स्टॉक</span>:</b>
+    Carbon rod <span class="hand">{% call f("closing_stock_t", closing.P1, unit="t", num=closing.P1, process="P1", period="2026-09", label="Closing rod stock") %}{{ closing.P1 }}{% endcall %}</span> t ·
+    SS rod <span class="hand">{% call f("closing_stock_t", closing.P2, unit="t", num=closing.P2, process="P2", period="2026-09", label="Closing rod stock") %}{{ closing.P2 }}{% endcall %}</span> t
+  </div>
+  {% endif %}
+  <div class="row small" style="margin-top:18px"><div class="col">Checked by: <span class="hand2">R. K. Bedi</span> (Production in-charge)</div><div class="right">Weights from weighbridge slips; t = metric tonne</div></div>
+  {{ watermark() }}
+</div></body></html>
