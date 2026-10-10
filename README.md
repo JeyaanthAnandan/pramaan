@@ -125,6 +125,8 @@ page; the full report is in [backend/eval/report.md](backend/eval/report.md).
 | Live Gemini (3.8 Flash + 3.5 Flash-Lite) | _pending — needs project credentials_ | _pending_ | _pending_ | _pending_ |
 | Replay of ground truth (harness self-check, **not a model score**) | 100 % | 99.5 % | 0.5 % | 1.3 s |
 
+Every visitor who clicks **Load sample factory** gets a private copy of the sample (so judges never see each other's approvals); `scripts/ui_smoke.py` runs the whole flow in a logged-out browser on desktop and a 360 px phone in CI and after every deploy.
+
 Agent scenarios (`backend/tests/test_agent_scenarios.py`, CI): skewed handwritten scrap log → HumanReview branch; Hindi-headed
 register → activity levels; bill with two periods; missing supplier statement → default + Precursor Lever; mismatched unit →
 review. The same five cases exist as an `adk eval` set for live runs ([backend/adk_eval](backend/adk_eval)).

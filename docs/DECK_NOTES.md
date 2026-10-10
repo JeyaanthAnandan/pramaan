@@ -69,12 +69,12 @@ register and scrap log, export invoices) → 213 values, each with its region on
 * **Extraction eval (24 docs, 213 fields)**: live Gemini numbers → fill from
   `backend/eval/report.md` after the live run (field accuracy target ≥ 95 %, < 2 min).
   Harness self-check (replay): 100 % / 1.3 s — not a model score.
-* 98 backend tests (golden, unit, API, two-reader), ruff + mypy clean; frontend type-checked.
+* 102 backend tests (golden, refdata manifest, engine, two-reader, API, agent scenarios) + Firestore-emulator test + logged-out UI smoke (desktop + 360 px phone) in CI; ruff + mypy clean; gitleaks clean.
 
 ## 9. Architecture (Google Cloud)
 Cloud Run (asia-southeast1, one container, min-instances 1) · Gemini on Agent Platform (global)
 · ADK 2.x · Firestore · Cloud Storage · Cloud Logging/Trace · GitHub Actions CI with gitleaks.
-Sample factory loads in **≈ 1.4 s** locally (target < 5 s).
+Sample factory loads in **0.1–0.3 s** (snapshot restore; Firestore emulator), each visitor gets a private copy (target < 5 s).
 
 ## 10. Impact & scale
 Built for JAPAC (Vietnam, China, Korea, Indonesia face the same defaults); Commission proposal to

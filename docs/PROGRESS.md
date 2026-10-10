@@ -14,7 +14,9 @@ _Last updated: 2026-10-11 (overnight autonomous build session)._
 | 5 Polish | **Mostly done** | Hindi + Tamil + partial Vietnamese UI, light/dark, 360 px mobile without overflow, accessibility basics (labels, focus, aria-live, keyboard chart). |
 | 6 Story assets | **Done (drafts)** | README, ARCHITECTURE, DEMO_SCRIPT, DECK_NOTES, EC_EXAMPLE_NOTES, screenshots. Fill live eval numbers after the live run. |
 
-Tests: backend `pytest` (golden, refdata manifest, engine, two-reader, API end-to-end, agent scenarios) all green; ruff + mypy clean; frontend `tsc` + Vite build clean; Docker image builds and passes a container smoke test (health, sample load ≈ 2.4 s under emulation, PDF, verifier pack, golden, SPA, copilot).
+Tests: backend `pytest` 102 passed (golden, refdata manifest, engine, two-reader, API end-to-end, agent scenarios) + 1 opt-in Firestore-emulator test (passes against the local emulator); ruff + mypy clean; frontend `tsc` + Vite build clean; gitleaks clean. The Docker image (amd64) passes `scripts/ui_smoke.py` end to end in a logged-out browser on desktop and a 360 px phone: sample load 0.1-0.2 s, Evidence Lens to photo, approval, Hindi supplier letter, buyer link without plant data, EC proof 8/8, copilot citations.
+
+Robustness for judging: "Load sample factory" gives every visitor a **private copy** of the sample (stale copies are cleaned up), restored from a captured run snapshot (`demo/cache/replay_run.json` now; `live_run.json` takes precedence once captured with Gemini).
 
 ## What the human needs to do (morning checklist)
 

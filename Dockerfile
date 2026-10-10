@@ -29,6 +29,5 @@ COPY docs/regulation/*.pdf /srv/regulation/
 COPY --from=web /web/dist /srv/static
 RUN useradd --uid 10001 --create-home pramaan && mkdir -p /tmp/pramaan && chown -R pramaan /tmp/pramaan
 USER pramaan
-# warm the copilot corpus at build time is not possible (needs /tmp at runtime); it is built lazily on first question
 EXPOSE 8080
-CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 1 --timeout-keep-alive 75 --proxy-headers --forwarded-allow-ips="*"
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 1 --timeout-keep-alive 75 --proxy-headers --forwarded-allow-ips=*"]

@@ -19,8 +19,12 @@ gcloud run deploy pramaan --source "$ROOT" --project "$PROJECT" --region "$REGIO
 URL="$(gcloud run services describe pramaan --project "$PROJECT" --region "$REGION" --format='value(status.url)')"
 echo "== smoke test $URL"
 curl -fsS "$URL/healthz" | head -c 400; echo
-curl -fsS -X POST "$URL/api/demo/load" -H 'content-type: application/json' -d '{}' | head -c 300; echo
+curl -fsS -X POST "$URL/api/demo/load" -H 'content-type: application/json' -d '{"shared": true}' | head -c 300; echo
 TOKEN="$(curl -fsS -X POST "$URL/api/projects/demo-shivalik/share" | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')"
 curl -fsS "$URL/api/share/$TOKEN" | head -c 200; echo
 curl -fsS "$URL/api/golden" | python3 -c 'import sys,json; d=json.load(sys.stdin); print("golden all_pass:", d["all_pass"])'
+if [ -x "$ROOT/backend/.venv/bin/python" ]; then
+  echo "== logged-out UI smoke test (desktop + phone)"
+  "$ROOT/backend/.venv/bin/python" "$ROOT/scripts/ui_smoke.py" "$URL"
+fi
 echo "Live: $URL   Buyer link: $URL/share/$TOKEN"
