@@ -1,0 +1,31 @@
+# secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*service-account*.json
+application_default_credentials.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+backend/.data/
+
+# node
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/
+
+# generated
+demo/.cache/
+playwright-report/
+test-results/

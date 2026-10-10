@@ -1,0 +1,29 @@
+{
+ "_meta": {
+  "parser": "parse_benchmark_legend",
+  "parser_version": "1.0.0",
+  "sources": [
+   "guidance_4_pdf"
+  ]
+ },
+ "citation": {
+  "page": 14,
+  "source": "guidance_4_pdf",
+  "table": "Table 2-2"
+ },
+ "legend": {
+  "1": "Value is to be used for production years 2026-27",
+  "2": "Value is to be used for production years 2028-30",
+  "A": "Grey clinker / cement",
+  "B": "White clinker / cement",
+  "C": "Carbon Steel based on BF/BOF (production route: Blast Furnace / Basic Oxygen Furnace)",
+  "D": "Carbon Steel based on DRI/EAF (production route: Direct Reduced Iron / Electric Arc Furnace)",
+  "E": "Carbon Steel based on Scrap/EAF (production route: Electric Arc Furnace, with scrap as main input material)",
+  "F": "Low alloy Steel based on BF/BOF (production route: Blast Furnace / Basic Oxygen Furnace)",
+  "G": "Low alloy Steel based on DRI/EAF (production route: Direct Reduced Iron / Electric Arc Furnace)",
+  "H": "Low alloy Steel based on scrap/EAF (production route: Electric Arc Furnace, with scrap as main input material)",
+  "J": "High alloy Steel (based on EAF) (Electric Arc Furnace, with scrap as main input material)",
+  "K": "Primary Aluminium (i.e. aluminium produced by electrolysis from alumina)",
+  "L": "Secondary Aluminium (i.e. aluminium produced by remelting of aluminium scrap as main input)"
+ }
+}

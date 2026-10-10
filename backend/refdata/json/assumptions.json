@@ -1,0 +1,66 @@
+{
+ "_meta": {
+  "parser": "copy_assumptions",
+  "parser_version": "1.0.0",
+  "sources": []
+ },
+ "assumptions": {
+  "carbon_price_paid_eur_per_t": {
+   "citation": "Regulation (EU) 2023/956 Art. 9: deduction only for a carbon price effectively paid in the country of origin; none is claimed for the sample factory",
+   "status": "assumption",
+   "unit": "EUR/t CO2",
+   "value": "0",
+   "why": "No carbon price paid in India is claimed in the demo."
+  },
+  "fx_inr_per_eur": {
+   "as_of": "2026-10-09",
+   "citation": "ECB euro foreign exchange reference rate for INR, 9 Oct 2026 (https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html)",
+   "status": "assumption",
+   "unit": "INR/EUR",
+   "value": "108.3965",
+   "why": "Show buyer cost in rupees; user-editable."
+  },
+  "gas_allocation_key": {
+   "citation": "EC Guidance No. 5d, Example 3, Table 4-12 (p. 53): one average specific gas consumption (3.5 GJ/t) for both product groups",
+   "status": "assumption",
+   "value": "production_mass",
+   "why": "The factory has one gas meter for both production processes; gas is attributed in proportion to tonnes produced."
+  },
+  "kcal_to_kj": {
+   "citation": "International Table calorie (IT cal) = 4.1868 J",
+   "status": "assumption",
+   "unit": "kJ/kcal",
+   "value": "4.1868",
+   "why": "Gas invoices state calorific value in kcal/SCM."
+  },
+  "mmbtu_to_gj": {
+   "basis": "GCV",
+   "citation": "International Table British thermal unit: 1 Btu = 1055.056 J (IPCC 2006 Guidelines, Vol. 2, Ch. 1, energy unit conversions)",
+   "status": "assumption",
+   "unit": "GJ/MMBtu",
+   "value": "1.055056",
+   "why": "Indian city-gas invoices bill energy in MMBtu on a gross (GCV) basis."
+  },
+  "ncv_gcv_ratio_natural_gas": {
+   "citation": "IPCC 2006 Guidelines, Vol. 2 (Energy), Ch. 1, section 1.4.1.2: NCV of natural gas is about 10 % lower than GCV",
+   "status": "assumption",
+   "unit": "NCV/GCV",
+   "value": "0.9",
+   "why": "CBAM emission factors are per TJ on an NCV basis; invoices give GCV-based energy."
+  },
+  "projection_price_eur": {
+   "citation": "Latest published quarterly price (Q3 2026, published 5 Oct 2026), held flat; user-adjustable",
+   "status": "assumption",
+   "unit": "EUR/certificate",
+   "value": "82.32",
+   "why": "Weekly prices from 2027 are unknown; projections 2027-2034 use a flat, editable price."
+  },
+  "q4_2026_price_eur": {
+   "citation": "Q4 2026 price will be published on 4 Jan 2027 (EC price page); Q3 2026 price used as an estimate",
+   "status": "assumption",
+   "unit": "EUR/certificate",
+   "value": "82.32",
+   "why": "Q4 2026 imports need a price before it is published."
+  }
+ }
+}

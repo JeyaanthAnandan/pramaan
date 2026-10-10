@@ -1,0 +1,386 @@
+{
+ "_meta": {
+  "parser": "parse_fuel_factors",
+  "parser_version": "1.0.0",
+  "sources": [
+   "guidance_3_pdf"
+  ]
+ },
+ "basis": "NCV",
+ "fuels": {
+  "anthracite": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "98.3",
+   "name": "Anthracite",
+   "ncv_tj_per_gg": "26.7",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "bitumen": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "80.7",
+   "name": "Bitumen",
+   "ncv_tj_per_gg": "40.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "blast_furnace_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "260",
+   "name": "Blast furnace gas",
+   "ncv_tj_per_gg": "2.47",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "coal_tar": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "80.7",
+   "name": "Coal tar",
+   "ncv_tj_per_gg": "28.0",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "coke_oven_coke_and_lignite_coke": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "107.0",
+   "name": "Coke oven coke and lignite coke",
+   "ncv_tj_per_gg": "28.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "coke_oven_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "44.4",
+   "name": "Coke oven gas",
+   "ncv_tj_per_gg": "38.7",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "coking_coal": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "94.6",
+   "name": "Coking coal",
+   "ncv_tj_per_gg": "28.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "crude_oil": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Crude oil",
+   "ncv_tj_per_gg": "42.3",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "ethane": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "61.6",
+   "name": "Ethane",
+   "ncv_tj_per_gg": "46.4",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "gas_coke": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "107.0",
+   "name": "Gas coke",
+   "ncv_tj_per_gg": "28.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "gas_diesel_oil": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "74.1",
+   "name": "Gas/Diesel oil",
+   "ncv_tj_per_gg": "43.0",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "gas_works_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "44.4",
+   "name": "Gas works gas",
+   "ncv_tj_per_gg": "38.7",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "kerosene_other_than_jet_kerosene": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "71.9",
+   "name": "Kerosene (other than jet kerosene)",
+   "ncv_tj_per_gg": "43.8",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "lignite": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "101.0",
+   "name": "Lignite",
+   "ncv_tj_per_gg": "11.9",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "liquefied_petroleum_gases": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "63.1",
+   "name": "Liquefied petroleum gases",
+   "ncv_tj_per_gg": "47.3",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "lubricants": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Lubricants",
+   "ncv_tj_per_gg": "40.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "motor_gasoline": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "69.3",
+   "name": "Motor gasoline",
+   "ncv_tj_per_gg": "44.3",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "naphtha": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Naphtha",
+   "ncv_tj_per_gg": "44.5",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "natural_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "56.1",
+   "name": "Natural gas",
+   "ncv_tj_per_gg": "48.0",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "natural_gas_liquids": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "64.2",
+   "name": "Natural gas liquids",
+   "ncv_tj_per_gg": "44.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "oil_shale_and_tar_sands": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "107.0",
+   "name": "Oil shale and tar sands",
+   "ncv_tj_per_gg": "8.9",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "orimulsion": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "77.0",
+   "name": "Orimulsion",
+   "ncv_tj_per_gg": "27.5",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "other_bituminous_coal": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "94.6",
+   "name": "Other bituminous coal",
+   "ncv_tj_per_gg": "25.8",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "other_petroleum_products": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Other petroleum products",
+   "ncv_tj_per_gg": "40.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "oxygen_steel_furnace_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "182",
+   "name": "Oxygen steel furnace gas",
+   "ncv_tj_per_gg": "7.06",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "paraffin_waxes": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Paraffin waxes",
+   "ncv_tj_per_gg": "40.2",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "patent_fuel": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "97.5",
+   "name": "Patent fuel",
+   "ncv_tj_per_gg": "20.7",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "petroleum_coke": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "97.5",
+   "name": "Petroleum coke",
+   "ncv_tj_per_gg": "32.5",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "refinery_feedstocks": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Refinery feedstocks",
+   "ncv_tj_per_gg": "43.0",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "refinery_gas": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "57.6",
+   "name": "Refinery gas",
+   "ncv_tj_per_gg": "49.5",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "residual_fuel_oil": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "77.4",
+   "name": "Residual fuel oil",
+   "ncv_tj_per_gg": "40.4",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "shale_oil": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "Shale oil",
+   "ncv_tj_per_gg": "38.1",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "sub_bituminous_coal": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "96.1",
+   "name": "Sub-bituminous coal",
+   "ncv_tj_per_gg": "18.9",
+   "source_of_value": "IPCC 2006 GL"
+  },
+  "white_spirit_and_sbp": {
+   "citation": {
+    "annex": "Annex D = Methodology Act Annex II section G, Table 1",
+    "page": 139,
+    "source": "guidance_3_pdf"
+   },
+   "ef_t_co2_per_tj": "73.3",
+   "name": "White spirit and SBP",
+   "ncv_tj_per_gg": "40.2",
+   "source_of_value": "IPCC 2006 GL"
+  }
+ }
+}

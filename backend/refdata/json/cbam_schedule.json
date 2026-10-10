@@ -1,0 +1,223 @@
+{
+ "_meta": {
+  "parser": "parse_schedule",
+  "parser_version": "1.0.0",
+  "sources": [
+   "guidance_4_pdf",
+   "cscf_decision_pdf",
+   "guidance_3_pdf"
+  ]
+ },
+ "fertiliser_markup": "0.01",
+ "notes": [
+  "CBAM factor = share of free allocation still deducted (Reg. 2023/956 Art. 31 phase-out), from Guidance 4 Table 2-1.",
+  "CSCF 2026-2030 = 100 % per Implementing Decision (EU) 2026/1862 Art. 1; 2031+ values are preliminary (Guidance 4).",
+  "Benchmark indicator (1) applies to production years 2026-27, (2) to 2028-30 (Guidance 4 Table 2-2)."
+ ],
+ "years": {
+  "2025": {
+   "cbam_factor": "1.0",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1.0",
+   "cscf_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf_status": "preliminary"
+  },
+  "2026": {
+   "cbam_factor": "0.975",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1",
+   "cscf_citation": {
+    "article": "Article 1",
+    "page": 3,
+    "source": "cscf_decision_pdf"
+   },
+   "cscf_status": "official",
+   "default_markup": "0.1",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2027": {
+   "cbam_factor": "0.95",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1",
+   "cscf_citation": {
+    "article": "Article 1",
+    "page": 3,
+    "source": "cscf_decision_pdf"
+   },
+   "cscf_status": "official",
+   "default_markup": "0.2",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2028": {
+   "cbam_factor": "0.9",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1",
+   "cscf_citation": {
+    "article": "Article 1",
+    "page": 3,
+    "source": "cscf_decision_pdf"
+   },
+   "cscf_status": "official",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2029": {
+   "cbam_factor": "0.775",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1",
+   "cscf_citation": {
+    "article": "Article 1",
+    "page": 3,
+    "source": "cscf_decision_pdf"
+   },
+   "cscf_status": "official",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2030": {
+   "cbam_factor": "0.515",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1",
+   "cscf_citation": {
+    "article": "Article 1",
+    "page": 3,
+    "source": "cscf_decision_pdf"
+   },
+   "cscf_status": "official",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2031": {
+   "cbam_factor": "0.39",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1.0",
+   "cscf_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf_status": "preliminary",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2032": {
+   "cbam_factor": "0.265",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1.0",
+   "cscf_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf_status": "preliminary",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2033": {
+   "cbam_factor": "0.14",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1.0",
+   "cscf_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf_status": "preliminary",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  },
+  "2034": {
+   "cbam_factor": "0.0",
+   "cbam_factor_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf": "1.0",
+   "cscf_citation": {
+    "page": 13,
+    "source": "guidance_4_pdf",
+    "table": "Table 2-1"
+   },
+   "cscf_status": "preliminary",
+   "default_markup": "0.3",
+   "markup_citation": {
+    "page": 115,
+    "section": "4.10.1",
+    "source": "guidance_3_pdf"
+   }
+  }
+ }
+}

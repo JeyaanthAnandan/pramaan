@@ -1,0 +1,80 @@
+{
+  "_comment": "Registry of official source files. build_refdata.py downloads any missing file, hashes it and records it in manifest.json. Never hand-type a regulatory value: parse it from one of these files.",
+  "sources": {
+    "dv_xlsx": {
+      "title": "CBAM default values, definitive period (information file for Implementing Regulation (EU) 2026/1740 correcting (EU) 2025/2621)",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-10",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/1c05d211-80cb-4aaa-8ef0-e08005a95d7e_en?filename=DV%20correcting%20act_final%20update_06.08.xlsx",
+      "path": "raw/default_values_corrected_20260806.xlsx",
+      "legal_basis": "Implementing Regulation (EU) 2025/2621 as corrected by (EU) 2026/1740, Annex I and Annex IV",
+      "note": "The Commission marks the Excel file as informational; the legally valid values are in the Official Journal text."
+    },
+    "bm_xlsx": {
+      "title": "CBAM benchmarks, definitive period (information file for Implementing Regulation (EU) 2025/2620)",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-02-13",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/9877523c-2a02-4926-a211-aefae7cf6d0d_en?filename=CBAM%20Benchmarks_20260206.xlsx",
+      "path": "raw/cbam_benchmarks_20260206.xlsx",
+      "legal_basis": "Implementing Regulation (EU) 2025/2620, Annex section 5 (columns A and B)",
+      "note": "The Commission marks the Excel file as informational; the legally valid values are in the Official Journal text."
+    },
+    "guidance_3_pdf": {
+      "title": "Guidance No. 3 - CBAM methods for the calculation of emissions embedded in goods",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-14",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/29b9eec7-1a4b-4eb6-ab85-96a0c9e35fd0_en?filename=Guidance%20No.%203%20-%20CBAM%20methods%20for%20the%20calculation%20of%20emissions%20embedded%20in%20goods.pdf",
+      "path": "../../docs/regulation/guidance_3_calculation_methods.pdf",
+      "legal_basis": "Annex D reproduces Annex II section G of Implementing Regulation (EU) 2025/2547 (Methodology Act); section 4.10.1 states the default-value mark-ups"
+    },
+    "guidance_4_pdf": {
+      "title": "Guidance No. 4 - CBAM calculation of the free allocation adjustment",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-14",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/3aa2c730-4f1b-4524-8f71-d9cfe4880ac7_en?filename=Guidance%20No.%204%20-%20CBAM%20calculation%20of%20the%20free%20allocation%20adjustment%20to%20the%20number%20of%20CBAM%20certificates%20to%20be%20surrendered.pdf",
+      "path": "../../docs/regulation/guidance_4_free_allocation_adjustment.pdf",
+      "legal_basis": "Table 2-1 (CBAM factor, CSCF) and Table 2-2 (benchmark indicator codes)"
+    },
+    "guidance_5d_pdf": {
+      "title": "Guidance No. 5d - Sector-specific guidance document on iron and steel",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-14",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/3eb64513-8255-4c71-875a-bd0a8c7ff772_en?filename=Guidance%20No.%205d%20-%20Sector-specific%20guidance%20document%20on%20iron%20and%20steel.pdf",
+      "path": "../../docs/regulation/guidance_5d_iron_and_steel.pdf",
+      "legal_basis": "Worked examples (section 4) used for golden tests; Table 3-1 extra parameters"
+    },
+    "guidance_2_pdf": {
+      "title": "Guidance No. 2 - Quick guide for non-EU operators on CBAM implementation",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-14",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/91e1056c-4524-4705-aaa7-e25c1439a87a_en?filename=Guidance%20No.%202%20-%20Quick%20guide%20for%20non-EU%20operators%20on%20CBAM%20implementation.pdf",
+      "path": "../../docs/regulation/guidance_2_quick_guide_non_eu_operators.pdf",
+      "legal_basis": "Rules copilot corpus"
+    },
+    "guidance_1_pdf": {
+      "title": "Guidance No. 1 - Introduction to CBAM concepts",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-08-14",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/031abf60-21a9-4822-b258-ac8b111d8358_en?filename=Guidance%20No.%201%20-%20Introduction%20to%20CBAM%20concepts.pdf",
+      "path": "../../docs/regulation/guidance_1_introduction.pdf",
+      "legal_basis": "Rules copilot corpus"
+    },
+    "cscf_decision_pdf": {
+      "title": "Commission Implementing Decision (EU) 2026/1862 of 23 July 2026 determining the uniform cross-sectoral correction factor (OJ L, 24.7.2026) - Spanish language version, equally authentic",
+      "publisher": "Official Journal of the European Union (copy served by BOE)",
+      "published": "2026-07-24",
+      "url": "https://www.boe.es/doue/2026/1862/L00001-00003.pdf",
+      "eli": "http://data.europa.eu/eli/dec_impl/2026/1862/oj",
+      "path": "../../docs/regulation/decision_2026_1862_cscf_ES.pdf",
+      "legal_basis": "Article 1: CSCF = 100 % for each year 2026-2030"
+    },
+    "price_html": {
+      "title": "Price of CBAM certificates (web page snapshot)",
+      "publisher": "European Commission, DG TAXUD",
+      "published": "2026-10-05",
+      "url": "https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/price-cbam-certificates_en",
+      "path": "raw/ec_cbam_certificate_prices_20261011.html",
+      "legal_basis": "Implementing Regulation (EU) 2025/2548 (quarterly price publication in 2026)"
+    }
+  }
+}

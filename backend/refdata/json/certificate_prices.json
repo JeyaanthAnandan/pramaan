@@ -1,0 +1,33 @@
+{
+ "_meta": {
+  "parser": "parse_prices",
+  "parser_version": "1.0.0",
+  "sources": [
+   "price_html"
+  ]
+ },
+ "from_2027": "weekly prices (not modelled; projections use an assumption)",
+ "quarters": {
+  "2026-Q1": {
+   "price_eur": "75.36",
+   "published": "7 April 2026",
+   "status": "official"
+  },
+  "2026-Q2": {
+   "price_eur": "75.28",
+   "published": "6 July 2026",
+   "status": "official"
+  },
+  "2026-Q3": {
+   "price_eur": "82.32",
+   "published": "5 October 2026",
+   "status": "official"
+  },
+  "2026-Q4": {
+   "price_eur": null,
+   "published": "4 January 2027",
+   "status": "pending"
+  }
+ },
+ "unit": "EUR per CBAM certificate"
+}
