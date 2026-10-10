@@ -9,6 +9,7 @@ const en = {
   },
   nav: { home: "Home", workspace: "Workspace", proof: "EC proof", metrics: "Metrics", architecture: "Architecture", copilot: "Rules copilot", theme: "Theme", language: "Language", skip: "Skip to content" },
   landing: {
+    own: "Or start with your own documents →",
     eyebrow: "EU CBAM · iron & steel · definitive period since 1 Jan 2026",
     title: "CBAM proof from a phone photo.",
     lead: "Pramaan turns photos of bills, invoices and production logs into verifier-ready EU CBAM data for small steel-goods exporters — and every number traces back to the exact spot on the page it came from.",

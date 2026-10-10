@@ -20,7 +20,7 @@ export default function Proof() {
             <BadgeCheck className="h-8 w-8" />
             <div>
               <div className="text-lg font-semibold">{d.all_pass ? t("proof.all", { n: d.cases.length }) : t("proof.fail")}</div>
-              <div className="text-[12px] opacity-80">
+              <div className="text-[12px]">
                 {t("proof.ran")} {d.duration_ms} ms · {new Date(d.ran_at).toLocaleString()}
               </div>
             </div>

@@ -49,7 +49,6 @@ export function ContributionBar({ segments }: { segments: { key: string; label: 
               onClick={() => open(s.node)}
               aria-label={`${s.label}: ${pct.toFixed(1)}%`}
             >
-              {pct > 14 && <span className="absolute inset-0 grid place-items-center text-[11px] font-semibold text-white">{pct.toFixed(0)}%</span>}
             </button>
           );
         })}

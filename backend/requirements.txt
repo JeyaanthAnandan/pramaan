@@ -11,5 +11,7 @@ openpyxl==3.1.5
 pypdf==6.20.0
 Jinja2==3.1.6
 pillow==12.3.0
+pillow-heif==1.8.0
+pypdfium2==5.14.0
 weasyprint==70.0
 httpx==0.28.1

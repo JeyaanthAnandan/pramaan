@@ -158,3 +158,31 @@ def test_each_visitor_gets_a_private_sample(client: TestClient) -> None:
     client.patch(f"/api/projects/{a}/evidence/{ev[0]['id']}", json={"action": "approve"})
     still_amber = [e for e in client.get(f"/api/projects/{b}/evidence").json() if e["status"] == "NEEDS_REVIEW"]
     assert len(still_amber) == 1  # b is unaffected by a's approval
+
+
+def test_upload_normalises_png_and_pdf(client: TestClient) -> None:
+    import io as _io
+
+    from PIL import Image
+
+    pid = client.post("/api/projects", json={"name": "Test", "company": "Test Co (SAMPLE)"}).json()["id"]
+    png = _io.BytesIO()
+    Image.new("RGB", (400, 600), "white").save(png, format="PNG")
+    pdf = _io.BytesIO()
+    Image.new("RGB", (400, 600), "white").save(pdf, format="PDF", save_all=True, append_images=[Image.new("RGB", (400, 600), "gray")])
+    r = client.post(
+        f"/api/projects/{pid}/documents",
+        files=[("files", ("bill.png", png.getvalue(), "image/png")), ("files", ("register.pdf", pdf.getvalue(), "application/pdf"))],
+    )
+    assert r.status_code == 200, r.text
+    docs = r.json()["documents"]
+    assert [d["filename"] for d in docs] == ["bill.jpg", "register-p1.jpg", "register-p2.jpg"]
+    assert all(d["content_type"] == "image/jpeg" and d["width"] for d in docs)
+    img = client.get(f"/api/projects/{pid}/documents/{docs[1]['id']}/image")
+    assert img.status_code == 200 and img.content[:2] == b"\xff\xd8"
+
+
+def test_upload_rejects_unsupported_types(client: TestClient) -> None:
+    pid = client.post("/api/projects", json={"name": "Test", "company": "Test Co (SAMPLE)"}).json()["id"]
+    r = client.post(f"/api/projects/{pid}/documents", files=[("files", ("x.exe", b"MZ", "application/x-msdownload"))])
+    assert r.status_code == 415

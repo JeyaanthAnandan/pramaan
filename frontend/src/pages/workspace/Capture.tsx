@@ -117,7 +117,11 @@ export default function Capture() {
               )}
             </div>
           </div>
-          {geminiOff && <p className="mb-3 rounded-xl border border-accent/25 bg-accent/5 px-3 py-2 text-[13px] text-ink2">{t("capture.mode_replay")}</p>}
+          {geminiOff && (
+            <p className="mb-3 rounded-xl border border-accent/25 bg-accent/5 px-3 py-2 text-[13px] text-ink2">
+              {bundle?.project.is_demo ? t("capture.mode_replay") : t("capture.own_needs_live", { defaultValue: "Reading your own documents needs live Gemini, which is not configured on this server. The sample factory works without it." })}
+            </p>
+          )}
           {err && <p className="mb-3 rounded-xl border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
           {!docs.length ? (
             <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-sm text-muted">{t("capture.none")}</p>

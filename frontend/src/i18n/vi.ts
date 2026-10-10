@@ -10,6 +10,7 @@ const vi = {
   },
   nav: { home: "Trang chủ", workspace: "Không gian làm việc", proof: "Bằng chứng EC", metrics: "Chỉ số", architecture: "Kiến trúc", copilot: "Trợ lý quy định", theme: "Giao diện", language: "Ngôn ngữ", skip: "Đến nội dung" },
   landing: {
+    own: "Hoặc bắt đầu với tài liệu của bạn →",
     eyebrow: "EU CBAM · sắt thép · giai đoạn chính thức từ 1/1/2026",
     title: "Bằng chứng CBAM từ một tấm ảnh điện thoại.",
     lead: "Pramaan biến ảnh hóa đơn, chứng từ và sổ sản xuất thành dữ liệu EU CBAM sẵn sàng thẩm định cho các nhà xuất khẩu thép nhỏ — mỗi con số đều dẫn về đúng vị trí trên trang giấy.",

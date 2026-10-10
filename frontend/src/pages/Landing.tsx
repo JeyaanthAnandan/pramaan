@@ -91,6 +91,17 @@ export default function Landing() {
     }
   }
 
+  async function startOwn() {
+    setErr(null);
+    try {
+      const p = await api.createProject({ name: "My CBAM project", company: "My factory", country: "India" });
+      rememberProject(p.id);
+      nav(`/p/${p.id}/capture`);
+    } catch (e) {
+      setErr(String((e as Error).message));
+    }
+  }
+
   const nCases = golden.data?.cases?.length ?? 8;
   return (
     <div>
@@ -113,6 +124,9 @@ export default function Landing() {
               </button>
             </div>
             <p className="mt-3 max-w-xl text-[13px] text-muted">{t("landing.sample_desc")}</p>
+            <button className="link mt-2 text-[13px]" onClick={startOwn} disabled={!!busy}>
+              {t("landing.own", { defaultValue: "Or start with your own documents →" })}
+            </button>
             {err && <p className="mt-3 rounded-lg border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <Link to="/proof" className="inline-flex items-center gap-2 rounded-full border border-good/30 bg-goodbg px-3 py-1.5 text-[13px] font-semibold text-goodink transition hover:brightness-95">

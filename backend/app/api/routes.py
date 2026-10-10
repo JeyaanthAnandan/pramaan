@@ -119,6 +119,10 @@ def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
 
 @router.post("/projects/{pid}/documents")
 async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any]:  # noqa: B008
+    """Photos (JPG/PNG/WebP/HEIC) and PDFs. Everything is normalised to JPEG pages (one document per
+    page) so cropping, the blind second reader and the Evidence Lens work the same for every input."""
+    from app.evidence.normalize import to_pages
+
     _project(pid)
     out = []
     for f in files[:40]:
@@ -126,22 +130,22 @@ async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any
         if len(data) > MAX_UPLOAD:
             raise HTTPException(413, f"{f.filename}: larger than 15 MB")
         ctype = (f.content_type or "").lower()
+        name = f.filename or "upload"
+        if ctype in {"", "application/octet-stream"} and name.lower().endswith((".heic", ".heif")):
+            ctype = "image/heic"
         if ctype not in ALLOWED:
-            raise HTTPException(415, f"{f.filename}: unsupported type {ctype}")
-        d = Document(project_id=pid, filename=f.filename or "upload", content_type=ctype, uri="pending")
-        d.uri, d.sha256 = blobs.save(pid, d.id, d.filename, data, ctype)
+            raise HTTPException(415, f"{name}: unsupported type {ctype}")
         try:
-            from io import BytesIO
-
-            from PIL import Image
-
-            if ctype.startswith("image/") and ctype not in {"image/heic", "image/heif"}:
-                im = Image.open(BytesIO(data))
-                d.width, d.height = im.size
-        except Exception:  # noqa: S110 - size is optional metadata
-            pass
-        store().put_document(d)
-        out.append(d.model_dump())
+            pages = to_pages(data, ctype)
+        except Exception as exc:
+            raise HTTPException(422, f"{name}: could not read the file ({exc.__class__.__name__})") from exc
+        stem = name.rsplit(".", 1)[0]
+        for i, (jpeg, w, h) in enumerate(pages):
+            fname = f"{stem}.jpg" if len(pages) == 1 else f"{stem}-p{i + 1}.jpg"
+            d = Document(project_id=pid, filename=fname, content_type="image/jpeg", uri="pending", width=w, height=h, title=fname)
+            d.uri, d.sha256 = blobs.save(pid, d.id, fname, jpeg, "image/jpeg")
+            store().put_document(d)
+            out.append(d.model_dump())
     return {"documents": out}
 
 
@@ -419,9 +423,25 @@ class DemoLoad(BaseModel):
     shared: bool = False  # true: reload the shared "demo-shivalik" copy (tests, scripted demos)
 
 
+_demo_log: dict[str, deque[float]] = defaultdict(deque)
+DEMO_LOADS_PER_HOUR = 40
+
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for", "")
+    return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+
+
 @router.post("/demo/load")
-async def demo_load(body: DemoLoad | None = None) -> dict[str, Any]:
+async def demo_load(request: Request, body: DemoLoad | None = None) -> dict[str, Any]:
     body = body or DemoLoad()
+    ip = _client_ip(request)
+    window, t = _demo_log[ip], time.time()
+    while window and t - window[0] > 3600:
+        window.popleft()
+    if len(window) >= DEMO_LOADS_PER_HOUR:
+        raise HTTPException(429, "too many sample loads from this address; try again later")
+    window.append(t)
     if body.shared:
         return await loader.load(force_replay=body.replay)
     try:
