@@ -214,6 +214,18 @@ async def run_events(pid: str, run_id: str, request: Request) -> StreamingRespon
                 sent = max(sent, ev.seq)
                 yield f"event: timeline\ndata: {ev.model_dump_json()}\n\n"
             if not live:
+                # The run may be executing on another Cloud Run instance: follow it through the store.
+                while True:
+                    cur = store().get_run(pid, run_id)
+                    if cur is None:
+                        break
+                    for ev in cur.events:
+                        if ev.seq > sent:
+                            sent = ev.seq
+                            yield f"event: timeline\ndata: {ev.model_dump_json()}\n\n"
+                    if cur.status != "running" or await request.is_disconnected():
+                        break
+                    await asyncio.sleep(1.0)
                 final = store().get_run(pid, run_id)
                 yield f"event: end\ndata: {json.dumps({'status': final.status if final else 'unknown'})}\n\n"
                 return

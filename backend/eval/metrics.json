@@ -1,0 +1,120 @@
+{
+ "runs": {
+  "replay": {
+   "mode": "replay",
+   "ran_at": "2026-10-10T21:35:25+00:00",
+   "models": {
+    "extraction": "replay",
+    "second_reader": "replay"
+   },
+   "documents": 24,
+   "doc_type_accuracy": 1.0,
+   "fields_total": 213,
+   "fields_correct": 213,
+   "field_accuracy": 1.0,
+   "box_hit_rate": 1.0,
+   "extracted_values": 213,
+   "two_reader_agreement": 0.9953051643192489,
+   "review_rate": 0.004694835680751174,
+   "total_seconds": 1.2954188339936081,
+   "seconds_per_doc": 0.05397578474973367,
+   "tokens_total": 0,
+   "run_status": "done",
+   "run_error": null,
+   "targets": {
+    "field_accuracy": 0.95,
+    "total_seconds": 120
+   },
+   "misses": [],
+   "per_doc_type": {
+    "gas_invoice": {
+     "fields": 63,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "electricity_bill": {
+     "fields": 15,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "precursor_invoice": {
+     "fields": 40,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "supplier_emissions_statement": {
+     "fields": 13,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "production_register": {
+     "fields": 40,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "scrap_log": {
+     "fields": 18,
+     "accuracy": 1.0,
+     "agreement": 0.9444444444444444,
+     "box": 1.0
+    },
+    "export_invoice": {
+     "fields": 24,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    }
+   }
+  }
+ },
+ "per_doc_type": {
+  "gas_invoice": {
+   "fields": 63,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  },
+  "electricity_bill": {
+   "fields": 15,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  },
+  "precursor_invoice": {
+   "fields": 40,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  },
+  "supplier_emissions_statement": {
+   "fields": 13,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  },
+  "production_register": {
+   "fields": 40,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  },
+  "scrap_log": {
+   "fields": 18,
+   "accuracy": 1.0,
+   "agreement": 0.9444444444444444,
+   "box": 1.0
+  },
+  "export_invoice": {
+   "fields": 24,
+   "accuracy": 1.0,
+   "agreement": 1.0,
+   "box": 1.0
+  }
+ },
+ "status": "ok"
+}

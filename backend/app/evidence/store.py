@@ -150,7 +150,7 @@ class MemoryStore:
     def append_event(self, pid: str, run_id: str, ev: TimelineEvent) -> None:
         with self._lock:
             r = self.runs.get(pid, {}).get(run_id)
-            if r:
+            if r and not any(e.seq == ev.seq for e in r.events):
                 r.events.append(ev)
 
     # ---- results

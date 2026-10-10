@@ -1,0 +1,162 @@
+{
+ "eval_set_id": "pramaan_reader_v1",
+ "name": "Pramaan document readers",
+ "description": "Five brief scenarios on the SAMPLE document set",
+ "eval_cases": [
+  {
+   "eval_id": "skewed_handwritten_scrap_log",
+   "conversation": [
+    {
+     "invocation_id": "inv-skewed_handwritten_scrap_log",
+     "user_content": {
+      "role": "user",
+      "parts": [
+       {
+        "text": "scrap-2026-06-to-09.jpg"
+       }
+      ]
+     },
+     "final_response": {
+      "role": "model",
+      "parts": [
+       {
+        "text": "doc_type=scrap_log; values: scrap_t[2026-06/P1]=25.1; scrap_t[2026-06/P2]=15.4 (review); scrap_t[2026-07/P1]=24.7; scrap_t[2026-07/P2]=14.9; scrap_t[2026-08/P1]=25.6; scrap_t[2026-08/P2]=14.5; scrap_t[2026-09/P1]=24.6; scrap_t[2026-09/P2]=15.3"
+       }
+      ]
+     }
+    }
+   ],
+   "session_input": {
+    "app_name": "pramaan_reader",
+    "user_id": "eval",
+    "state": {
+     "description": "Handwritten Punjabi/Hindi scrap log photographed at 6 degrees; one struck-through figure must go to review."
+    }
+   }
+  },
+  {
+   "eval_id": "hindi_headed_register",
+   "conversation": [
+    {
+     "invocation_id": "inv-hindi_headed_register",
+     "user_content": {
+      "role": "user",
+      "parts": [
+       {
+        "text": "register-2026-01-to-05.jpg"
+       }
+      ]
+     },
+     "final_response": {
+      "role": "model",
+      "parts": [
+       {
+        "text": "doc_type=production_register; values: opening_stock_t[2026-01/P1]=40.0; opening_stock_t[2026-01/P2]=10.0; produced_t[2026-01/P1]=135.0; produced_t[2026-01/P2]=65.0; produced_t[2026-02/P1]=140.0; produced_t[2026-02/P2]=70.0; produced_t[2026-03/P1]=150.0; produced_t[2026-03/P2]=68.0; produced_t[2026-04/P1]=138.0; produced_t[2026-04/P2]=66.0; produced_t[2026-05/P1]=145.0; produced_t[2026-05/P2]=72.0; rod_consumed_t[2026-01/P1]=158.8; rod_consumed_t[2026-01/P2]=79.3; rod_consumed_t[2026-02/P1]=164.7; rod_consumed_t[2026-02/P2]=85.4; rod_consumed_t[2026-03/P1]=176.5; rod_consumed_t[2026-03/P2]=82.9; rod_consumed_t[2026-04/P1]=162.4; rod_consumed_t[2026-04/P2]=80.5; rod_consumed_t[2026-05/P1]=170.6; rod_consumed_t[2026-05/P2]=87.8"
+       }
+      ]
+     }
+    }
+   ],
+   "session_input": {
+    "app_name": "pramaan_reader",
+    "user_id": "eval",
+    "state": {
+     "description": "Production register with Hindi column headings and handwritten monthly tonnes."
+    }
+   }
+  },
+  {
+   "eval_id": "gas_bill_period_and_units",
+   "conversation": [
+    {
+     "invocation_id": "inv-gas_bill_period_and_units",
+     "user_content": {
+      "role": "user",
+      "parts": [
+       {
+        "text": "gas-2026-03.jpg"
+       }
+      ]
+     },
+     "final_response": {
+      "role": "model",
+      "parts": [
+       {
+        "text": "doc_type=gas_invoice; values: bill_date=03-04-2026; gcv_kcal_per_scm[2026-03]=9,555; invoice_no=DCG/26/03/030443; mmbtu[2026-03]=803.543; period_end[2026-03]=31-03-2026; period_start[2026-03]=01-03-2026; scm[2026-03]=21,192"
+       }
+      ]
+     }
+    }
+   ],
+   "session_input": {
+    "app_name": "pramaan_reader",
+    "user_id": "eval",
+    "state": {
+     "description": "Gas bill: billing period, SCM, GCV in kcal/SCM and MMBtu (GCV basis)."
+    }
+   }
+  },
+  {
+   "eval_id": "rod_invoice_without_supplier_data",
+   "conversation": [
+    {
+     "invocation_id": "inv-rod_invoice_without_supplier_data",
+     "user_content": {
+      "role": "user",
+      "parts": [
+       {
+        "text": "rod-ISR-2026-038.jpg"
+       }
+      ]
+     },
+     "final_response": {
+      "role": "model",
+      "parts": [
+       {
+        "text": "doc_type=precursor_invoice; values: cn_code[P2]=7221 00 10; cr_pct[P2]=18.20; grade=AISI 304, 8.0 mm; invoice_date=04-02-2026; invoice_no=ISR/2026/038; mn_pct[P2]=1.60; ni_pct[P2]=8.10; other_alloy_pct[P2]=0.85; supplier=Indus Stainless Rods (SAMPLE); tonnes[P2]=380.000"
+       }
+      ]
+     }
+    }
+   ],
+   "session_input": {
+    "app_name": "pramaan_reader",
+    "user_id": "eval",
+    "state": {
+     "description": "Stainless rod invoice with HSN/CN code and mill-test alloy %; no supplier emissions statement exists for this supplier."
+    }
+   }
+  },
+  {
+   "eval_id": "export_invoice_kg_vs_tonnes",
+   "conversation": [
+    {
+     "invocation_id": "inv-export_invoice_kg_vs_tonnes",
+     "user_content": {
+      "role": "user",
+      "parts": [
+       {
+        "text": "export-2026-Q2.jpg"
+       }
+      ]
+     },
+     "final_response": {
+      "role": "model",
+      "parts": [
+       {
+        "text": "doc_type=export_invoice; values: buyer=Rhein Befestigungstechnik GmbH (SAMPLE); cn_code[P1]=7318 15 82; cn_code[P2]=7318 15 75; country_of_origin=India; invoice_date=15-06-2026; invoice_no=SF/EXP/2627/009; net_mass_kg[2026-Q2/P1]=300,000; net_mass_kg[2026-Q2/P2]=130,000"
+       }
+      ]
+     }
+    }
+   ],
+   "session_input": {
+    "app_name": "pramaan_reader",
+    "user_id": "eval",
+    "state": {
+     "description": "Export invoice with net weight in kg per CN line (engine converts to tonnes)."
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest==9.1.1
+ruff==0.17.0
+mypy==2.4.0
+# synthetic document generator (demo/generate_docs.py) and UI smoke tests
+playwright==1.63.0
+opencv-python-headless==5.0.0.93

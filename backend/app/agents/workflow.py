@@ -102,6 +102,10 @@ class RunCtx:
         )
         self.run.events.append(ev)
         BUS.publish(self.run.id, ev)
+        try:
+            store().append_event(self.project.id, self.run.id, ev)
+        except Exception:  # noqa: S110 - the timeline is best-effort; the run continues
+            pass
 
     def add_tokens(self, agent: str, tin: int | None, tout: int | None) -> None:
         t = self.stats.setdefault("tokens", {}).setdefault(agent, {"in": 0, "out": 0, "calls": 0})

@@ -1,0 +1,181 @@
+"""Agent scenarios (brief section 9): the live code path of the ADK workflow with a scripted
+Gemini stand-in. The fake answers like a model would (classification, fields with box_2d, blind
+crop readings) from the ground truth, with per-scenario perturbations, so these tests check the
+agents' plumbing and routing - not model quality (that is backend/eval)."""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import hashlib
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from app.agents import llm
+from app.agents.llm import LLMResult
+from app.agents.second_reader import crop
+from app.config import settings
+from app.evidence.models import Run
+from app.evidence.store import store
+
+GT = json.loads((settings().demo_dir / "ground_truth.json").read_text())
+
+
+def _sha(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+class FakeGemini:
+    """Behaves like the Interactions client wrapper: json(model, system, parts, schema, ...)."""
+
+    def __init__(self, scenario: dict[str, Any] | None = None) -> None:
+        self.sc = scenario or {}
+        self.calls: list[str] = []
+        self.by_image: dict[str, dict[str, Any]] = {}
+        self.by_crop: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+        for d in GT["documents"]:
+            data = (settings().demo_dir / d["file"]).read_bytes()
+            self.by_image[_sha(data)] = d
+            for f in d["fields"]:
+                cb, _ = crop(data, f["box_2d"])
+                self.by_crop[_sha(cb)] = (d, f)
+
+    async def json(
+        self, model: str, system: str, parts: list[dict[str, Any]], schema: dict[str, Any], thinking_level: str = "low", retries: int = 2
+    ) -> LLMResult:
+        img = base64.b64decode(next(p["data"] for p in parts if p["type"] == "image"))
+        props = schema.get("properties", {})
+        self.calls.append(model)
+        if "doc_type" in props:
+            d = self.by_image[_sha(img)]
+            out = {
+                "doc_type": d["doc_type"],
+                "languages": d["languages"],
+                "period_start": d["period"][0],
+                "period_end": d["period"][1],
+                "title": d["title"],
+                "confidence": 0.97,
+            }
+            out.update(self.sc.get("classify", {}).get(d["doc_id"], {}))
+            return LLMResult(out, model, 1200, 40, 5)
+        if "fields" in props:
+            d = self.by_image[_sha(img)]
+            fields = [
+                {
+                    k: f.get(k)
+                    for k in ["field_key", "value_text", "value_num", "unit", "box_2d", "label", "period", "process"]
+                    if f.get(k) is not None
+                }
+                for f in d["fields"]
+            ]
+            fields += self.sc.get("extra_fields", {}).get(d["doc_id"], [])
+            return LLMResult({"fields": fields}, model, 2400, 900, 5)
+        d, f = self.by_crop.get(_sha(img), (None, None))
+        if f is None:  # crop of a field the fake added: read it as written
+            return LLMResult({"value_text": "", "legible": False}, model, 300, 10, 2)
+        reading = {
+            "value_text": f.get("alt") or f["value_text"],
+            "value_num": f.get("alt") or f.get("value_num") or "",
+            "unit": "",
+            "legible": True,
+        }
+        reading.update(self.sc.get("second", {}).get((d["doc_id"], f["field_key"], f.get("process")), {}))
+        return LLMResult(reading, model, 300, 12, 2)
+
+    async def text(self, *a: Any, **k: Any) -> LLMResult:  # Explainer (live) rewrite: echo the template
+        prompt = a[2][0]["text"] if len(a) > 2 else k["parts"][0]["text"]
+        return LLMResult(prompt.split("\n\n", 1)[1], a[0] if a else k["model"], 500, 120, 3)
+
+
+def _run(mem_store: Any, fake: FakeGemini, drop_docs: set[str] | None = None) -> dict[str, Any]:
+    from app.agents.workflow import execute
+    from app.demo import loader
+
+    llm.set_gemini(fake)
+    try:
+        p = loader.reset_demo()
+        for d in list(store().list_documents(p.id)):
+            if drop_docs and Path(d.filename).stem in drop_docs:
+                mem_store.documents[p.id].pop(d.id)
+        run = Run(project_id=p.id, mode="live")
+        store().put_run(run)
+        asyncio.run(execute(run, p, "live"))
+        r = store().get_run(p.id, run.id)
+        assert r is not None and r.status == "done", r.error if r else "no run"
+        return {"run": r, "result": store().get_latest_result(p.id), "evidence": store().list_evidence(p.id)}
+    finally:
+        llm.set_gemini(None)
+
+
+def test_skewed_handwritten_scrap_log_routes_to_human_review(mem_store: Any) -> None:
+    """The 6-degree skewed scrap log with a struck-through figure: reader 2 sees 13.4, the graph
+    takes the HumanReview branch and the value waits for a tap."""
+    out = _run(mem_store, FakeGemini())
+    review = [e for e in out["run"].events if e.agent == "HumanReview"]
+    assert review and "15.4" in review[0].output_summary and "13.4" in review[0].output_summary
+    amber = [e for e in out["evidence"] if e.status == "NEEDS_REVIEW"]
+    assert [(e.field_key, e.period, e.process) for e in amber] == [("scrap_t", "2026-06", "P2")]
+    assert out["run"].metrics["tokens_total"] > 0  # live path accounts tokens
+
+
+def test_hindi_headed_register_feeds_activity_levels(mem_store: Any) -> None:
+    """Hindi-headed production register: classified with languages hi+en and its monthly rows
+    become the activity levels (P1 1,275 t, P2 615 t)."""
+    out = _run(mem_store, FakeGemini())
+    p = {x["id"]: x for x in out["result"]["processes"]}
+    assert p["P1"]["al_t"] == "1275.0" and p["P2"]["al_t"] == "615.0"
+    reg = [d for d in store().list_documents("demo-shivalik") if d.doc_type == "production_register"]
+    assert reg and all("hi" in d.languages for d in reg)
+
+
+def test_bill_with_two_periods(mem_store: Any) -> None:
+    """A gas bill that carries an arrears line for the previous month: both periods are kept and the
+    January gas is counted once (the first, best-status reading per month)."""
+    extra = {
+        "gas-2026-02": [
+            {
+                "field_key": "mmbtu",
+                "value_text": "12.500",
+                "value_num": "12.5",
+                "unit": "MMBtu",
+                "box_2d": [600, 600, 620, 700],
+                "label": "Arrears (Jan)",
+                "period": "2026-01",
+            }
+        ]
+    }
+    out = _run(mem_store, FakeGemini({"extra_fields": extra}))
+    gas = out["result"]["calc_tree"]["gas.mmbtu"]
+    assert len(gas["children"]) == 9  # one value per month, the duplicate period does not double count
+    cov = next(c for c in out["result"]["checks"] if c["id"] == "gas.coverage")
+    assert cov["status"] == "pass"
+    assert any(e.label == "Arrears (Jan)" and e.status == "NEEDS_REVIEW" for e in out["evidence"])  # unreadable crop -> review
+
+
+def test_missing_supplier_statement_falls_back_to_default(mem_store: Any) -> None:
+    """Without the rod supplier's verified statement the carbon-steel rod uses the India default
+    with the 2026 mark-up, the gap turns red and the Precursor Lever applies."""
+    out = _run(mem_store, FakeGemini(), drop_docs={"stmt-NWRM-2026"})
+    p1 = next(x for x in out["result"]["processes"] if x["id"] == "P1")
+    assert p1["precursor"]["data"] == "DEFAULT_USED"
+    gap = next(g for g in out["result"]["gaps"] if g["id"] == "precursor_see.P1")
+    assert gap["status"] == "red" and gap["lever"] is True
+    assert float(p1["see"]) > 5  # 4.270 x 1.1 x m + direct
+
+
+def test_mismatched_unit_needs_review(mem_store: Any) -> None:
+    """Reader 2 reads the export net weight as tonnes while reader 1 has kilograms: units differ
+    after normalisation, so the value is not auto-verified."""
+    second = {("export-2026-Q2", "net_mass_kg", "P1"): {"unit": "MT"}}
+    out = _run(mem_store, FakeGemini({"second": second}))
+    e = next(x for x in out["evidence"] if x.field_key == "net_mass_kg" and x.period == "2026-Q2" and x.process == "P1")
+    assert e.status == "NEEDS_REVIEW" and e.second_reading and "units differ" in e.second_reading.reason
+
+
+@pytest.mark.parametrize("model", ["gemini-2.5-flash", "veo-3-preview", "deep-research-pro-preview-12-2025"])
+def test_forbidden_models_are_rejected(model: str) -> None:
+    with pytest.raises(ValueError):
+        llm._check_model(model)
