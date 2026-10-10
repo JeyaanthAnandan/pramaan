@@ -14,6 +14,8 @@ Industrial Efficiency) by team **Innovative Warriors**.
 
 ![Pramaan landing](docs/screenshots/landing.jpg)
 
+<p align="center"><img src="docs/screenshots/evidence-lens.gif" width="640" alt="Load sample factory → click SEE → Evidence Lens down to the highlighted value on the gas bill → approve the handwritten correction"></p>
+
 ## The problem
 
 * The EU CBAM entered its **definitive (payment) phase on 1 January 2026**. EU importers now pay for
