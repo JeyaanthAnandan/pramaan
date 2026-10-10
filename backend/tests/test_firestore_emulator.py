@@ -23,7 +23,7 @@ def test_full_flow_on_firestore() -> None:
 
     try:
         with TestClient(app) as c:
-            assert c.post("/api/demo/load", json={"replay": True}).status_code == 200
+            assert c.post("/api/demo/load", json={"replay": True, "shared": True}).status_code == 200
             ev = c.get("/api/projects/demo-shivalik/evidence").json()
             assert len(ev) == 213
             amber = [e for e in ev if e["status"] == "NEEDS_REVIEW"]

@@ -68,6 +68,7 @@ class RunCtx:
     project: Project
     mode: str  # live | replay
     lang: str = "en"
+    pace: float = 0.0  # replay only: seconds per document step, so people can watch the timeline
     seq: int = 0
     stats: dict[str, Any] = field(default_factory=dict)
     result: dict[str, Any] | None = None
@@ -102,6 +103,8 @@ class RunCtx:
         )
         self.run.events.append(ev)
         BUS.publish(self.run.id, ev)
+        if self.mode == "replay" and self.pace == 0:
+            return  # instant sample loads: the run (with all events) is saved once at the end
         try:
             store().append_event(self.project.id, self.run.id, ev)
         except Exception:  # noqa: S110 - the timeline is best-effort; the run continues
@@ -203,7 +206,7 @@ async def classifier(node_input: dict[str, Any]) -> dict[str, Any]:
             data = replay.classify(d.filename)
             if data is None:
                 raise RuntimeError(f"{d.filename}: not a bundled sample; live processing needs Gemini credentials")
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.05 + c.pace)
             model, tin, tout = replay.REPLAY_MODEL, None, None
         else:
             from app.agents.readers import classify
@@ -249,7 +252,7 @@ async def extractor(node_input: dict[str, Any]) -> dict[str, Any]:
         c.emit("Extractor", "Extracting fields with regions", status="start", input_summary=f"{d.title} ({d.doc_type})", doc_id=d.id)
         if c.mode == "replay":
             rows = replay.extract(d.filename) or []
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.08 + c.pace * 1.6)
             model, tin, tout = replay.REPLAY_MODEL, None, None
             from app.agents.readers import parse_fields
 
@@ -496,8 +499,8 @@ WORKFLOW = Workflow(
 # ------------------------------------------------------------------ run orchestration
 
 
-async def execute(run: Run, project: Project, mode: str, lang: str = "en") -> None:
-    c = RunCtx(run=run, project=project, mode=mode, lang=lang)
+async def execute(run: Run, project: Project, mode: str, lang: str = "en", pace: float = 0.0) -> None:
+    c = RunCtx(run=run, project=project, mode=mode, lang=lang, pace=pace if mode == "replay" else 0.0)
     RUNS[run.id] = c
     st = store()
     t0 = time.perf_counter()

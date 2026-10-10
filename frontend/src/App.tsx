@@ -1,5 +1,7 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+import { rememberProject } from "@/lib/session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -12,6 +14,17 @@ const Architecture = lazy(() => import("@/pages/Architecture"));
 const Copilot = lazy(() => import("@/pages/Copilot"));
 const Share = lazy(() => import("@/pages/Share"));
 const Plan = lazy(() => import("@/pages/Plan"));
+
+function Start() {
+  const nav = useNavigate();
+  useEffect(() => {
+    api.demoLoad().then((r) => {
+      rememberProject(r.project_id);
+      nav(`/p/${r.project_id}/capture`, { replace: true });
+    });
+  }, [nav]);
+  return <Fallback />;
+}
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 
@@ -42,6 +55,7 @@ function Shell() {
           <Route path="/p/:pid" element={<Navigate to="report" replace />} />
           <Route path="/p/:pid/plan" element={<Plan />} />
           <Route path="/p/:pid/:step" element={<Workspace />} />
+          <Route path="/start" element={<Start />} />
           <Route path="/proof" element={<Proof />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/architecture" element={<Architecture />} />

@@ -17,7 +17,7 @@ from app.main import app
 @pytest.fixture()
 def client(mem_store):  # noqa: ARG001
     with TestClient(app) as c:
-        r = c.post("/api/demo/load", json={"replay": True})
+        r = c.post("/api/demo/load", json={"replay": True, "shared": True})
         assert r.status_code == 200, r.text
         yield c
 
@@ -148,3 +148,13 @@ def test_explainer_guard_rejects_invented_numbers(client: TestClient) -> None:
     assert ok
     ok, bad = guard("Your SEE is 1.234 t CO2/t and the buyer pays 999 EUR.", r["calc_tree"])
     assert not ok and "1.234" in bad
+
+
+def test_each_visitor_gets_a_private_sample(client: TestClient) -> None:
+    a = client.post("/api/demo/load", json={}).json()["project_id"]
+    b = client.post("/api/demo/load", json={}).json()["project_id"]
+    assert a != b and a.startswith("demo-") and b.startswith("demo-")
+    ev = [e for e in client.get(f"/api/projects/{a}/evidence").json() if e["status"] == "NEEDS_REVIEW"]
+    client.patch(f"/api/projects/{a}/evidence/{ev[0]['id']}", json={"action": "approve"})
+    still_amber = [e for e in client.get(f"/api/projects/{b}/evidence").json() if e["status"] == "NEEDS_REVIEW"]
+    assert len(still_amber) == 1  # b is unaffected by a's approval

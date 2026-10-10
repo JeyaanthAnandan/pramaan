@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Camera, FileCheck2, Factory, Globe2, Loader2, Play, ScanSearch, ScanEye, Scale, TrendingDown, ExternalLink } from "lucide-react";
 import { api } from "@/lib/api";
+import { rememberProject } from "@/lib/session";
 import { StatusBadge } from "@/components/Status";
 
 interface HeroDoc { doc: string; src: string; w: number; h: number; title: string; fields: { label: string; text: string; unit: string; box: number[]; alt?: string | null }[] }
@@ -81,6 +82,7 @@ export default function Landing() {
     setBusy(live ? "live" : "load");
     try {
       const r = await api.demoLoad(false);
+      rememberProject(r.project_id);
       nav(live ? `/p/${r.project_id}/capture?autorun=1` : `/p/${r.project_id}/report`);
     } catch (e) {
       setErr(String((e as Error).message));

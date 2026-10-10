@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Languages, Menu, Moon, Sun, SunMoon, X } from "lucide-react";
 import { LANGS } from "@/i18n";
+import { lastProject } from "@/lib/session";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
@@ -70,7 +71,7 @@ export function Layout({ children }: { children: ReactNode }) {
     setMenu(false);
   }, [loc.pathname]);
   const links = [
-    { to: "/p/demo-shivalik/capture", label: t("nav.workspace") },
+    { to: lastProject() ? `/p/${lastProject()}/capture` : "/start", label: t("nav.workspace") },
     { to: "/proof", label: t("nav.proof") },
     { to: "/copilot", label: t("nav.copilot") },
     { to: "/metrics", label: t("nav.metrics") },

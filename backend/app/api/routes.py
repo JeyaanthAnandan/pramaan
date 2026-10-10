@@ -184,7 +184,7 @@ async def start_run(pid: str, body: RunRequest, background: BackgroundTasks) -> 
     window.append(t)
     run = Run(project_id=pid, mode=mode)  # type: ignore[arg-type]
     store().put_run(run)
-    background.add_task(execute, run, p, mode, body.lang)
+    background.add_task(execute, run, p, mode, body.lang, 0.35)
     return {"run_id": run.id, "mode": mode}
 
 
@@ -416,11 +416,19 @@ def copilot_examples() -> list[str]:
 
 class DemoLoad(BaseModel):
     replay: bool = False
+    shared: bool = False  # true: reload the shared "demo-shivalik" copy (tests, scripted demos)
 
 
 @router.post("/demo/load")
 async def demo_load(body: DemoLoad | None = None) -> dict[str, Any]:
-    return await loader.load(force_replay=bool(body and body.replay))
+    body = body or DemoLoad()
+    if body.shared:
+        return await loader.load(force_replay=body.replay)
+    try:
+        loader.cleanup_old_demos()
+    except Exception:  # noqa: S110 - cleanup must never block a judge from loading the sample
+        pass
+    return await loader.load(force_replay=body.replay, project_id=loader.new_demo_id())
 
 
 @router.get("/golden")

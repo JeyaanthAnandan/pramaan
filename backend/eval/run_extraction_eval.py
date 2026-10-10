@@ -203,7 +203,9 @@ def write_report(metrics: dict[str, Any]) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["live", "replay"], default="live")
-    ap.add_argument("--capture", action="store_true", help="save the run as demo/cache/live_run.json (live mode)")
+    ap.add_argument(
+        "--capture", action="store_true", help="save the run as demo/cache/<mode>_run.json (loaded by Load sample factory; live preferred)"
+    )
     args = ap.parse_args()
     if args.mode == "live" and not settings().gemini_configured:
         print("Gemini is not configured (no ADC / service account / GEMINI_API_KEY). Run `gcloud auth application-default login` first.")
@@ -216,8 +218,8 @@ def main() -> int:
     metrics["status"] = "ok"
     path.write_text(json.dumps(metrics, indent=1) + "\n")
     write_report(metrics)
-    if args.capture and args.mode == "live" and snapshot["run"]:
-        cache = settings().demo_dir / "cache" / "live_run.json"
+    if args.capture and snapshot["run"]:
+        cache = settings().demo_dir / "cache" / f"{args.mode}_run.json"
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(snapshot) + "\n")
         print(f"demo cache written: {cache}")

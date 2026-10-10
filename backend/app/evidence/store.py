@@ -24,6 +24,7 @@ class Store(Protocol):
     def list_projects(self) -> list[Project]: ...
     def delete_project(self, pid: str) -> None: ...
     def put_document(self, d: Document) -> None: ...
+    def put_documents(self, items: list[Document]) -> None: ...
     def get_document(self, pid: str, doc_id: str) -> Document | None: ...
     def list_documents(self, pid: str) -> list[Document]: ...
     def put_evidence(self, items: list[Evidence]) -> None: ...
@@ -52,13 +53,28 @@ class MemoryStore:
         self.results: dict[str, list[tuple[str, dict[str, Any]]]] = {}
         self.shares: dict[str, ShareLink] = {}
         self.snapshot = snapshot
+        self._timer: threading.Timer | None = None
         if snapshot and snapshot.exists():
             self._load()
 
     # ---- persistence
     def _save(self) -> None:
+        """Debounced: many small writes during a run collapse into one snapshot write."""
         if not self.snapshot:
             return
+        if self._timer is None or not self._timer.is_alive():
+            self._timer = threading.Timer(1.0, self._flush)
+            self._timer.daemon = True
+            self._timer.start()
+
+    def _flush(self) -> None:
+        if not self.snapshot:
+            return
+        with self._lock:
+            self._write()
+
+    def _write(self) -> None:
+        assert self.snapshot
         self.snapshot.parent.mkdir(parents=True, exist_ok=True)
         data = {
             "projects": [p.model_dump() for p in self.projects.values()],
@@ -108,6 +124,12 @@ class MemoryStore:
     def put_document(self, d: Document) -> None:
         with self._lock:
             self.documents.setdefault(d.project_id, {})[d.id] = d
+            self._save()
+
+    def put_documents(self, items: list[Document]) -> None:
+        with self._lock:
+            for d in items:
+                self.documents.setdefault(d.project_id, {})[d.id] = d
             self._save()
 
     def get_document(self, pid: str, doc_id: str) -> Document | None:
@@ -204,6 +226,12 @@ class FirestoreStore:
 
     def put_document(self, d: Document) -> None:
         self._p(d.project_id).collection("documents").document(d.id).set(d.model_dump())
+
+    def put_documents(self, items: list[Document]) -> None:
+        batch = self.db.batch()
+        for d in items:
+            batch.set(self._p(d.project_id).collection("documents").document(d.id), d.model_dump())
+        batch.commit()
 
     def get_document(self, pid: str, doc_id: str) -> Document | None:
         s = self._p(pid).collection("documents").document(doc_id).get()

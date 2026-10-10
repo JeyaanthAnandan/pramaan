@@ -5,10 +5,11 @@ import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
 import { ReadinessRing } from "@/components/Charts";
 import { api } from "@/lib/api";
+import { rememberProject } from "@/lib/session";
 import Capture from "./workspace/Capture";
 import Gaps from "./workspace/Gaps";
 import Report from "./workspace/Report";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Workspace() {
   const { pid = "", step = "report" } = useParams();
@@ -24,6 +25,9 @@ export default function Workspace() {
 function Inner({ step }: { step: string }) {
   const { t } = useTranslation();
   const { pid, bundle, result, loading, error } = useProject();
+  useEffect(() => {
+    if (bundle) rememberProject(pid);
+  }, [bundle, pid]);
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
 
@@ -46,8 +50,8 @@ function Inner({ step }: { step: string }) {
             setBusy(true);
             try {
               const r = await api.demoLoad();
+              rememberProject(r.project_id);
               nav(`/p/${r.project_id}/report`);
-              window.location.reload();
             } finally {
               setBusy(false);
             }

@@ -7,8 +7,10 @@ through the same ADK workflow (mode=replay, clearly labelled).
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
+import secrets
 from pathlib import Path
 from typing import Any
 
@@ -89,46 +91,75 @@ def demo_documents(project_id: str) -> list[Document]:
     return docs
 
 
-def cache_path() -> Path:
-    return settings().demo_dir / "cache" / "live_run.json"
+def cache_path() -> Path | None:
+    """Prefer a captured live Gemini run; fall back to the captured replay snapshot."""
+    for name in ("live_run.json", "replay_run.json"):
+        path = settings().demo_dir / "cache" / name
+        if path.exists():
+            return path
+    return None
 
 
-def reset_demo() -> Project:
+def reset_demo(project_id: str = DEMO_ID) -> Project:
     st = store()
-    st.delete_project(DEMO_ID)
+    st.delete_project(project_id)
     p = demo_project()
+    p.id = project_id
     st.put_project(p)
-    for d in demo_documents(p.id):
-        st.put_document(d)
+    st.put_documents(demo_documents(p.id))
     return p
 
 
-def restore_cached() -> dict[str, Any] | None:
+def new_demo_id() -> str:
+    """Each visitor gets a private copy of the sample, so one judge's approvals never change another's demo."""
+    return f"demo-{secrets.token_hex(5)}"
+
+
+def cleanup_old_demos(max_age_hours: float = 12, limit: int = 25) -> int:
+    """Best-effort removal of stale per-visitor sample copies."""
+    st = store()
+    cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(hours=max_age_hours)
+    removed = 0
+    for p in st.list_projects():
+        if removed >= limit:
+            break
+        if p.is_demo and p.id != DEMO_ID and p.id.startswith("demo-"):
+            try:
+                created = dt.datetime.fromisoformat(p.created_at)
+            except ValueError:
+                continue
+            if created < cutoff:
+                st.delete_project(p.id)
+                removed += 1
+    return removed
+
+
+def restore_cached(project_id: str = DEMO_ID) -> dict[str, Any] | None:
     path = cache_path()
-    if not path.exists():
+    if path is None:
         return None
     snap = json.loads(path.read_text())
     st = store()
-    p = reset_demo()
-    for d in snap["documents"]:
-        st.put_document(Document(**d))
-    st.put_evidence([Evidence(**e) for e in snap["evidence"]])
-    run = Run(**snap["run"])
+    p = reset_demo(project_id)
+    st.put_documents([Document(**{**d, "project_id": p.id}) for d in snap["documents"]])
+    st.put_evidence([Evidence(**{**e, "project_id": p.id}) for e in snap["evidence"]])
+    run = Run(**{**snap["run"], "project_id": p.id})
     st.put_run(run)
     from app.agents.workflow import recalculate
 
     result = recalculate(p.id)
     result["run_id"], result["mode"] = run.id, run.mode
     st.put_result(p.id, run.id, result)
-    return {"project_id": p.id, "run_id": run.id, "source": "cached live run", "captured_at": snap.get("captured_at")}
+    source = "cached live Gemini run" if snap.get("mode") == "live" else "replay of bundled ground truth (Gemini not used)"
+    return {"project_id": p.id, "run_id": run.id, "source": source, "captured_at": snap.get("captured_at")}
 
 
-async def load(force_replay: bool = False) -> dict[str, Any]:
+async def load(force_replay: bool = False, project_id: str = DEMO_ID) -> dict[str, Any]:
     if not force_replay:
-        cached = restore_cached()
+        cached = restore_cached(project_id)
         if cached:
             return cached
-    p = reset_demo()
+    p = reset_demo(project_id)
     from app.agents.workflow import execute
 
     run = Run(project_id=p.id, mode="replay")
