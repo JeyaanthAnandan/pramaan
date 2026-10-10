@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -247,8 +248,9 @@ class FirestoreStore:
         self._p(pid).collection("runs").document(run_id).update({"events": firestore.ArrayUnion([ev.model_dump()])})
 
     def put_result(self, pid: str, run_id: str, result: dict[str, Any]) -> None:
+        # high-precision key: several results (run, recalculations) can land within the same second
         self._p(pid).collection("results").document(run_id).set(
-            {"run_id": run_id, "result_json": json.dumps(result), "created": result.get("computed_at")}
+            {"run_id": run_id, "result_json": json.dumps(result), "created": time.time_ns()}
         )
 
     def get_latest_result(self, pid: str) -> dict[str, Any] | None:

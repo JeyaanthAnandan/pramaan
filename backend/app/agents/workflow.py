@@ -169,7 +169,7 @@ def recalculate(project_id: str, lang: str = "en") -> dict[str, Any]:
     from app.exports.summary import buyer_summary
 
     result["buyer_summary"] = buyer_summary(project, result)
-    st.put_result(project_id, f"recalc-{int(time.time())}", result)
+    st.put_result(project_id, f"recalc-{time.time_ns()}", result)
     return result
 
 
