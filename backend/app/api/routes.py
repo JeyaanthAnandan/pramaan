@@ -1,0 +1,435 @@
+"""REST + SSE API (brief 7.5). All JSON under /api; the SPA is served at /."""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import time
+from collections import defaultdict, deque
+from decimal import Decimal, InvalidOperation
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, Request, UploadFile
+from fastapi.responses import Response, StreamingResponse
+from pydantic import BaseModel
+
+from app import refdata
+from app.agents.workflow import BUS, RUNS, execute, recalculate
+from app.cbam.golden import run_all
+from app.config import settings
+from app.demo import loader
+from app.evidence import blobs
+from app.evidence.models import DOC_TYPES, Document, ProcessDef, Project, Run, ShareLink, now
+from app.evidence.store import store
+
+router = APIRouter(prefix="/api")
+_run_log: dict[str, deque[float]] = defaultdict(deque)
+MAX_UPLOAD = 15 * 1024 * 1024
+ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "application/pdf"}
+
+
+def _project(pid: str) -> Project:
+    p = store().get_project(pid)
+    if p is None:
+        raise HTTPException(404, "project not found")
+    return p
+
+
+def _result(pid: str) -> dict[str, Any]:
+    r = store().get_latest_result(pid)
+    if r is None:
+        raise HTTPException(404, "no results yet - run the agents first")
+    return r
+
+
+# ------------------------------------------------------------------ projects & documents
+
+
+class NewProject(BaseModel):
+    name: str
+    company: str
+    country: str = "India"
+    city: str = ""
+    processes: list[ProcessDef] | None = None
+
+
+@router.post("/projects")
+def create_project(body: NewProject) -> dict[str, Any]:
+    p = Project(
+        name=body.name,
+        company=body.company,
+        country=body.country,
+        city=body.city,
+        processes=body.processes or [pp.model_copy() for pp in loader.PROCESSES],
+    )
+    store().put_project(p)
+    return p.model_dump()
+
+
+@router.get("/projects/{pid}")
+def get_project(pid: str) -> dict[str, Any]:
+    p = _project(pid)
+    st = store()
+    runs = st.list_runs(pid)
+    last = runs[-1] if runs else None
+    return {
+        "project": p.model_dump(),
+        "documents": [d.model_dump() for d in sorted(st.list_documents(pid), key=lambda d: (d.doc_type or "zz", d.filename))],
+        "last_run": last.model_dump(exclude={"events"}) if last else None,
+        "running": any(r.status == "running" for r in runs),
+        "has_result": st.get_latest_result(pid) is not None,
+    }
+
+
+class ProjectPatch(BaseModel):
+    fx_inr_per_eur: str | None = None
+    projection_price_eur: str | None = None
+    supplier_status: dict[str, str] | None = None  # process_id -> status
+
+
+@router.patch("/projects/{pid}")
+def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
+    p = _project(pid)
+    for name in ("fx_inr_per_eur", "projection_price_eur"):
+        v = getattr(body, name)
+        if v is not None:
+            if v == "":
+                setattr(p, name, None)
+            else:
+                try:
+                    d = Decimal(v)
+                except InvalidOperation as exc:
+                    raise HTTPException(422, f"{name} must be a number") from exc
+                if d <= 0 or d > 100000:
+                    raise HTTPException(422, f"{name} out of range")
+                setattr(p, name, str(d))
+    if body.supplier_status:
+        for sr in p.supplier_requests:
+            if sr.process_id in body.supplier_status:
+                st = body.supplier_status[sr.process_id]
+                if st not in {"not_requested", "requested", "received", "verified"}:
+                    raise HTTPException(422, "bad supplier status")
+                sr.status = st  # type: ignore[assignment]
+                sr.updated_at = now()
+    store().put_project(p)
+    if store().get_latest_result(pid):
+        recalculate(pid)
+    return p.model_dump()
+
+
+@router.post("/projects/{pid}/documents")
+async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any]:  # noqa: B008
+    _project(pid)
+    out = []
+    for f in files[:40]:
+        data = await f.read()
+        if len(data) > MAX_UPLOAD:
+            raise HTTPException(413, f"{f.filename}: larger than 15 MB")
+        ctype = (f.content_type or "").lower()
+        if ctype not in ALLOWED:
+            raise HTTPException(415, f"{f.filename}: unsupported type {ctype}")
+        d = Document(project_id=pid, filename=f.filename or "upload", content_type=ctype, uri="pending")
+        d.uri, d.sha256 = blobs.save(pid, d.id, d.filename, data, ctype)
+        try:
+            from io import BytesIO
+
+            from PIL import Image
+
+            if ctype.startswith("image/") and ctype not in {"image/heic", "image/heif"}:
+                im = Image.open(BytesIO(data))
+                d.width, d.height = im.size
+        except Exception:  # noqa: S110 - size is optional metadata
+            pass
+        store().put_document(d)
+        out.append(d.model_dump())
+    return {"documents": out}
+
+
+@router.get("/projects/{pid}/documents/{doc_id}/image")
+def document_image(pid: str, doc_id: str) -> Response:
+    d = store().get_document(pid, doc_id)
+    if d is None:
+        raise HTTPException(404, "document not found")
+    return Response(blobs.load(d.uri), media_type=d.content_type, headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ------------------------------------------------------------------ runs + SSE
+
+
+class RunRequest(BaseModel):
+    lang: str = "en"
+    mode: str | None = None  # "live" | "replay" | None (auto)
+
+
+@router.post("/projects/{pid}/runs")
+async def start_run(pid: str, body: RunRequest, background: BackgroundTasks) -> dict[str, Any]:
+    p = _project(pid)
+    cfg = settings()
+    window = _run_log[pid]
+    t = time.time()
+    while window and t - window[0] > 3600:
+        window.popleft()
+    if len(window) >= cfg.max_runs_per_hour:
+        raise HTTPException(429, "run limit reached for this project; try again later")
+    if any(r.status == "running" for r in store().list_runs(pid)):
+        raise HTTPException(409, "a run is already in progress")
+    mode = body.mode or ("live" if (cfg.gemini_configured and cfg.live_runs_enabled) else "replay")
+    if mode == "live" and not cfg.gemini_configured:
+        raise HTTPException(503, "Gemini is not configured on this server; use replay mode")
+    if p.is_demo:
+        for d in store().list_documents(pid):  # re-run every agent on the sample docs
+            d.state = "uploaded"
+            d.doc_type = None
+            store().put_document(d)
+    window.append(t)
+    run = Run(project_id=pid, mode=mode)  # type: ignore[arg-type]
+    store().put_run(run)
+    background.add_task(execute, run, p, mode, body.lang)
+    return {"run_id": run.id, "mode": mode}
+
+
+@router.get("/projects/{pid}/runs")
+def list_runs(pid: str) -> list[dict[str, Any]]:
+    return [r.model_dump(exclude={"events"}) for r in store().list_runs(pid)]
+
+
+@router.get("/projects/{pid}/runs/{run_id}")
+def get_run(pid: str, run_id: str) -> dict[str, Any]:
+    r = store().get_run(pid, run_id)
+    if r is None:
+        raise HTTPException(404, "run not found")
+    return r.model_dump()
+
+
+@router.get("/projects/{pid}/runs/{run_id}/events")
+async def run_events(pid: str, run_id: str, request: Request) -> StreamingResponse:
+    async def gen():  # type: ignore[no-untyped-def]
+        r = store().get_run(pid, run_id)
+        live = RUNS.get(run_id)
+        q = BUS.subscribe(run_id)
+        try:
+            sent = 0
+            history = live.run.events if live else (r.events if r else [])
+            for ev in list(history):
+                sent = max(sent, ev.seq)
+                yield f"event: timeline\ndata: {ev.model_dump_json()}\n\n"
+            if not live:
+                final = store().get_run(pid, run_id)
+                yield f"event: end\ndata: {json.dumps({'status': final.status if final else 'unknown'})}\n\n"
+                return
+            while True:
+                if await request.is_disconnected():
+                    return
+                try:
+                    ev = await asyncio.wait_for(q.get(), timeout=15)  # type: ignore[arg-type]
+                except TimeoutError:
+                    yield ": keep-alive\n\n"
+                    continue
+                if ev is None:
+                    final = store().get_run(pid, run_id)
+                    yield f"event: end\ndata: {json.dumps({'status': final.status if final else 'unknown', 'metrics': final.metrics if final else {}})}\n\n"
+                    return
+                if ev.seq <= sent:
+                    continue
+                sent = ev.seq
+                yield f"event: timeline\ndata: {ev.model_dump_json()}\n\n"
+        finally:
+            BUS.unsubscribe(run_id, q)
+
+    return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+# ------------------------------------------------------------------ evidence & results
+
+
+@router.get("/projects/{pid}/evidence")
+def list_evidence(pid: str) -> list[dict[str, Any]]:
+    _project(pid)
+    return [e.model_dump() for e in store().list_evidence(pid)]
+
+
+class EvidencePatch(BaseModel):
+    action: str  # approve | edit
+    value_text: str | None = None
+    value_num: str | None = None
+    user: str = "owner"
+    notes: str | None = None
+
+
+@router.patch("/projects/{pid}/evidence/{eid}")
+def patch_evidence(pid: str, eid: str, body: EvidencePatch) -> dict[str, Any]:
+    st = store()
+    x = st.get_evidence(pid, eid)
+    if x is None:
+        raise HTTPException(404, "evidence not found")
+    before = {"value_text": x.value_text, "value_num": x.value_num, "status": x.status}
+    if body.action == "edit":
+        if body.value_text is None:
+            raise HTTPException(422, "value_text required for edit")
+        x.value_text = body.value_text
+        if body.value_num is not None:
+            try:
+                Decimal(body.value_num)
+            except InvalidOperation as exc:
+                raise HTTPException(422, "value_num must be a number") from exc
+            x.value_num = body.value_num
+    elif body.action != "approve":
+        raise HTTPException(422, "action must be approve or edit")
+    x.status = "APPROVED"
+    x.approved_by = (body.user or "owner")[:60]
+    x.approved_at = now()
+    x.notes = body.notes
+    x.history.append({"at": x.approved_at, "by": x.approved_by, "action": body.action, "before": before})
+    st.put_evidence([x])
+    result = recalculate(pid)
+    return {"evidence": x.model_dump(), "readiness": result["readiness"]}
+
+
+@router.get("/projects/{pid}/results")
+def results(pid: str) -> dict[str, Any]:
+    _project(pid)
+    return _result(pid)
+
+
+# ------------------------------------------------------------------ exports & share
+
+
+@router.get("/projects/{pid}/export/{kind}")
+def export(pid: str, kind: str, lang: str = "en") -> Response:
+    p = _project(pid)
+    r = _result(pid)
+    st = store()
+    from app.exports import pack, pdf, xlsx
+
+    stamp = r["computed_at"][:10]
+    if kind == "pdf":
+        return Response(
+            pdf.render(p, r, lang),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="pramaan-cbam-report-{stamp}.pdf"'},
+        )
+    if kind == "xlsx":
+        return Response(
+            xlsx.render(p, r, st.list_evidence(pid), st.list_documents(pid)),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="pramaan-cbam-workbook-{stamp}.xlsx"'},
+        )
+    if kind == "pack":
+        return Response(
+            pack.render(p, r, st.list_evidence(pid), st.list_documents(pid), st.list_runs(pid)),
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="pramaan-verifier-pack-{stamp}.zip"'},
+        )
+    raise HTTPException(404, "unknown export")
+
+
+@router.post("/projects/{pid}/share")
+def share(pid: str) -> dict[str, Any]:
+    p = _project(pid)
+    r = _result(pid)
+    s = ShareLink(project_id=p.id, summary_snapshot=r["buyer_summary"])
+    store().put_share(s)
+    base = settings().public_base_url
+    return {"token": s.token, "url": f"{base}/share/{s.token}" if base else f"/share/{s.token}"}
+
+
+@router.get("/share/{token}")
+def get_share(token: str) -> dict[str, Any]:
+    s = store().get_share(token)
+    if s is None:
+        raise HTTPException(404, "link not found or expired")
+    return {"summary": s.summary_snapshot, "created_at": s.created_at}
+
+
+# ------------------------------------------------------------------ letters, plan, copilot
+
+
+class LetterRequest(BaseModel):
+    process_id: str
+    lang: str = "en"
+
+
+@router.post("/projects/{pid}/supplier-letter")
+def supplier_letter(pid: str, body: LetterRequest) -> dict[str, Any]:
+    p = _project(pid)
+    r = _result(pid)
+    from app.exports.letters import supplier_letter as make
+
+    proc = next((x for x in p.processes if x.id == body.process_id), None)
+    if proc is None:
+        raise HTTPException(404, "process not found")
+    letter = make(p, proc, r, body.lang)
+    for sr in p.supplier_requests:
+        if sr.process_id == proc.id and sr.status == "not_requested":
+            sr.status = "requested"
+            sr.updated_at = now()
+            sr.letter_lang = body.lang
+    store().put_project(p)
+    return letter
+
+
+@router.get("/projects/{pid}/monitoring-plan")
+def monitoring_plan(pid: str, lang: str = "en") -> dict[str, Any]:
+    p = _project(pid)
+    r = _result(pid)
+    from app.exports.monitoring_plan import build
+
+    return build(p, r, store().list_documents(pid), lang)
+
+
+class Ask(BaseModel):
+    question: str
+    lang: str = "en"
+
+
+@router.post("/copilot/ask")
+async def copilot_ask(body: Ask) -> dict[str, Any]:
+    from app.copilot.service import answer
+
+    q = body.question.strip()
+    if not q or len(q) > 500:
+        raise HTTPException(422, "question must be 1-500 characters")
+    return await answer(q, body.lang)
+
+
+@router.get("/copilot/examples")
+def copilot_examples() -> list[str]:
+    from app.copilot.service import EXAMPLES
+
+    return EXAMPLES
+
+
+# ------------------------------------------------------------------ demo, golden, metrics, refdata
+
+
+class DemoLoad(BaseModel):
+    replay: bool = False
+
+
+@router.post("/demo/load")
+async def demo_load(body: DemoLoad | None = None) -> dict[str, Any]:
+    return await loader.load(force_replay=bool(body and body.replay))
+
+
+@router.get("/golden")
+def golden() -> dict[str, Any]:
+    t0 = time.perf_counter()
+    out = run_all()
+    out["duration_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+    out["ran_at"] = now()
+    return out
+
+
+@router.get("/metrics")
+def metrics() -> dict[str, Any]:
+    path = settings().demo_dir.parent / "backend" / "eval" / "metrics.json"
+    alt = settings().demo_dir / "cache" / "metrics.json"
+    for p_ in (path, alt):
+        if p_.exists():
+            return json.loads(p_.read_text())
+    return {"status": "not_run", "note": "Run backend/eval/run_extraction_eval.py to produce metrics."}
+
+
+@router.get("/refdata")
+def refdata_summary() -> dict[str, Any]:
+    return {"files": refdata.summary(), "doc_types": DOC_TYPES}

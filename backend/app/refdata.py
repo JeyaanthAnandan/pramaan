@@ -10,7 +10,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from decimal import Decimal
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +60,7 @@ def manifest() -> dict[str, Any]:
     return json.loads((REFDATA_DIR / "manifest.json").read_text())
 
 
-@lru_cache(maxsize=None)
+@cache
 def data(name: str) -> dict[str, Any]:
     return _load(name)
 
@@ -122,7 +122,13 @@ def annex_iv_value(cn: str) -> Ref:
     for n in range(len(cnd), 3, -1):
         row = table.get(cnd[:n])
         if row and row.get("total"):
-            return Ref(Decimal(row["total"]), "t CO2e/t", "default_values_iron_steel.json", f"Annex IV, CN {row['cn_display']}", extra={"route": row.get("route")})
+            return Ref(
+                Decimal(row["total"]),
+                "t CO2e/t",
+                "default_values_iron_steel.json",
+                f"Annex IV, CN {row['cn_display']}",
+                extra={"route": row.get("route")},
+            )
     raise RefdataError(f"no Annex IV value for {cn}")
 
 
@@ -189,16 +195,36 @@ def year_params(year: int) -> dict[str, Ref]:
     if y is None:
         raise RefdataError(f"no CBAM schedule for {year}")
     return {
-        "cbam_factor": Ref(Decimal(y["cbam_factor"]), "-", "cbam_schedule.json", f"Guidance 4 Table 2-1, {year}", citation=y["cbam_factor_citation"]),
-        "cscf": Ref(Decimal(y["cscf"]), "-", "cbam_schedule.json", f"CSCF {year}", status="official" if y["cscf_status"] == "official" else "preliminary", citation=y["cscf_citation"]),
-        "default_markup": Ref(Decimal(y.get("default_markup", "0")), "-", "cbam_schedule.json", f"Default value mark-up {year}", citation=y.get("markup_citation", {})),
+        "cbam_factor": Ref(
+            Decimal(y["cbam_factor"]), "-", "cbam_schedule.json", f"Guidance 4 Table 2-1, {year}", citation=y["cbam_factor_citation"]
+        ),
+        "cscf": Ref(
+            Decimal(y["cscf"]),
+            "-",
+            "cbam_schedule.json",
+            f"CSCF {year}",
+            status="official" if y["cscf_status"] == "official" else "preliminary",
+            citation=y["cscf_citation"],
+        ),
+        "default_markup": Ref(
+            Decimal(y.get("default_markup", "0")),
+            "-",
+            "cbam_schedule.json",
+            f"Default value mark-up {year}",
+            citation=y.get("markup_citation", {}),
+        ),
     }
 
 
 def quarter_price(year: int, quarter: int) -> Ref:
     q = data("certificate_prices.json")["quarters"].get(f"{year}-Q{quarter}")
     if q and q.get("price_eur"):
-        return Ref(Decimal(q["price_eur"]), "EUR/certificate", "certificate_prices.json", f"EC price page, Q{quarter} {year} (published {q['published']})")
+        return Ref(
+            Decimal(q["price_eur"]),
+            "EUR/certificate",
+            "certificate_prices.json",
+            f"EC price page, Q{quarter} {year} (published {q['published']})",
+        )
     if year == 2026 and quarter == 4:
         return assumption("q4_2026_price_eur")
     return assumption("projection_price_eur")
@@ -210,8 +236,20 @@ def fuel(key: str) -> dict[str, Ref]:
         raise RefdataError(f"unknown fuel {key}")
     cit = f["citation"]
     return {
-        "ef": Ref(Decimal(f["ef_t_co2_per_tj"]), "t CO2/TJ", "fuel_factors.json", f"Methodology Act Annex II s.G Table 1: {f['name']} EF", citation=cit),
-        "ncv": Ref(Decimal(f["ncv_tj_per_gg"]), "TJ/Gg", "fuel_factors.json", f"Methodology Act Annex II s.G Table 1: {f['name']} NCV", citation=cit),
+        "ef": Ref(
+            Decimal(f["ef_t_co2_per_tj"]),
+            "t CO2/TJ",
+            "fuel_factors.json",
+            f"Methodology Act Annex II s.G Table 1: {f['name']} EF",
+            citation=cit,
+        ),
+        "ncv": Ref(
+            Decimal(f["ncv_tj_per_gg"]),
+            "TJ/Gg",
+            "fuel_factors.json",
+            f"Methodology Act Annex II s.G Table 1: {f['name']} NCV",
+            citation=cit,
+        ),
     }
 
 
@@ -223,7 +261,14 @@ def assumption(key: str) -> Ref:
         val = Decimal(a["value"])
     except Exception:  # non-numeric assumption (e.g. allocation key)
         val = Decimal(0)
-    return Ref(val, a.get("unit", "-"), "assumptions.json", a["citation"], status="assumption", extra={k: v for k, v in a.items() if k not in {"value"}} | {"raw": a["value"]})
+    return Ref(
+        val,
+        a.get("unit", "-"),
+        "assumptions.json",
+        a["citation"],
+        status="assumption",
+        extra={k: v for k, v in a.items() if k not in {"value"}} | {"raw": a["value"]},
+    )
 
 
 def summary() -> list[dict[str, Any]]:

@@ -43,7 +43,9 @@ class Settings:
     bucket: str = field(default_factory=lambda: _env("PRAMAAN_BUCKET", ""))
     static_dir: Path = field(default_factory=lambda: Path(_env("PRAMAAN_STATIC_DIR", str(BACKEND_DIR.parent / "frontend" / "dist"))))
     demo_dir: Path = field(default_factory=lambda: Path(_env("PRAMAAN_DEMO_DIR", str(BACKEND_DIR.parent / "demo"))))
-    regulation_dir: Path = field(default_factory=lambda: Path(_env("PRAMAAN_REGULATION_DIR", str(BACKEND_DIR.parent / "docs" / "regulation"))))
+    regulation_dir: Path = field(
+        default_factory=lambda: Path(_env("PRAMAAN_REGULATION_DIR", str(BACKEND_DIR.parent / "docs" / "regulation")))
+    )
 
     live_runs_enabled: bool = field(default_factory=lambda: _bool("LIVE_RUNS_ENABLED", True))
     max_runs_per_hour: int = field(default_factory=lambda: int(_env("MAX_RUNS_PER_HOUR", "12")))
@@ -54,7 +56,10 @@ class Settings:
         if self.gemini_mode == "api_key":
             return bool(_env("GEMINI_API_KEY") or _env("GOOGLE_API_KEY"))
         # Vertex mode relies on Application Default Credentials (Cloud Run service account).
-        return _bool("GEMINI_VERTEX_READY", default=bool(_env("K_SERVICE"))) or _adc_present()
+        explicit = _env("GEMINI_VERTEX_READY")
+        if explicit:
+            return explicit.lower() in {"1", "true", "yes", "on"}
+        return bool(_env("K_SERVICE")) or _adc_present()
 
 
 def _adc_present() -> bool:

@@ -8,9 +8,9 @@ tolerance of +/-0.002 t CO2/t for SEE/SEFA.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Callable
 
 from app import refdata
 from app.cbam import engine as e
@@ -135,7 +135,12 @@ CASES: dict[str, GoldenCase] = {
             "G1",
             "Example 3 - carbon-steel screws and nuts: SEE",
             f"{GUIDANCE}, s.4.3, Tables 4-12 and 4-13, p. 53",
-            {"AL": "17,000 t", "rod consumed": "20,000 t (scrap 3,000 t)", "rod SEE": "1.567", "natural gas": "3.5 GJ(NCV)/t, EF 56.1 t CO2/TJ"},
+            {
+                "AL": "17,000 t",
+                "rod consumed": "20,000 t (scrap 3,000 t)",
+                "rod SEE": "1.567",
+                "natural gas": "3.5 GJ(NCV)/t, EF 56.1 t CO2/TJ",
+            },
             (
                 Expect("direct", "Direct (natural gas)", D("0.196"), TOL, "t CO2/t"),
                 Expect("precursor", "Precursor (rod)", D("1.843"), TOL, "t CO2/t"),
@@ -160,7 +165,13 @@ CASES: dict[str, GoldenCase] = {
             "G3",
             "Example 1 - SEFA of rails, import year 2027",
             f"{GUIDANCE}, s.4.1, Table 4-6 (p. 43) and SEFA_2027 formula (p. 44)",
-            {"BM col. A (rails)": "0.057", "m crude steel": "1.042", "SEFA crude steel": "1.156", "CBAM factor 2027": "from refdata (Guidance 4 Table 2-1)", "CSCF": "1 (Decision 2026/1862)"},
+            {
+                "BM col. A (rails)": "0.057",
+                "m crude steel": "1.042",
+                "SEFA crude steel": "1.156",
+                "CBAM factor 2027": "from refdata (Guidance 4 Table 2-1)",
+                "CSCF": "1 (Decision 2026/1862)",
+            },
             (
                 Expect("sefa", "SEFA rails", D("1.261"), TOL, "t CO2/t"),
                 Expect("sefa_2027", "SEFA rails, 2027", D("1.198"), TOL, "t CO2/t"),

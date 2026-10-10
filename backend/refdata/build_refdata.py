@@ -303,7 +303,11 @@ def parse_prices(path: Path) -> dict[str, Any]:
         }
     if not quarters.get("2026-Q1", {}).get("price_eur"):
         raise LookupError("Q1 2026 price missing")
-    return {"unit": "EUR per CBAM certificate", "quarters": quarters, "from_2027": "weekly prices (not modelled; projections use an assumption)"}
+    return {
+        "unit": "EUR per CBAM certificate",
+        "quarters": quarters,
+        "from_2027": "weekly prices (not modelled; projections use an assumption)",
+    }
 
 
 # ---------------------------------------------------------------- build

@@ -80,10 +80,22 @@ class Tree:
         self.nodes[node.id] = node
         return node
 
-    def leaf(self, id: str, label: str, value: Decimal | None, unit: str, *, source: dict[str, Any], status: str, note: str | None = None) -> Node:
+    def leaf(
+        self, id: str, label: str, value: Decimal | None, unit: str, *, source: dict[str, Any], status: str, note: str | None = None
+    ) -> Node:
         return self._put(Node(id, label, value, unit, None, [], source, status, note))
 
-    def calc(self, id: str, label: str, value: Decimal | None, unit: str, formula: str, children: list[str], note: str | None = None, status: str = CALCULATED) -> Node:
+    def calc(
+        self,
+        id: str,
+        label: str,
+        value: Decimal | None,
+        unit: str,
+        formula: str,
+        children: list[str],
+        note: str | None = None,
+        status: str = CALCULATED,
+    ) -> Node:
         for c in children:
             if c not in self.nodes:
                 raise ValueError(f"{id}: unknown child {c}")

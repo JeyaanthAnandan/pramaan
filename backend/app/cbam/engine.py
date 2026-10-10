@@ -14,9 +14,9 @@ they call the Calculator tool, which wraps this module.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal, getcontext
-from typing import Sequence
 
 getcontext().prec = 34
 
@@ -81,7 +81,7 @@ def see(al_t: Decimal, attributed_emissions_t: Decimal, precursors: Sequence[Pre
     _pos("attributed_emissions_t", attributed_emissions_t)
     direct = attributed_emissions_t / al_t
     ms = tuple(mass_ratio(p.mass_t, al_t) for p in precursors)
-    contrib = tuple(m * _pos("precursor see", p.see) for m, p in zip(ms, precursors))
+    contrib = tuple(m * _pos("precursor see", p.see) for m, p in zip(ms, precursors, strict=True))
     pre = sum(contrib, ZERO)
     return SEEResult(al_t, direct, pre, direct + pre, ms, contrib)
 

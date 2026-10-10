@@ -21,6 +21,8 @@ ignore = ["S101", "S311", "B008", "E501", "S603", "S607"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S"]
 "eval/*" = ["S"]
+# nested helpers in compute() are called within the same loop iteration that defines them
+"app/cbam/project.py" = ["B023"]
 
 [tool.mypy]
 python_version = "3.12"

@@ -54,7 +54,17 @@ def test_markups_from_refdata(year: int, markup: str) -> None:
 
 @pytest.mark.parametrize(
     "year,factor",
-    [(2026, "0.975"), (2027, "0.95"), (2028, "0.9"), (2029, "0.775"), (2030, "0.515"), (2031, "0.39"), (2032, "0.265"), (2033, "0.14"), (2034, "0")],
+    [
+        (2026, "0.975"),
+        (2027, "0.95"),
+        (2028, "0.9"),
+        (2029, "0.775"),
+        (2030, "0.515"),
+        (2031, "0.39"),
+        (2032, "0.265"),
+        (2033, "0.14"),
+        (2034, "0"),
+    ],
 )
 def test_cbam_factor_schedule(year: int, factor: str) -> None:
     assert refdata.year_params(year)["cbam_factor"].value == D(factor)
