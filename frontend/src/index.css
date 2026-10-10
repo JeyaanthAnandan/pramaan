@@ -1,0 +1,110 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource/noto-sans-devanagari/400.css";
+@import "@fontsource/noto-sans-devanagari/600.css";
+@import "@fontsource/noto-sans-tamil/400.css";
+@import "@fontsource/noto-sans-tamil/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colour carries status only. Neutral ink-on-paper otherwise; one accent for primary actions. */
+:root {
+  color-scheme: light;
+  --page: 249 249 247;
+  --surface: 253 253 252;
+  --sunk: 243 242 238;
+  --ink: 22 22 21;
+  --ink2: 82 81 78;
+  --muted: 111 109 104;
+  --line: 228 227 220;
+  --line2: 200 199 189;
+  --accent: 31 79 209;
+  --accentink: 255 255 255;
+  --good: 12 163 12;
+  --goodink: 0 105 0;
+  --goodbg: 230 245 232;
+  --warn: 250 178 25;
+  --warnink: 133 86 0;
+  --warnbg: 253 244 220;
+  --bad: 208 59 59;
+  --badink: 166 33 33;
+  --badbg: 251 232 230;
+  /* chart series (validated: dataviz validator, light, all-pairs) */
+  --s1: 42 120 214;
+  --s2: 235 104 52;
+  --s3: 27 175 122;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: 18 18 17;
+    --surface: 26 26 25;
+    --sunk: 33 33 31;
+    --ink: 240 239 236;
+    --ink2: 195 194 183;
+    --muted: 152 150 142;
+    --line: 46 46 44;
+    --line2: 64 64 60;
+    --accent: 104 148 255;
+    --accentink: 10 10 12;
+    --good: 12 163 12;
+    --goodink: 92 205 120;
+    --goodbg: 21 42 25;
+    --warn: 250 178 25;
+    --warnink: 250 194 82;
+    --warnbg: 48 38 15;
+    --bad: 208 59 59;
+    --badink: 244 128 122;
+    --badbg: 54 22 22;
+    --s1: 57 135 229;
+    --s2: 217 89 38;
+    --s3: 25 158 112;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: 18 18 17;
+  --surface: 26 26 25;
+  --sunk: 33 33 31;
+  --ink: 240 239 236;
+  --ink2: 195 194 183;
+  --muted: 152 150 142;
+  --line: 46 46 44;
+  --line2: 64 64 60;
+  --accent: 104 148 255;
+  --accentink: 10 10 12;
+  --good: 12 163 12;
+  --goodink: 92 205 120;
+  --goodbg: 21 42 25;
+  --warn: 250 178 25;
+  --warnink: 250 194 82;
+  --warnbg: 48 38 15;
+  --bad: 208 59 59;
+  --badink: 244 128 122;
+  --badbg: 54 22 22;
+  --s1: 57 135 229;
+  --s2: 217 89 38;
+  --s3: 25 158 112;
+}
+
+html, body { background: rgb(var(--page)); color: rgb(var(--ink)); }
+body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+html[lang="hi"] body { font-family: "Noto Sans Devanagari", "Inter Variable", system-ui, sans-serif; }
+html[lang="ta"] body { font-family: "Noto Sans Tamil", "Inter Variable", system-ui, sans-serif; }
+
+@layer components {
+  .card { @apply rounded-2xl border border-line bg-surface shadow-card; }
+  .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-accent text-accentink hover:brightness-110 active:brightness-95; }
+  .btn-ghost { @apply btn border border-line2 bg-surface text-ink hover:bg-sunk; }
+  .btn-quiet { @apply btn min-h-[36px] px-3 text-ink2 hover:bg-sunk hover:text-ink; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-ink2; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted; }
+  .num { font-variant-numeric: tabular-nums; }
+  .link { @apply text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent; }
+  .clickable-num { @apply cursor-pointer rounded-md decoration-dotted underline-offset-4 transition hover:bg-accent/10 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60; }
+}
+
+::selection { background: rgb(var(--accent) / 0.18); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

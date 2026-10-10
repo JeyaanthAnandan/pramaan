@@ -389,11 +389,12 @@ async def control_checks(node_input: dict[str, Any]) -> dict[str, Any]:
     checks = run_checks(c.project, st.list_evidence(c.project.id), st.list_documents(c.project.id))
     c.stats["checks"] = checks
     passed = sum(1 for k in checks if k["status"] == "pass")
+    fails = [k["id"] for k in checks if k["status"] == "fail"]
     c.emit(
         "ControlChecks",
         "Cross-document checks (code)",
         input_summary="mass balance, stock, gas, exports, CN",
-        output_summary=f"{passed}/{len(checks)} pass · " + ", ".join(k["id"] for k in checks if k["status"] == "fail")[:200],
+        output_summary=f"{passed}/{len(checks)} pass" + ("" if not fails else " · fail: " + ", ".join(fails)[:200]),
         duration_ms=int((time.perf_counter() - t0) * 1000),
         model="deterministic",
     )

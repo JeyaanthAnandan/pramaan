@@ -1,0 +1,125 @@
+[
+ {
+  "doc": "gas-2026-03",
+  "src": "/hero/gas-2026-03.jpg",
+  "w": 1278,
+  "h": 1600,
+  "title": "Gas invoice March 2026",
+  "fields": [
+   {
+    "label": "Gas volume",
+    "text": "21,192",
+    "unit": "SCM",
+    "box": [
+     344,
+     467,
+     360,
+     522
+    ],
+    "alt": null
+   },
+   {
+    "label": "Gross calorific value",
+    "text": "9,555",
+    "unit": "kcal/SCM",
+    "box": [
+     351,
+     598,
+     366,
+     644
+    ],
+    "alt": null
+   },
+   {
+    "label": "Gas energy (GCV)",
+    "text": "803.543",
+    "unit": "MMBtu",
+    "box": [
+     357,
+     731,
+     374,
+     795
+    ],
+    "alt": null
+   }
+  ]
+ },
+ {
+  "doc": "scrap-2026-06-to-09",
+  "src": "/hero/scrap-2026-06-to-09.jpg",
+  "w": 1278,
+  "h": 1600,
+  "title": "Scrap log p.2 (handwritten)",
+  "fields": [
+   {
+    "label": "Carbon steel scrap",
+    "text": "25.1",
+    "unit": "t",
+    "box": [
+     228,
+     311,
+     255,
+     351
+    ],
+    "alt": null
+   },
+   {
+    "label": "Stainless scrap",
+    "text": "15.4",
+    "unit": "t",
+    "box": [
+     205,
+     542,
+     236,
+     624
+    ],
+    "alt": "13.4"
+   },
+   {
+    "label": "Carbon steel scrap",
+    "text": "24.7",
+    "unit": "t",
+    "box": [
+     277,
+     317,
+     305,
+     358
+    ],
+    "alt": null
+   }
+  ]
+ },
+ {
+  "doc": "stmt-NWRM-2026",
+  "src": "/hero/stmt-NWRM-2026.jpg",
+  "w": 1278,
+  "h": 1600,
+  "title": "Supplier emissions statement (Northern Wire Rod Mills)",
+  "fields": [
+   {
+    "label": "Rod SEE (supplier, verified)",
+    "text": "1.567",
+    "unit": "t CO2e/t",
+    "box": [
+     355,
+     489,
+     371,
+     538
+    ],
+    "alt": null
+   },
+   {
+    "label": "Rod SEFA (supplier, verified)",
+    "text": "1.242",
+    "unit": "t CO2e/t",
+    "box": [
+     378,
+     487,
+     395,
+     537
+    ],
+    "alt": null
+   }
+  ]
+ }
+]

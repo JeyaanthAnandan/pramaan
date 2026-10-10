@@ -1,0 +1,46 @@
+// Vietnamese (JAPAC signal). Missing keys fall back to English.
+const vi = {
+  app: {
+    tagline: "Bằng chứng CBAM từ một tấm ảnh điện thoại.",
+    provisional: "Tạm thời — dữ liệu từ đầu năm, chưa được tổ chức thẩm định được công nhận xác minh.",
+    sample: "Nhà máy mẫu — hư cấu",
+    replay: "Phát lại mẫu đi kèm (không dùng Gemini)",
+    live: "Chạy Gemini trực tiếp",
+    disclaimer: "Pramaan không thay thế tổ chức thẩm định được công nhận.",
+  },
+  nav: { home: "Trang chủ", workspace: "Không gian làm việc", proof: "Bằng chứng EC", metrics: "Chỉ số", architecture: "Kiến trúc", copilot: "Trợ lý quy định", theme: "Giao diện", language: "Ngôn ngữ", skip: "Đến nội dung" },
+  landing: {
+    eyebrow: "EU CBAM · sắt thép · giai đoạn chính thức từ 1/1/2026",
+    title: "Bằng chứng CBAM từ một tấm ảnh điện thoại.",
+    lead: "Pramaan biến ảnh hóa đơn, chứng từ và sổ sản xuất thành dữ liệu EU CBAM sẵn sàng thẩm định cho các nhà xuất khẩu thép nhỏ — mỗi con số đều dẫn về đúng vị trí trên trang giấy.",
+    load: "Mở nhà máy mẫu", loading: "Đang tải mẫu…", live: "Xử lý trực tiếp", live_hint: "Chạy lại mọi agent trên 24 tài liệu mẫu",
+    sample_desc: "Shivalik Fasteners (MẪU), Ludhiana: bu lông thép carbon và inox cho người mua Đức. 24 tài liệu chụp ảnh, có cả chữ viết tay tiếng Hindi/Punjabi.",
+    steps_title: "Ba bước, mỗi bước một câu hỏi",
+    step1_t: "Thêm tài liệu", step1_d: "Chụp hóa đơn gas, hóa đơn thép cuộn, sổ sản xuất. Các agent phân loại, đọc và khoanh vùng từng giá trị.",
+    step2_t: "Còn thiếu gì?", step2_d: "Danh sách kiểm tra theo dòng sản phẩm. Hai AI đọc độc lập khớp → xanh. Lệch → bạn chạm để duyệt.",
+    step3_t: "Đây là bằng chứng của bạn", step3_d: "Phát thải hàm chứa riêng theo mã CN, chi phí của người mua bằng € và ₹, và gói hồ sơ cho thẩm định viên.",
+    why_title: "Vì sao cần ngay bây giờ",
+    jp: "Nhà xuất khẩu ở Việt Nam, Trung Quốc, Hàn Quốc và Indonesia gặp cùng vấn đề — Pramaan được xây dựng cho JAPAC.",
+    src: "Nguồn", proof_strip: "Đã tái lập các ví dụ của EC", proof_cta: "Xem bằng chứng",
+  },
+  steps: { capture: "Chụp", gaps: "Bổ sung", report: "Báo cáo", capture_q: "Thêm tài liệu.", gaps_q: "Còn thiếu gì?", report_q: "Đây là bằng chứng của bạn." },
+  capture: { drop: "Thả ảnh hoặc PDF vào đây", or: "hoặc", choose: "Chọn tệp", camera: "Chụp ảnh", docs: "Tài liệu", run: "Chạy agent", running: "Agent đang làm việc…", rerun: "Chạy lại", none: "Chưa có tài liệu.", next: "Bổ sung dữ liệu" },
+  timeline: { title: "Hoạt động của agent", empty: "Bắt đầu một lần chạy để xem các agent làm việc.", receipt: "Biên nhận lần chạy", tokens: "token", running: "đang chạy", done: "xong", error: "lỗi", review: "cần bạn", agree: "khớp", fields: "giá trị" },
+  gaps: {
+    title: "Còn thiếu gì?", lead: "Xanh = hai AI đọc khớp nhau. Vàng = cần bạn duyệt. Đỏ = thiếu hoặc dùng giá trị mặc định EU.", all_clear: "Không còn gì cần duyệt.",
+    group_review: "Cần bạn duyệt", group_precursor: "Nguyên liệu đầu vào (precursor)", group_activity: "Dữ liệu sản xuất", group_energy: "Nhiên liệu & điện", group_exports: "Xuất khẩu sang EU", group_extra: "Thông số bổ sung (Guidance 5d, Table 3-1)", group_control: "Dữ liệu kiểm soát",
+    approve_value: "Duyệt {{value}}", edit: "Sửa", save: "Lưu", cancel: "Hủy", reader1: "Người đọc 1 · cả trang", reader2: "Người đọc 2 · chỉ vùng cắt",
+    kinds: {
+      review: { t: "Kiểm tra giá trị: {{label}}", q: "Hai người đọc không khớp. Người đọc 1: {{first}}, người đọc 2 (vùng cắt): {{second}}." },
+      precursor_see: { t: "Phát thải của {{precursor}} mua vào", q_actual: "{{supplier}} đã gửi dữ liệu đã thẩm định: SEE {{see}} t CO2/t.", q_default: "Chưa có dữ liệu đã thẩm định từ {{supplier}}. Dùng mặc định EU {{default_value}} t CO2/t + 10 % mark-up. Hãy hỏi nhà cung cấp — đây là đòn bẩy lớn nhất." },
+    },
+  },
+  report: { title: "Đây là bằng chứng của bạn", readiness: "Mức sẵn sàng", see: "Phát thải hàm chứa riêng (SEE)", own: "Quy trình nội bộ", precursor: "Precursor", certs: "Chứng chỉ cho hàng nhập 2026", cost: "Chi phí CBAM của người mua, 2026", contribution: "Phát thải đến từ đâu", checks: "Kiểm tra đối chiếu", click_hint: "Nhấn vào bất kỳ con số nào để mở Evidence Lens." },
+  money: { title: "Tiền đang bị bỏ lỡ", actual: "Với dữ liệu của bạn", default: "Theo giá trị mặc định EU", whatif: "Nếu nhà cung cấp gửi dữ liệu", gap: "chênh lệch mỗi tấn", myth_t: "Sự thật" },
+  lever: { title: "Đòn bẩy precursor", letter: "Thư yêu cầu dữ liệu gửi nhà cung cấp" },
+  exports: { title: "Chia sẻ & xuất", pdf: "Báo cáo PDF", xlsx: "Sổ Excel", pack: "Gói thẩm định (.zip)", buyer: "Liên kết cho người mua", create: "Tạo liên kết" },
+  status: { VERIFIED_2R: "Đã xác minh · 2 người đọc", APPROVED: "Đã duyệt", NEEDS_REVIEW: "Cần kiểm tra", MISSING: "Thiếu", DEFAULT_USED: "Dùng mặc định", ASSUMPTION: "Giả định", green: "OK", amber: "Kiểm tra", red: "Thiếu / mặc định", pass: "Đạt", fail: "Không đạt", warn: "Cảnh báo" },
+  doctype: { electricity_bill: "Hóa đơn điện", gas_invoice: "Hóa đơn gas", precursor_invoice: "Hóa đơn thép cuộn", supplier_emissions_statement: "Bản kê phát thải của NCC", production_register: "Sổ sản xuất", scrap_log: "Sổ phế liệu", export_invoice: "Hóa đơn xuất khẩu", other: "Khác" },
+  common: { loading: "Đang tải…", error: "Đã xảy ra lỗi", retry: "Thử lại", close: "Đóng", back: "Quay lại" },
+};
+export default vi;

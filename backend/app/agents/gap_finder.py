@@ -8,9 +8,57 @@ human tap, red = missing or on default values.
 
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from app.agents.second_reader import parse_num
+from app.cbam.engine import within
 from app.evidence.models import Document, Evidence, Project
+
+BALANCE_KEYS = {"scrap_t", "produced_t", "rod_consumed_t"}
+
+
+def balance_hint(x: Evidence, evidence: list[Evidence]) -> dict[str, Any] | None:
+    """Monthly mass balance for the same product line: which reading closes it? (code, not LLM)"""
+    if x.field_key not in BALANCE_KEYS or not x.process or not x.period:
+        return None
+    same = {
+        e.field_key: e for e in evidence if e.process == x.process and e.period == x.period and e.field_key in BALANCE_KEYS and e.id != x.id
+    }
+
+    def v(k: str) -> Decimal:
+        return Decimal(same[k].value_num or "0")
+
+    try:
+        if x.field_key == "scrap_t" and {"rod_consumed_t", "produced_t"} <= same.keys():
+            implied, formula = (
+                v("rod_consumed_t") - v("produced_t"),
+                f"rod {same['rod_consumed_t'].value_text} − produced {same['produced_t'].value_text}",
+            )
+        elif x.field_key == "produced_t" and {"rod_consumed_t", "scrap_t"} <= same.keys():
+            implied, formula = (
+                v("rod_consumed_t") - v("scrap_t"),
+                f"rod {same['rod_consumed_t'].value_text} − scrap {same['scrap_t'].value_text}",
+            )
+        elif x.field_key == "rod_consumed_t" and {"produced_t", "scrap_t"} <= same.keys():
+            implied, formula = (
+                v("produced_t") + v("scrap_t"),
+                f"produced {same['produced_t'].value_text} + scrap {same['scrap_t'].value_text}",
+            )
+        else:
+            return None
+    except InvalidOperation:
+        return None
+    first = parse_num(x.value_num or x.value_text)
+    second = parse_num(x.second_reading.reading_value) if x.second_reading else None
+    tol = Decimal("0.02")
+    supports = (
+        "first"
+        if first is not None and within(first, implied, tol)
+        else ("second" if second is not None and within(second, implied, tol) else None)
+    )
+    return {"implied": str(implied), "formula": formula, "supports": supports}
+
 
 GOOD = {"VERIFIED_2R", "APPROVED"}
 
@@ -192,6 +240,7 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
                         "doc_title": d.title if d else x.doc_id,
                         "period": x.period,
                         "unit": x.unit,
+                        "balance": balance_hint(x, evidence),
                     },
                     "evidence_ids": [x.id],
                     "suggested_doc": d.doc_type if d else None,
