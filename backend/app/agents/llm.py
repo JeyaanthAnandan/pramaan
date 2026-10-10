@@ -13,12 +13,15 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass
 from typing import Any
 
 from app.config import settings
+
+log = logging.getLogger("pramaan.llm")
 
 FORBIDDEN_PREFIXES = ("gemini-1", "gemini-2", "veo-", "deep-research")
 
@@ -65,6 +68,107 @@ class Gemini:
         self.mode = cfg.gemini_mode
         self._sem = asyncio.Semaphore(int(os.environ.get("GEMINI_CONCURRENCY", "8")))
 
+    # Interactions API first; if this project's endpoint does not serve it (404 / unimplemented),
+    # fall back once to models.generate_content with the same schema, thinking level and media
+    # resolution, and remember the choice for the rest of the process.
+    use_interactions: bool = True
+
+    @staticmethod
+    def _unavailable(exc: Exception) -> bool:
+        msg = str(exc)
+        return any(
+            k in msg for k in ("404", "NOT_FOUND", "Not Found", "not found", "UNIMPLEMENTED", "501", "not supported", "Unknown name")
+        )
+
+    async def _call(
+        self,
+        model: str,
+        system: str | None,
+        parts: list[dict[str, Any]],
+        schema: dict[str, Any] | None = None,
+        thinking_level: str | None = "low",
+        transcription_config: dict[str, Any] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+    ) -> tuple[str, int | None, int | None]:
+        if self.use_interactions:
+            body: dict[str, Any] = {"model": model, "input": parts, "store": False}
+            if system:
+                body["system_instruction"] = system
+            if schema is not None:
+                body["response_format"] = {"type": "text", "mime_type": "application/json", "schema": schema}
+            gen: dict[str, Any] = {}
+            if thinking_level:
+                gen["thinking_level"] = thinking_level
+            if transcription_config:
+                gen["transcription_config"] = transcription_config
+            if gen:
+                body["generation_config"] = gen
+            if tools:
+                body["tools"] = tools
+            try:
+                async with self._sem:
+                    it: Any = await self.client.aio.interactions.create(**body)
+                text = it.output_text or ""
+                if not text and getattr(it, "steps", None):
+                    text = "".join(getattr(getattr(st, "content", None), "text", "") or "" for st in it.steps)
+                u = it.usage
+                tin = getattr(u, "total_input_tokens", None) if u else None
+                tout = ((getattr(u, "total_output_tokens", 0) or 0) + (getattr(u, "total_thought_tokens", 0) or 0)) if u else None
+                return text, tin, tout
+            except Exception as exc:
+                if not self._unavailable(exc):
+                    raise
+                log.warning("Interactions API unavailable (%s); falling back to models.generate_content", str(exc)[:160])
+                self.use_interactions = False
+        return await self._generate(model, system, parts, schema, thinking_level, transcription_config)
+
+    async def _generate(
+        self,
+        model: str,
+        system: str | None,
+        parts: list[dict[str, Any]],
+        schema: dict[str, Any] | None,
+        thinking_level: str | None,
+        transcription_config: dict[str, Any] | None,
+    ) -> tuple[str, int | None, int | None]:
+        from google.genai import types
+
+        if transcription_config:  # speech-only model: use Flash audio understanding instead
+            model, system, thinking_level = (
+                settings().model_flash,
+                "Transcribe the audio verbatim in its original script. Output only the transcript.",
+                "low",
+            )
+            parts = [{"type": "text", "text": "Transcribe this voice note."}, *parts]
+        gparts: list[Any] = []
+        hi_res = False
+        for prt in parts:
+            if prt["type"] == "text":
+                gparts.append(types.Part(text=prt["text"]))
+            else:
+                gparts.append(types.Part.from_bytes(data=base64.b64decode(prt["data"]), mime_type=prt["mime_type"]))
+                hi_res |= prt.get("resolution") == "high"
+        cfg: dict[str, Any] = {}
+        if system:
+            cfg["system_instruction"] = system
+        if schema is not None:
+            cfg["response_mime_type"] = "application/json"
+            cfg["response_json_schema"] = schema
+        if thinking_level:
+            cfg["thinking_config"] = types.ThinkingConfig(thinking_level=types.ThinkingLevel(thinking_level.upper()))
+        if hi_res:
+            cfg["media_resolution"] = "MEDIA_RESOLUTION_HIGH"
+        async with self._sem:
+            r: Any = await self.client.aio.models.generate_content(
+                model=model, contents=types.Content(role="user", parts=gparts), config=types.GenerateContentConfig(**cfg)
+            )
+        um = getattr(r, "usage_metadata", None)
+        return (
+            (r.text or ""),
+            getattr(um, "prompt_token_count", None),
+            (getattr(um, "candidates_token_count", 0) or 0) + (getattr(um, "thoughts_token_count", 0) or 0),
+        )
+
     async def json(
         self,
         model: str,
@@ -75,33 +179,12 @@ class Gemini:
         retries: int = 2,
     ) -> LLMResult:
         _check_model(model)
-        body: dict[str, Any] = {
-            "model": model,
-            "system_instruction": system,
-            "input": parts,
-            "response_format": {"type": "text", "mime_type": "application/json", "schema": schema},
-            "generation_config": {"thinking_level": thinking_level},
-            "store": False,
-        }
         last: Exception | None = None
         for attempt in range(retries + 1):
             t0 = time.perf_counter()
             try:
-                async with self._sem:
-                    it = await self.client.aio.interactions.create(**body)
-                text = it.output_text or ""
-                if not text and it.steps:
-                    text = "".join(getattr(getattr(s, "content", None), "text", "") or "" for s in it.steps)
-                data = json.loads(text)
-                u = it.usage
-                return LLMResult(
-                    data=data,
-                    model=model,
-                    tokens_in=getattr(u, "total_input_tokens", None) if u else None,
-                    tokens_out=((getattr(u, "total_output_tokens", 0) or 0) + (getattr(u, "total_thought_tokens", 0) or 0)) if u else None,
-                    duration_ms=int((time.perf_counter() - t0) * 1000),
-                    raw_text=text,
-                )
+                text, tin, tout = await self._call(model, system, parts, schema, thinking_level)
+                return LLMResult(json.loads(text), model, tin, tout, int((time.perf_counter() - t0) * 1000), text)
             except json.JSONDecodeError as exc:
                 last = exc
             except Exception as exc:  # network / quota: back off and retry
@@ -113,45 +196,18 @@ class Gemini:
         """Speech-to-text model (no thinking, no system instruction)."""
         _check_model(model)
         t0 = time.perf_counter()
-        async with self._sem:
-            it: Any = await self.client.aio.interactions.create(
-                model=model, input=[audio], generation_config={"transcription_config": transcription_config}, store=False
-            )
-        u = it.usage
+        text, tin, tout = await self._call(model, None, [audio], None, None, transcription_config)
         return LLMResult(
-            data=it.output_text or "",
-            model=model,
-            tokens_in=getattr(u, "total_input_tokens", None) if u else None,
-            tokens_out=getattr(u, "total_output_tokens", None) if u else None,
-            duration_ms=int((time.perf_counter() - t0) * 1000),
-            raw_text=it.output_text or "",
+            text, model if self.use_interactions else settings().model_flash, tin, tout, int((time.perf_counter() - t0) * 1000), text
         )
 
     async def text(
         self, model: str, system: str, parts: list[dict[str, Any]], thinking_level: str = "low", tools: list[dict[str, Any]] | None = None
     ) -> LLMResult:
         _check_model(model)
-        body: dict[str, Any] = {
-            "model": model,
-            "system_instruction": system,
-            "input": parts,
-            "generation_config": {"thinking_level": thinking_level},
-            "store": False,
-        }
-        if tools:
-            body["tools"] = tools
         t0 = time.perf_counter()
-        async with self._sem:
-            it = await self.client.aio.interactions.create(**body)
-        u = it.usage
-        return LLMResult(
-            data=it.output_text or "",
-            model=model,
-            tokens_in=getattr(u, "total_input_tokens", None) if u else None,
-            tokens_out=getattr(u, "total_output_tokens", None) if u else None,
-            duration_ms=int((time.perf_counter() - t0) * 1000),
-            raw_text=it.output_text or "",
-        )
+        text, tin, tout = await self._call(model, system, parts, None, thinking_level, tools=tools)
+        return LLMResult(text, model, tin, tout, int((time.perf_counter() - t0) * 1000), text)
 
 
 _client: Gemini | None = None
