@@ -215,6 +215,23 @@ function EvidenceView({ node }: { node: CalcNode }) {
   const src = s.doc_id ? imageUrl(pid, s.doc_id) : "";
   const aspect = doc?.width && doc?.height ? doc.width / doc.height : 0.75;
   const tone = { good: "good", warn: "warn", bad: "bad", neutral: "accent", info: "accent" }[toneOf(node.status)] as "good" | "warn" | "bad" | "accent";
+  if (doc?.content_type.startsWith("audio/")) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-line bg-surface p-3">
+          <div className="eyebrow mb-2">{t("doctype.voice_note", { defaultValue: "Voice note" })}</div>
+          <audio controls src={src} className="w-full" />
+          <p className="mt-2 whitespace-pre-wrap text-[13px] text-ink2">{ev?.notes}</p>
+          <p className="mt-1 font-mono text-[11px] text-muted">{ev?.extractor_model}</p>
+        </div>
+        {ev?.approved_by && (
+          <p className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warnbg px-3 py-2 text-xs text-warnink">
+            <UserCheck className="h-4 w-4" /> {t("lens.approved")} {t("lens.by")} <b>{ev.approved_by}</b> · {when(ev.approved_at)}
+          </p>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="space-y-4">
       <DocImage src={src} box={s.box_2d} alt={`${s.doc_title}: ${node.label}`} aspect={aspect} tone={tone} label={doc ? t(`doctype.${doc.doc_type}`, { defaultValue: doc.doc_type ?? "" }) : undefined} />

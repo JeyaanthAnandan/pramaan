@@ -106,7 +106,7 @@ const hi = {
     approved: "मंज़ूर", by: "द्वारा", open_doc: "पूरा दस्तावेज़ खोलें", refdata: "आधिकारिक संदर्भ डेटा", assumption: "घोषित अनुमान", published: "प्रकाशित", locator: "कहाँ", back: "पीछे", value: "मान", as_read: "पन्ने पर जैसा लिखा है", status: "स्थिति", calc: "गणना", scenario: "परिदृश्य (what-if)", sha: "SHA-256", official: "आधिकारिक स्रोत खोलें",
   },
   status: { VERIFIED_2R: "सत्यापित · 2 पाठक", APPROVED: "मंज़ूर", NEEDS_REVIEW: "जाँच चाहिए", MISSING: "कमी", DEFAULT_USED: "Default लगा", ASSUMPTION: "अनुमान", REFDATA: "आधिकारिक मान", CALCULATED: "गणना", SCENARIO: "What-if", PENDING: "लंबित", green: "ठीक", amber: "जाँचें", red: "कमी / default", info: "जानकारी", pass: "पास", fail: "फ़ेल", warn: "चेतावनी" },
-  doctype: { electricity_bill: "बिजली बिल", gas_invoice: "गैस बिल", fuel_invoice: "ईंधन इनवॉइस", precursor_invoice: "रॉड इनवॉइस", supplier_emissions_statement: "सप्लायर उत्सर्जन विवरण", production_register: "उत्पादन रजिस्टर", scrap_log: "स्क्रैप लॉग", export_invoice: "निर्यात इनवॉइस", other: "अन्य" },
+  doctype: { voice_note: "वॉइस नोट", electricity_bill: "बिजली बिल", gas_invoice: "गैस बिल", fuel_invoice: "ईंधन इनवॉइस", precursor_invoice: "रॉड इनवॉइस", supplier_emissions_statement: "सप्लायर उत्सर्जन विवरण", production_register: "उत्पादन रजिस्टर", scrap_log: "स्क्रैप लॉग", export_invoice: "निर्यात इनवॉइस", other: "अन्य" },
   buyer: { title: "आपके आयात के लिए CBAM डेटा", for_importer: "EU आयातक (authorised CBAM declarant) के लिए", goods: "माल", see_direct: "SEE (direct)", route: "उत्पादन मार्ग", precursors: "Precursor डेटा", extra: "अतिरिक्त पैरामीटर", period: "रिपोर्टिंग अवधि", operator: "ऑपरेटर", generated: "बनाया गया", none: "यह लिंक मान्य नहीं है।" },
   proof: {
     title: "EC उदाहरण दोबारा सिद्ध", lead: "हर बार यह पेज खुलने पर इंजन Commission के अपने worked examples (Guidance No. 5d, 14 अगस्त 2026) की लाइव गणना करता है।",
@@ -119,6 +119,7 @@ const hi = {
   metrics: { title: "मूल्यांकन मेट्रिक्स", lead: "24-दस्तावेज़ सिंथेटिक सेट पर extraction की सटीकता, दो-पाठक सहमति और समय। असली संख्याएँ, लक्ष्य से कम हों तब भी।", pending: "इस deployment पर अभी कोई लाइव Gemini मूल्यांकन नहीं चला है।", target: "लक्ष्य", field_acc: "फ़ील्ड सटीकता", agreement: "दो-पाठक सहमति", review_rate: "मानव-जाँच दर", per_doc: "प्रति दस्तावेज़ समय", total: "25 अपलोड → रिपोर्ट" },
   copilot: { title: "नियम सहायक", lead: "CBAM पद्धति के बारे में पूछें। उत्तर आधिकारिक EC guidance के पेज का हवाला देते हैं।", placeholder: "अपने इस्पात उत्पादों के CBAM के बारे में पूछें…", ask: "पूछें", examples: "आज़माएँ", retrieval: "इस सर्वर पर Gemini कॉन्फ़िगर नहीं है: ये आधिकारिक guidance के सबसे प्रासंगिक पेज हैं।", passages: "Guidance से", page: "पृ." },
   arch: { title: "आर्किटेक्चर", lead: "asia-southeast1 में एक Cloud Run सेवा (API + ऐप)। Agent Platform (global) पर Gemini। Firestore + Cloud Storage। LLM कभी गणना नहीं करता।" },
+  voice: { answer: "आवाज़ से उत्तर दें", record: "रिकॉर्ड", stop: "रोकें", heard: "सुना", none: "कोई मात्रा नहीं मिली", needs_live: "आवाज़ से उत्तर के लिए लाइव Gemini चाहिए (इस सर्वर पर कॉन्फ़िगर नहीं)" },
   common: { loading: "लोड हो रहा है…", error: "कुछ गलत हुआ", retry: "फिर कोशिश करें", close: "बंद करें", open: "खोलें", back: "पीछे", t: "t", of: "में से", yes: "हाँ", no: "नहीं", new: "नया", demo: "डेमो", print: "प्रिंट" },
 };
 export default hi;

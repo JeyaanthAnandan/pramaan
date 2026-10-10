@@ -9,7 +9,7 @@ from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
@@ -19,7 +19,7 @@ from app.cbam.golden import run_all
 from app.config import settings
 from app.demo import loader
 from app.evidence import blobs
-from app.evidence.models import DOC_TYPES, Document, ProcessDef, Project, Run, ShareLink, now
+from app.evidence.models import DOC_TYPES, Document, Evidence, ProcessDef, Project, Run, ShareLink, now
 from app.evidence.store import store
 
 router = APIRouter(prefix="/api")
@@ -182,6 +182,8 @@ async def start_run(pid: str, body: RunRequest, background: BackgroundTasks) -> 
         raise HTTPException(503, "Gemini is not configured on this server; use replay mode")
     if p.is_demo:
         for d in store().list_documents(pid):  # re-run every agent on the sample docs
+            if d.content_type.startswith("audio/"):
+                continue  # voice notes are evidence already; they are not re-read as images
             d.state = "uploaded"
             d.doc_type = None
             store().put_document(d)
@@ -355,6 +357,86 @@ def get_share(token: str) -> dict[str, Any]:
     if s is None:
         raise HTTPException(404, "link not found or expired")
     return {"summary": s.summary_snapshot, "created_at": s.created_at}
+
+
+# ------------------------------------------------------------------ voice notes (X1)
+
+AUDIO_TYPES = {"audio/webm", "audio/ogg", "audio/mp4", "audio/m4a", "audio/mpeg", "audio/wav", "audio/aac"}
+VOICE_FIELDS = {"scrap_t", "produced_t", "rod_consumed_t"}
+
+
+@router.post("/projects/{pid}/voice")
+async def voice_note(
+    pid: str,
+    audio: UploadFile = File(...),  # noqa: B008
+    field_key: str = Form(...),
+    process: str = Form(...),
+    period: str = Form(...),
+    lang: str = Form("hi"),
+) -> dict[str, Any]:
+    """A supervisor answers a gap question by voice (Hindi, Punjabi, Tamil, English)."""
+    from app.agents.voice import read_value, transcribe
+
+    p = _project(pid)
+    if not settings().gemini_configured:
+        raise HTTPException(503, "Voice notes need live Gemini (gemini-3.5-transcribe), which is not configured on this server.")
+    if field_key not in VOICE_FIELDS or process not in {x.id for x in p.processes} or period not in p.months:
+        raise HTTPException(422, "unknown field, process or month")
+    data = await audio.read()
+    if not data or len(data) > 5 * 1024 * 1024:
+        raise HTTPException(413, "voice note must be under 5 MB (about 30 s)")
+    mime = (audio.content_type or "audio/webm").split(";")[0].lower()
+    if mime not in AUDIO_TYPES:
+        raise HTTPException(415, f"unsupported audio type {mime}")
+    lang = lang if lang in {"hi", "pa", "ta", "en"} else "hi"
+    proc = next(x for x in p.processes if x.id == process)
+    d = Document(
+        project_id=pid,
+        filename=f"voice-{field_key}-{process}-{period}.{mime.split('/')[1]}",
+        content_type=mime,
+        uri="pending",
+        doc_type="voice_note",
+        languages=[lang],
+        period=[period, period],
+        state="extracted",
+        title=f"Voice note · {proc.name} · {period}",
+    )
+    d.uri, d.sha256 = blobs.save(pid, d.id, d.filename, data, mime)
+    store().put_document(d)
+    t = await transcribe(data, mime, lang)
+    transcript = str(t.data).strip()
+    r = await read_value(transcript, field_key, period, lang)
+    v = r.data if isinstance(r.data, dict) else {}
+    num: str | None = None
+    try:
+        num = str(Decimal(str(v.get("value_num", "")).strip())) if v.get("found") else None
+    except InvalidOperation:
+        num = None
+    if num is None:
+        return {"document": d.model_dump(), "transcript": transcript, "evidence": None, "note": "No quantity found in the voice note."}
+    unit = str(v.get("unit") or "t").strip().lower()
+    if unit in {"kg", "kgs", "किलो", "ਕਿਲੋ", "கிலோ"}:
+        num, unit = str(Decimal(num) / 1000), "t"
+    else:
+        unit = "t"
+    ev = Evidence(
+        project_id=pid,
+        doc_id=d.id,
+        field_key=field_key,
+        label=f"Voice note · {proc.name}",
+        value_text=str(v.get("value_text", "")) or num,
+        value_num=num,
+        unit=unit,
+        box_2d=None,
+        period=period,
+        process=process,
+        extractor_model=f"{t.model} + {r.model}",
+        status="NEEDS_REVIEW",
+        notes=f"Transcript ({lang}): {transcript}\nQuote: {v.get('quote', '')}",
+    )
+    store().put_evidence([ev])
+    recalculate(pid)
+    return {"document": d.model_dump(), "transcript": transcript, "evidence": ev.model_dump()}
 
 
 # ------------------------------------------------------------------ letters, plan, copilot

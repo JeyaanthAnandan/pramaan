@@ -36,6 +36,7 @@ class Settings:
     model_flash: str = field(default_factory=lambda: _env("MODEL_FLASH", "gemini-3.8-flash"))
     model_lite: str = field(default_factory=lambda: _env("MODEL_LITE", "gemini-3.5-flash-lite"))
     model_embedding: str = field(default_factory=lambda: _env("MODEL_EMBEDDING", "gemini-embedding-2"))
+    model_transcribe: str = field(default_factory=lambda: _env("MODEL_TRANSCRIBE", "gemini-3.5-transcribe"))
     file_search_store: str = field(default_factory=lambda: _env("FILE_SEARCH_STORE", ""))
 
     store_backend: str = field(default_factory=lambda: _env("STORE_BACKEND", "memory"))  # memory | firestore

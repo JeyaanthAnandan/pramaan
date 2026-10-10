@@ -179,3 +179,66 @@ def test_mismatched_unit_needs_review(mem_store: Any) -> None:
 def test_forbidden_models_are_rejected(model: str) -> None:
     with pytest.raises(ValueError):
         llm._check_model(model)
+
+
+class FakeVoice(FakeGemini):
+    async def transcribe(self, model: str, audio: dict[str, Any], transcription_config: dict[str, Any]) -> LLMResult:
+        assert model == "gemini-3.5-transcribe" and transcription_config["language_codes"] == ["hi-IN"]
+        return LLMResult("अगस्त में साढ़े चौदह टन स्क्रैप निकला", model, 50, 20, 4)
+
+    async def json(
+        self, model: str, system: str, parts: list[dict[str, Any]], schema: dict[str, Any], thinking_level: str = "low", retries: int = 2
+    ) -> LLMResult:
+        if "found" in schema.get("properties", {}):
+            return LLMResult(
+                {"found": True, "value_text": "साढ़े चौदह टन", "value_num": "14.5", "unit": "t", "quote": "साढ़े चौदह टन स्क्रैप"},
+                model,
+                80,
+                30,
+                3,
+            )
+        return await super().json(model, system, parts, schema, thinking_level, retries)
+
+
+def test_voice_note_closes_a_gap_after_confirmation(mem_store: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """X1: a Hindi voice answer becomes evidence (audio + transcript), amber until a person confirms it."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    llm.set_gemini(FakeVoice())
+    monkeypatch.setenv("GEMINI_VERTEX_READY", "1")
+    try:
+        with TestClient(app) as c:
+            c.post("/api/demo/load", json={"replay": True, "shared": True})
+            r = c.post(
+                "/api/projects/demo-shivalik/voice",
+                data={"field_key": "scrap_t", "process": "P2", "period": "2026-08", "lang": "hi"},
+                files={"audio": ("v.webm", b"\x1a\x45\xdf\xa3fake-webm", "audio/webm")},
+            )
+            assert r.status_code == 200, r.text
+            ev = r.json()["evidence"]
+            assert ev["value_num"] == "14.5" and ev["status"] == "NEEDS_REVIEW" and "साढ़े चौदह" in ev["notes"]
+            gaps = c.get("/api/projects/demo-shivalik/results").json()["gaps"]
+            assert any(g["group"] == "review" and ev["id"] in g["evidence_ids"] for g in gaps)
+            ok = c.patch(f"/api/projects/demo-shivalik/evidence/{ev['id']}", json={"action": "approve", "user": "Supervisor"})
+            assert ok.json()["evidence"]["status"] == "APPROVED"
+            audio = c.get(f"/api/projects/demo-shivalik/documents/{ev['doc_id']}/image")
+            assert audio.headers["content-type"].startswith("audio/webm")
+    finally:
+        llm.set_gemini(None)
+
+
+def test_voice_needs_live_gemini(mem_store: Any) -> None:
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    with TestClient(app) as c:
+        c.post("/api/demo/load", json={"replay": True, "shared": True})
+        r = c.post(
+            "/api/projects/demo-shivalik/voice",
+            data={"field_key": "scrap_t", "process": "P2", "period": "2026-08"},
+            files={"audio": ("v.webm", b"x", "audio/webm")},
+        )
+        assert r.status_code == 503

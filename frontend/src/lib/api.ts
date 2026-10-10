@@ -130,7 +130,7 @@ export interface TimelineEvent { seq: number; ts: string; agent: string; action:
 export interface Run { id: string; project_id: string; mode: "live" | "replay"; status: "running" | "done" | "error"; started_at: string; finished_at: string | null; metrics: Record<string, any>; error: string | null; events?: TimelineEvent[] }
 
 export interface ProjectBundle {
-  project: { id: string; name: string; company: string; country: string; city: string; year: number; period_label: string; is_demo: boolean; fx_inr_per_eur: string | null; projection_price_eur: string | null;
+  project: { id: string; name: string; company: string; country: string; city: string; year: number; period_label: string; months: string[]; is_demo: boolean; fx_inr_per_eur: string | null; projection_price_eur: string | null;
     supplier_requests: { process_id: string; supplier: string; status: "not_requested" | "requested" | "received" | "verified"; updated_at: string }[];
     processes: { id: string; name: string; cn: string; cn_display: string; precursor_name: string; precursor_supplier: string }[] };
   documents: Doc[];

@@ -17,6 +17,7 @@ DocType = Literal[
     "production_register",
     "scrap_log",
     "export_invoice",
+    "voice_note",
     "other",
 ]
 DOC_TYPES: list[str] = list(DocType.__args__)  # type: ignore[attr-defined]

@@ -41,7 +41,7 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
 * Run live Gemini once; inspect extraction misses in `backend/eval/report.md`; tune prompts if field accuracy < 95 %.
 * Firestore store implementation is written against the documented schema but only exercised once deployed (local runs use the in-memory store).
 * Vietnamese UI is partial (falls back to English); Tamil covers the main flow.
-* Stretch items not started: vernacular voice notes (X1), decarbonisation what-if beyond the supplier toggle (X2), Annex IV operator-report alignment (X3).
+* Stretch X1 (vernacular voice) is implemented: mic button on monthly gap rows → `gemini-3.5-transcribe` (Hindi/Punjabi/English; Tamil via Gemini 3.8 Flash audio) → Gemini reads the stated quantity → evidence with audio + transcript, amber until a person confirms. Tested with a scripted model in CI; **needs live Gemini to try for real**. Not started: X2 decarbonisation what-if beyond the supplier toggle, X3 Annex IV operator-report alignment.
 * Freeze the deployed version from 18 Oct; tag `v1.0-submission`.
 
 ## Useful commands

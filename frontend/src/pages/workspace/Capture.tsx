@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Camera, FolderUp, Loader2, Play, RotateCw, Upload } from "lucide-react";
+import { ArrowRight, Camera, FolderUp, Loader2, Mic, Play, RotateCw, Upload } from "lucide-react";
 import { api, imageUrl, type Doc } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { AgentTimeline, useRunEvents } from "@/components/AgentTimeline";
@@ -152,7 +152,13 @@ function DocCard({ d, pid, count, busy }: { d: Doc; pid: string; count: number; 
   return (
     <li className="card overflow-hidden">
       <div className="relative aspect-[4/5] overflow-hidden bg-sunk">
-        <img src={imageUrl(pid, d.id)} alt={d.title || d.filename} loading="lazy" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.03]" />
+        {d.content_type.startsWith("audio/") ? (
+          <div className="grid h-full w-full place-items-center bg-sunk text-muted">
+            <Mic className="h-8 w-8" aria-hidden />
+          </div>
+        ) : (
+          <img src={imageUrl(pid, d.id)} alt={d.title || d.filename} loading="lazy" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.03]" />
+        )}
         {busy && <div className="absolute inset-0 grid place-items-center bg-page/50 backdrop-blur-[1px]"><Loader2 className="h-5 w-5 animate-spin text-accent" /></div>}
         {d.languages?.length > 0 && (
           <div className="absolute right-1.5 top-1.5 flex gap-1">

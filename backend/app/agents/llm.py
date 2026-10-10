@@ -109,6 +109,24 @@ class Gemini:
                 await asyncio.sleep(1.5 * (attempt + 1))
         raise RuntimeError(f"Gemini call failed after {retries + 1} attempts: {last}")
 
+    async def transcribe(self, model: str, audio: dict[str, Any], transcription_config: dict[str, Any]) -> LLMResult:
+        """Speech-to-text model (no thinking, no system instruction)."""
+        _check_model(model)
+        t0 = time.perf_counter()
+        async with self._sem:
+            it: Any = await self.client.aio.interactions.create(
+                model=model, input=[audio], generation_config={"transcription_config": transcription_config}, store=False
+            )
+        u = it.usage
+        return LLMResult(
+            data=it.output_text or "",
+            model=model,
+            tokens_in=getattr(u, "total_input_tokens", None) if u else None,
+            tokens_out=getattr(u, "total_output_tokens", None) if u else None,
+            duration_ms=int((time.perf_counter() - t0) * 1000),
+            raw_text=it.output_text or "",
+        )
+
     async def text(
         self, model: str, system: str, parts: list[dict[str, Any]], thinking_level: str = "low", tools: list[dict[str, Any]] | None = None
     ) -> LLMResult:

@@ -33,7 +33,7 @@ Industrial Efficiency) by team **Innovative Warriors**.
 
 ## What it does — three steps, one question each
 
-| 1 · **Add your documents** | 2 · **What's missing?** | 3 · **Here's your proof** |
+| 1 · **Add your documents** | 2 · **What's missing?** (or answer by **voice** in Hindi / Punjabi / Tamil) | 3 · **Here's your proof** |
 |---|---|---|
 | Phone camera or upload. Live agent timeline. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt. | SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, PDF / Excel / verifier pack, buyer link. |
 

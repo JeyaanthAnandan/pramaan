@@ -5,6 +5,7 @@ import { ArrowRight, Check, ChevronDown, Loader2, Pencil, Scale, ScanSearch, Use
 import { api, imageUrl, type Gap } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { DocImage, CropView } from "@/components/DocImage";
+import { VoiceAnswer } from "@/components/VoiceAnswer";
 import { StatusBadge } from "@/components/Status";
 import { useLens } from "@/components/EvidenceLens";
 
@@ -112,7 +113,8 @@ function GapRow({ g }: { g: Gap }) {
         <div className="text-[13px] leading-relaxed text-ink2">{q}</div>
         {g.lever && <div className="mt-1 text-[12px] font-semibold text-accent">{t("lever.title")} →</div>}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {["al", "rod_mass", "scrap"].includes(g.kind) && g.process && <VoiceAnswer kind={g.kind} process={g.process} missing={(g.params.missing as string[]) ?? []} />}
         {g.ask && (
           <span className="chip">
             <UserRound className="h-3 w-3" /> {t(`gaps.ask.${g.ask}`)}
@@ -153,7 +155,15 @@ function ReviewCard({ g }: { g: Gap }) {
     <div className="card overflow-hidden border-warn/50">
       <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="border-b border-line p-3 md:border-b-0 md:border-r">
-          <DocImage src={imageUrl(pid, ev.doc_id)} box={ev.box_2d} alt={doc?.title ?? ev.doc_id} aspect={aspect} tone="warn" label={doc?.doc_type ? t(`doctype.${doc.doc_type}`) : undefined} />
+          {doc?.content_type.startsWith("audio/") ? (
+            <div className="flex h-full flex-col justify-center gap-3 rounded-xl bg-sunk p-4">
+              <div className="eyebrow">{t("doctype.voice_note", { defaultValue: "Voice note" })}</div>
+              <audio controls src={imageUrl(pid, ev.doc_id)} className="w-full" />
+              <p className="whitespace-pre-wrap text-[13px] text-ink2">{ev.notes}</p>
+            </div>
+          ) : (
+            <DocImage src={imageUrl(pid, ev.doc_id)} box={ev.box_2d} alt={doc?.title ?? ev.doc_id} aspect={aspect} tone="warn" label={doc?.doc_type ? t(`doctype.${doc.doc_type}`) : undefined} />
+          )}
         </div>
         <div className="flex flex-col p-4 sm:p-5">
           <div className="flex items-center gap-2">

@@ -41,7 +41,7 @@ const vi = {
   lever: { title: "Đòn bẩy precursor", letter: "Thư yêu cầu dữ liệu gửi nhà cung cấp" },
   exports: { title: "Chia sẻ & xuất", pdf: "Báo cáo PDF", xlsx: "Sổ Excel", pack: "Gói thẩm định (.zip)", buyer: "Liên kết cho người mua", create: "Tạo liên kết" },
   status: { VERIFIED_2R: "Đã xác minh · 2 người đọc", APPROVED: "Đã duyệt", NEEDS_REVIEW: "Cần kiểm tra", MISSING: "Thiếu", DEFAULT_USED: "Dùng mặc định", ASSUMPTION: "Giả định", green: "OK", amber: "Kiểm tra", red: "Thiếu / mặc định", pass: "Đạt", fail: "Không đạt", warn: "Cảnh báo" },
-  doctype: { electricity_bill: "Hóa đơn điện", gas_invoice: "Hóa đơn gas", precursor_invoice: "Hóa đơn thép cuộn", supplier_emissions_statement: "Bản kê phát thải của NCC", production_register: "Sổ sản xuất", scrap_log: "Sổ phế liệu", export_invoice: "Hóa đơn xuất khẩu", other: "Khác" },
+  doctype: { voice_note: "Ghi âm", electricity_bill: "Hóa đơn điện", gas_invoice: "Hóa đơn gas", precursor_invoice: "Hóa đơn thép cuộn", supplier_emissions_statement: "Bản kê phát thải của NCC", production_register: "Sổ sản xuất", scrap_log: "Sổ phế liệu", export_invoice: "Hóa đơn xuất khẩu", other: "Khác" },
   common: { loading: "Đang tải…", error: "Đã xảy ra lỗi", retry: "Thử lại", close: "Đóng", back: "Quay lại" },
 };
 export default vi;
