@@ -41,8 +41,26 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
 * Run live Gemini once; inspect extraction misses in `backend/eval/report.md`; tune prompts if field accuracy < 95 %.
 * Firestore store implementation is written against the documented schema but only exercised once deployed (local runs use the in-memory store).
 * Vietnamese UI is partial (falls back to English); Tamil covers the main flow.
-* Stretch X1 (vernacular voice) is implemented: mic button on monthly gap rows → `gemini-3.5-transcribe` (Hindi/Punjabi/English; Tamil via Gemini 3.8 Flash audio) → Gemini reads the stated quantity → evidence with audio + transcript, amber until a person confirms. Tested with a scripted model in CI; **needs live Gemini to try for real**. Stretch X2 (decarbonisation what-if) is implemented: rod supplier SEE/SEFA (EC example presets) and gas vs electric heat treatment, computed by the engine (`POST /api/projects/{pid}/whatif`). Not started: X3 Annex IV operator-report alignment.
+* Stretch X1 (vernacular voice) is implemented: mic button on monthly gap rows → `gemini-3.5-transcribe` (Hindi/Punjabi/English; Tamil via Gemini 3.8 Flash audio) → Gemini reads the stated quantity → evidence with audio + transcript, amber until a person confirms. Tested with a scripted model in CI; **needs live Gemini to try for real**. Stretch X2 (decarbonisation what-if) is implemented: rod supplier SEE/SEFA (EC example presets) and gas vs electric heat treatment, computed by the engine (`POST /api/projects/{pid}/whatif`). X3 (Annex IV operator-report alignment) is **not done on purpose**: the official Annex IV text/template could not be retrieved (EUR-Lex blocks automated access) and the brief forbids claiming alignment without verifying it.
 * Freeze the deployed version from 18 Oct; tag `v1.0-submission`.
+
+## Definition of done (brief section 14)
+
+| Item | State |
+|---|---|
+| Live Cloud Run URL: sample < 5 s, live run < 2 min | **Blocked** (GCP sign-in/billing). Locally: sample 0.1–0.3 s; replay run ~1.3 s; live timing pending |
+| Golden tests G1–G6 in CI and on the badge page | Done (G1–G8) |
+| Every number opens the Evidence Lens (region or refdata citation) | Done (API test asserts every leaf has a source; evidence leaves have regions) |
+| Two-reader statuses visible; an amber value shows human approval | Done |
+| Precursor Lever: contribution split + supplier letter EN/HI | Done |
+| Money on the table € and ₹ 2026–2034 + myth-buster | Done |
+| PDF, Excel, verifier pack download and open | Done (PDF rendered, XLSX opened in LibreOffice, pack contents tested) |
+| Buyer link logged-out, no plant-level inputs | Done (API test + UI smoke) |
+| Rules copilot: 5 scripted questions with page citations | Retrieval answers cite correct pages; Gemini-written answers pending credentials |
+| Eval metrics page with real numbers | Harness + page done; **live Gemini numbers pending** (replay self-check shown, labelled) |
+| Hindi and Tamil UI on the main flow | Done |
+| README, ARCHITECTURE, DEMO_SCRIPT, DECK_NOTES; repo public; gitleaks clean | Docs done, gitleaks clean; **repo not yet published** (your call) |
+| No Gemini 2.x / Veo preview; no deprecated sampling params | Done (tests/test_compliance.py) |
 
 ## Useful commands
 
