@@ -10,6 +10,7 @@ import { ContributionBar, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
 import { Lever } from "@/components/Lever";
+import { WhatIfPanel } from "@/components/WhatIfPanel";
 import { NoResult } from "./Gaps";
 
 export default function Report() {
@@ -52,6 +53,8 @@ export default function Report() {
       )).reverse()}
 
       <MoneySection result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
+
+      <WhatIfPanel result={result} />
 
       <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
         <Explanations />

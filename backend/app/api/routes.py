@@ -359,6 +359,42 @@ def get_share(token: str) -> dict[str, Any]:
     return {"summary": s.summary_snapshot, "created_at": s.created_at}
 
 
+# ------------------------------------------------------------------ decarbonisation what-if (X2)
+
+
+class WhatIf(BaseModel):
+    process_id: str
+    rod_see: str | None = None
+    rod_sefa: str | None = None
+    heating: str = "gas"
+
+
+@router.post("/projects/{pid}/whatif")
+def whatif(pid: str, body: WhatIf) -> dict[str, Any]:
+    from app.cbam.whatif import simulate
+
+    _project(pid)
+    r = _result(pid)
+
+    def num(v: str | None, name: str) -> Decimal | None:
+        if v in (None, ""):
+            return None
+        try:
+            d = Decimal(str(v))
+        except InvalidOperation as exc:
+            raise HTTPException(422, f"{name} must be a number") from exc
+        if d < 0 or d > 50:
+            raise HTTPException(422, f"{name} out of range")
+        return d
+
+    if body.heating not in {"gas", "electric"}:
+        raise HTTPException(422, "heating must be gas or electric")
+    try:
+        return simulate(r, body.process_id, num(body.rod_see, "rod_see"), num(body.rod_sefa, "rod_sefa"), body.heating)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
 # ------------------------------------------------------------------ voice notes (X1)
 
 AUDIO_TYPES = {"audio/webm", "audio/ogg", "audio/mp4", "audio/m4a", "audio/mpeg", "audio/wav", "audio/aac"}

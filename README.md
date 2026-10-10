@@ -61,6 +61,8 @@ Example 3, so judges can check the numbers:
 | Buyer cost 2026, actual vs default | **€45 vs €386 /t → €341/t (₹36,994/t) on the table** | €576 vs €402 /t — actual is *worse* than default |
 | If the rod supplier sends verified data | — | SEE **2.371** (= EC G2), **€97/t** |
 
+**Decarbonisation what-if:** try another rod supplier's verified data or electric heat treatment (only direct emissions count for steel, so electric heating removes the own-process share). For the stainless bolts, EC-Example-2 supplier data plus electric heating gives SEE 8.889 → 2.174 and buyer cost €576 → €81 /t.
+
 **Myth-buster:** the buyer does not pay "2.5 % of emissions" in 2026. The Commission's formula
 subtracts a benchmark-based free allocation, so everything above the benchmark is payable. In EC
 Example 1, 3,690 certificates are due on 15,670 t embedded: 23.5 %, not 5 %.

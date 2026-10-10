@@ -186,3 +186,16 @@ def test_upload_rejects_unsupported_types(client: TestClient) -> None:
     pid = client.post("/api/projects", json={"name": "Test", "company": "Test Co (SAMPLE)"}).json()["id"]
     r = client.post(f"/api/projects/{pid}/documents", files=[("files", ("x.exe", b"MZ", "application/x-msdownload"))])
     assert r.status_code == 415
+
+
+def test_whatif_electric_heating_and_supplier_switch(client: TestClient) -> None:
+    w = client.post(
+        f"/api/projects/{PID}/whatif", json={"process_id": "P2", "rod_see": "1.783", "rod_sefa": "0.919", "heating": "gas"}
+    ).json()
+    assert abs(Decimal(w["see"]) - Decimal("2.371")) <= Decimal("0.002")  # = G2
+    e = client.post(
+        f"/api/projects/{PID}/whatif", json={"process_id": "P2", "rod_see": "1.783", "rod_sefa": "0.919", "heating": "electric"}
+    ).json()
+    assert Decimal(e["direct"]) == 0 and Decimal(e["see"]) < Decimal(w["see"])
+    assert len(e["series"]) == 9 and Decimal(e["series"][0]["eur_t"]) < Decimal(w["series"][0]["eur_t"])
+    assert client.post(f"/api/projects/{PID}/whatif", json={"process_id": "P2", "heating": "coal"}).status_code == 422
