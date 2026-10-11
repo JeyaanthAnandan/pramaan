@@ -84,7 +84,7 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         <StatusBadge status={actual ? "VERIFIED_2R" : "DEFAULT_USED"} label={actual ? t("report.actual_verified") : t("report.default_used")} />
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-x-3 gap-y-1">
-        <div className="text-[52px] font-semibold leading-none tracking-[-0.03em]">
+        <div className="num font-display text-[52px] font-semibold leading-none tracking-[-0.01em]">
           <LensNum node={p.see_node}>{n(p.see, 3)}</LensNum>
         </div>
         <div className="pb-1.5 text-sm text-muted">

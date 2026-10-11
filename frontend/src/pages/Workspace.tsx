@@ -103,7 +103,7 @@ function Inner({ step }: { step: string }) {
               `group relative flex min-h-[56px] min-w-0 flex-col items-start justify-center gap-1 rounded-2xl border px-2.5 py-2 transition sm:flex-row sm:items-center sm:gap-3 sm:px-4 ${isActive || step === s.key ? "border-ink bg-surface shadow-card" : "border-line bg-transparent hover:bg-surface"}`
             }
           >
-            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-semibold sm:h-8 sm:w-8 sm:text-sm ${step === s.key ? "bg-ink text-page" : "bg-sunk text-ink2"}`}>{s.n}</span>
+            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded font-mono text-xs font-semibold sm:h-8 sm:w-8 sm:text-sm ${step === s.key ? "bg-ink text-page" : "bg-sunk text-ink2"}`}>{s.n}</span>
             <span className="min-w-0 max-w-full">
               <span className="block text-[13px] font-semibold leading-tight sm:truncate sm:text-sm">{s.label}</span>
               <span className="hidden truncate text-[12px] text-muted sm:block">{s.q}</span>

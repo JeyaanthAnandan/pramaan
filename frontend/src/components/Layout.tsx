@@ -14,7 +14,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <circle cx="32" cy="32" r="11" fill="none" stroke="#f4efe2" strokeWidth="1.5" strokeDasharray="2 3" />
         <path d="M25 32.5l5 5 9.5-11" fill="none" stroke="#7dd3a8" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className="text-[17px] font-semibold tracking-tight">Pramaan</span>
+      <span className="font-display text-[19px] font-semibold">Pramaan</span>
     </span>
   );
 }
@@ -83,7 +83,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2">
         {t("nav.skip")}
       </a>
-      <header className="sticky top-0 z-30 border-b border-line/80 bg-page/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-t-[3px] border-b-line/80 border-t-rule bg-page/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
           <Link to="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label="Pramaan home">
             <Logo />

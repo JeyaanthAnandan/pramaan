@@ -110,7 +110,7 @@ export default function Landing() {
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-16">
           <div className="animate-rise">
             <span className="chip border-accent/25 bg-accent/5 text-accent">{t("landing.eyebrow")}</span>
-            <h1 className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-6xl">{t("landing.title")}</h1>
+            <h1 className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">{t("landing.title")}</h1>
             <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">{t("landing.lead")}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button className="btn-primary h-12 px-6 text-[15px]" onClick={() => load(false)} disabled={!!busy}>

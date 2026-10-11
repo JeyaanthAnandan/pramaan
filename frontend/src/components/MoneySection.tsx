@@ -73,7 +73,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
             <div className="eyebrow">2026 · {p.name}</div>
             {!worse ? (
               <>
-                <div className="mt-1 text-[44px] font-semibold leading-none tracking-tight">
+                <div className="num mt-1 font-display text-[44px] font-semibold leading-none">
                   <LensNum node={s0.nodes.gap}>{eur(gap)}</LensNum>
                 </div>
                 <div className="mt-1 text-lg font-semibold text-ink2">{inr(s0.gap_inr_t)}</div>

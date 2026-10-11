@@ -16,6 +16,7 @@ export default {
         line2: v("line2"),
         accent: v("accent"),
         accentink: v("accentink"),
+        rule: v("rule"),
         good: v("good"),
         goodink: v("goodink"),
         goodbg: v("goodbg"),
@@ -29,13 +30,23 @@ export default {
         s2: v("s2"),
         s3: v("s3"),
       },
+      // "Mill Certificate" theme: IBM Plex throughout (Condensed for display, Mono for readings).
       fontFamily: {
-        sans: ['"Inter Variable"', "Inter", "system-ui", "-apple-system", '"Segoe UI"', '"Noto Sans Devanagari"', '"Noto Sans Tamil"', "sans-serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        sans: ['"IBM Plex Sans"', '"IBM Plex Sans Devanagari"', '"Noto Sans Tamil"', "system-ui", "-apple-system", '"Segoe UI"', "sans-serif"],
+        display: ['"IBM Plex Sans Condensed"', '"IBM Plex Sans"', '"IBM Plex Sans Devanagari"', '"Noto Sans Tamil"', "system-ui", "sans-serif"],
+        mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+      // Crisper, document-like corners than Tailwind's defaults.
+      borderRadius: {
+        DEFAULT: "4px",
+        md: "5px",
+        lg: "6px",
+        xl: "8px",
+        "2xl": "12px",
       },
       boxShadow: {
-        card: "0 1px 0 rgb(var(--line) / 0.6), 0 1px 2px rgb(0 0 0 / 0.04)",
-        lift: "0 12px 32px -12px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.06)",
+        card: "0 1px 0 rgb(var(--line) / 0.7), 0 1px 2px rgb(20 27 43 / 0.05)",
+        lift: "0 12px 32px -12px rgb(20 27 43 / 0.22), 0 2px 6px rgb(20 27 43 / 0.06)",
       },
       keyframes: {
         pulsebox: { "0%,100%": { boxShadow: "0 0 0 0 rgb(var(--accent) / 0.55)" }, "50%": { boxShadow: "0 0 0 6px rgb(var(--accent) / 0)" } },

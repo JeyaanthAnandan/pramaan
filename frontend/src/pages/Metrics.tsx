@@ -10,7 +10,7 @@ function Tile({ icon: Icon, label, value, target, ok, note }: { icon: typeof Gau
       <div className="flex items-center gap-2 text-[13px] text-ink2">
         <Icon className="h-4 w-4 text-muted" /> {label}
       </div>
-      <div className="mt-2 text-4xl font-semibold tracking-tight">{value}</div>
+      <div className="num mt-2 font-display text-4xl font-semibold">{value}</div>
       {target && (
         <div className={`mt-1 text-[12px] ${ok === true ? "text-goodink" : ok === false ? "text-badink" : "text-muted"}`}>
           {t("metrics.target")}: {target} {ok === true ? "✓" : ok === false ? "✗" : ""}

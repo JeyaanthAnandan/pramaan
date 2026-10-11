@@ -57,7 +57,7 @@ export default function Share() {
                       <h2 className="font-semibold">{g.description}</h2>
                     </div>
                     <div className="text-right">
-                      <div className="text-4xl font-semibold tracking-tight">{g.see_direct}</div>
+                      <div className="num font-display text-4xl font-semibold">{g.see_direct}</div>
                       <div className="text-[12px] text-muted">{t("buyer.see_direct")} · t CO2e / t</div>
                     </div>
                   </div>

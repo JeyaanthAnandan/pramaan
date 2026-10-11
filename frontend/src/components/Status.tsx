@@ -41,7 +41,7 @@ export function StatusBadge({ status, label, size = "sm" }: { status: string; la
   const m = MAP[status] ?? { tone: "neutral" as Tone, icon: Info };
   const Icon = m.icon;
   return (
-    <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border font-semibold ${TONE[m.tone]} ${size === "xs" ? "px-1.5 py-0 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+    <span className={`inline-flex shrink-0 items-center gap-1 rounded border font-semibold ${TONE[m.tone]} ${size === "xs" ? "px-1.5 py-0 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
       <Icon aria-hidden className={size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5"} />
       {label ?? t(`status.${status}`, { defaultValue: status })}
     </span>

@@ -3,7 +3,7 @@
   "short_name": "Pramaan",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f9f9f7",
+  "background_color": "#f4f2ec",
   "theme_color": "#14213d",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }

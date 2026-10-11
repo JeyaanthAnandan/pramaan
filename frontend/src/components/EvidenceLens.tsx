@@ -63,7 +63,7 @@ function LensBody({ nodeId, depth, push, pop }: { nodeId: string; depth: number;
 function Value({ node }: { node: CalcNode }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2">
-      <span className="text-4xl font-semibold tracking-tight">{node.display ?? "—"}</span>
+      <span className="num font-display text-4xl font-semibold">{node.display ?? "—"}</span>
       <span className="text-sm text-muted">{node.unit !== "-" ? node.unit : ""}</span>
     </div>
   );
