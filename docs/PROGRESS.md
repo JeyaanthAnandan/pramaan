@@ -1,6 +1,6 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-11 ~04:00 IST (end of the overnight autonomous build session; 14 commits on local `main`, nothing pushed or deployed)._
+_Last updated: 2026-10-11 ~04:00 IST (end of the overnight autonomous build session; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public); not deployed)._
 
 ## Status by phase
 
@@ -24,7 +24,7 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
    `! gcloud auth login` and `! gcloud auth application-default login`
    (the SDK is at `/opt/homebrew/share/google-cloud-sdk/bin` — add it to PATH or use the full path).
 2. **Link billing + budget alert** on `copilot-manufacturing` (Console → Billing; budget e.g. ₹2,000 with 50/90/100 % alerts).
-3. **GitHub:** create the **public** repo (e.g. `pramaan`) and push — I did not publish anything. Suggested:
+3. **GitHub:** done — public repo https://github.com/JeyaanthAnandan/pramaan, `main` pushed. Suggested:
    `gh repo create <owner>/pramaan --public --source . --push` (review first; CI runs gitleaks).
 4. Then say "gcloud ready" and the next session will run:
    * `scripts/gcp_setup.sh` (APIs, Firestore asia-southeast1, private bucket, `pramaan-run` SA with 5 roles, model availability check at `global`)
