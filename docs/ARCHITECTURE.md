@@ -123,6 +123,7 @@ Locally (and in CI) the same interface is backed by an in-memory store with a JS
 
 ## Scaling notes
 
-`min-instances=1`, CPU boost, session affinity. Timeline events are persisted per event, so an
+`min-instances=1` for judging (`MIN_INSTANCES` in `scripts/deploy.sh`; 0 scales to zero between
+demos), CPU boost, session affinity. Timeline events are persisted per event, so an
 SSE stream served by another instance follows the run through Firestore. Runs are rate-limited
 per project (`MAX_RUNS_PER_HOUR`).

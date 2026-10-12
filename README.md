@@ -12,7 +12,7 @@ supplier letter in English and Hindi, the buyer link, the operations levers).
 Built for the **Google Cloud AI Builder Cup 2026** (Manufacturing: Intelligent Operations &
 Industrial Efficiency) by team **Innovative Warriors**.
 
-**Live demo:** _deployment pending — see [docs/PROGRESS.md](docs/PROGRESS.md)_ · **3-min video:** _to be recorded_ ·
+**Live demo:** [pramaan-646454690406.asia-southeast1.run.app](https://pramaan-646454690406.asia-southeast1.run.app) (Cloud Run, asia-southeast1) · **3-min video:** _to be recorded_ ·
 **Try it locally in 60 s:** see [Run locally](#run-locally)
 
 ![Pramaan landing](docs/screenshots/landing.jpg)
@@ -121,7 +121,7 @@ flowchart LR
 * **Rules copilot**: page-level retrieval over the official EC guidance plus Gemini 3.8 Flash grounded on those pages, with validated `[Guidance N, p. X]` citations. Without Gemini it still shows the cited passages.
 
 ### Google Cloud services
-Cloud Run (asia-southeast1, min-instances 1, CPU boost) · Gemini Enterprise Agent Platform (`global`;
+Cloud Run (asia-southeast1, CPU boost, min-instances 1 during judging) · Gemini Enterprise Agent Platform (`global`;
 Gemini 3.8 Flash, Gemini 3.5 Flash-Lite) · Agent Development Kit 2.x · Firestore (Native) · Cloud
 Storage · Cloud Build / Artifact Registry · Cloud Logging & Trace · IAM (dedicated least-privilege
 service account, no API keys).
@@ -160,7 +160,7 @@ page; the full report is in [backend/eval/report.md](backend/eval/report.md).
 
 | Run | Field accuracy | Two-reader agreement | Review rate | 24 docs → report |
 |---|---|---|---|---|
-| Live Gemini (3.8 Flash + 3.5 Flash-Lite) | _pending — needs project credentials_ | _pending_ | _pending_ | _pending_ |
+| Live Gemini (3.8 Flash + 3.5 Flash-Lite) | _pending — live run not yet captured_ | _pending_ | _pending_ | _pending_ |
 | Replay of ground truth (harness self-check, **not a model score**) | 100 % | 99.5 % | 0.5 % | 1.3 s |
 
 Every visitor who clicks **Load sample factory** gets a private copy of the sample (so judges never see each other's approvals); `scripts/ui_smoke.py` runs the whole flow in a logged-out browser on desktop and a 360 px phone in CI and after every deploy.
@@ -191,8 +191,12 @@ with `.venv/bin/python -I refdata/build_refdata.py`.
 
 ```bash
 scripts/gcp_setup.sh   # APIs, Firestore (asia-southeast1), private bucket, least-privilege service account, model check
-scripts/deploy.sh      # golden tests → gcloud run deploy --source . → smoke test (health, sample, buyer link, golden)
+scripts/deploy.sh      # golden tests → gcloud run deploy --source . → smoke test (health, sample, buyer link, golden, UI)
+MIN_INSTANCES=0 scripts/deploy.sh   # same, but scale to zero between demos (the default 1 keeps it warm for judging)
 ```
+
+On Cloud Run the health check is `GET /api/health`: the front end reserves some paths ending in
+`z`, so `/healthz` (kept for local runs and CI) returns 404 there.
 
 ## Repository
 
@@ -207,7 +211,8 @@ docs/      BUILD_BRIEF · ARCHITECTURE · EC_EXAMPLE_NOTES · DEMO_SCRIPT · DEC
 
 * **Pramaan is not a substitute for an accredited verifier.** Outputs are provisional (year-to-date) until verified.
 * The sample factory and all its documents are fictional and watermarked "SAMPLE — FICTIONAL".
-* The live extraction metrics above are pending until the project's Gemini credentials are configured.
+* The live extraction metrics above are pending until the live eval run is captured. Gemini is configured on the deployment
+  (the rules copilot answers live), but "Load sample factory" still replays the bundled ground truth and says so.
 * Scope: iron & steel goods; other CBAM sectors are not modelled. No CBAM Registry integration, no payments, no user accounts (own projects are protected by a passcode).
 * The Commission's Excel files are informational; the legally valid values are in the Official Journal.
 * Projections beyond 2026 use an editable certificate-price assumption; CSCF after 2030 and benchmark (2) after 2030 are preliminary.

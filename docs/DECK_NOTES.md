@@ -99,7 +99,9 @@ register and scrap log, export invoices) → 213 values, each with its region on
 ## 9. Architecture (Google Cloud)
 Cloud Run (asia-southeast1, one container, min-instances 1) · Gemini on Agent Platform (global)
 · ADK 2.x · Firestore · Cloud Storage · Cloud Logging/Trace · GitHub Actions CI with gitleaks.
-Sample factory loads in **0.1–0.3 s** (snapshot restore; Firestore emulator), each visitor gets a private copy (target < 5 s).
+Live: https://pramaan-646454690406.asia-southeast1.run.app
+Sample factory loads in **0.1–0.3 s** locally (snapshot restore; Firestore emulator) and **2.0–2.2 s** end to end in a
+browser on the live service (warm instance), each visitor gets a private copy (target < 5 s).
 
 ## 10. Impact & scale
 Built for JAPAC (Vietnam, China, Korea, Indonesia face the same defaults); Commission proposal to
