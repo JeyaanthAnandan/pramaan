@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowRight, Calculator, ClipboardCheck, Cloud, Database, FileSearch, FileText, Hand, HardDrive, Inbox, MessageSquareText, ScanEye, ShieldCheck, Smartphone, Tags, Cpu, BookMarked, Activity } from "lucide-react";
+import { ArrowDown, ArrowRight, Boxes, Calculator, ClipboardCheck, Cloud, Database, FileSearch, FileText, Hand, HardDrive, Inbox, MessageSquareText, ScanEye, ShieldCheck, Smartphone, Tags, Cpu, BookMarked, Activity } from "lucide-react";
 import { api } from "@/lib/api";
 
 const FLOW = [
   { k: "Intake", icon: Inbox, m: "code", c: "documents → run" },
   { k: "Classifier", icon: Tags, m: "gemini-3.8-flash", c: "{doc_id, doc_type, languages, period, confidence}" },
+  { k: "ProductLines", icon: Boxes, m: "owner's lines, or gemini-3.8-flash proposal", c: "one line per exported CN code ← its steel input; every code checked against refdata; owner confirms" },
   { k: "Extractor", icon: FileSearch, m: "gemini-3.8-flash · high media resolution", c: "Field{field_key, value_text, value_num, unit, box_2d, page, label}" },
   { k: "SecondReader", icon: ScanEye, m: "gemini-3.5-flash-lite · crop only", c: "{reading_value, reading_unit, agrees, delta}" },
   { k: "ControlChecks", icon: ClipboardCheck, m: "code", c: "Check{name, formula, inputs, result, tolerance, status}" },

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bot, Calculator, CheckCircle2, ChevronDown, CircleDashed, ClipboardCheck, FileSearch, FileText, Hand, Inbox, Loader2, MessageSquareText, ScanEye, ShieldCheck, Tags, XCircle } from "lucide-react";
+import { Bot, Boxes, Calculator, CheckCircle2, ChevronDown, CircleDashed, ClipboardCheck, FileSearch, FileText, Hand, Inbox, Loader2, MessageSquareText, ScanEye, ShieldCheck, Tags, XCircle } from "lucide-react";
 import type { TimelineEvent } from "@/lib/api";
 import { ms } from "@/lib/format";
 
 const AGENTS: { key: string; icon: typeof Bot; desc: string }[] = [
   { key: "Intake", icon: Inbox, desc: "Receives photos and PDFs" },
   { key: "Classifier", icon: Tags, desc: "Document type, language, period" },
+  { key: "ProductLines", icon: Boxes, desc: "Product lines from your invoices (CN codes checked)" },
   { key: "Extractor", icon: FileSearch, desc: "Every value with its region (box_2d)" },
   { key: "SecondReader", icon: ScanEye, desc: "Blind re-read of each cropped region" },
   { key: "HumanReview", icon: Hand, desc: "Disagreements wait for your tap" },

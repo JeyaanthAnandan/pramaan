@@ -6,6 +6,7 @@ import { ArrowRight, Camera, FolderUp, Loader2, Mic, Play, RotateCw, Upload } fr
 import { api, imageUrl, type Doc } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { AgentTimeline, useRunEvents } from "@/components/AgentTimeline";
+import { SetupCard } from "@/components/Setup";
 
 export default function Capture() {
   const { t, i18n } = useTranslation();
@@ -71,6 +72,7 @@ export default function Capture() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="space-y-6">
+        <SetupCard />
         <div
           onDragOver={(e) => {
             e.preventDefault();

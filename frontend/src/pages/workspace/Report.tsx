@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BadgeCheck, BookOpenCheck, Check, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MousePointerClick, ShieldAlert } from "lucide-react";
+import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MousePointerClick, ShieldAlert } from "lucide-react";
 import { api, exportUrl, type ProcessResult } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
@@ -11,7 +11,10 @@ import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
 import { Lever } from "@/components/Lever";
 import { WhatIfPanel } from "@/components/WhatIfPanel";
+import { NextSteps } from "@/components/NextSteps";
 import { NoResult } from "./Gaps";
+
+const SECTIONS = ["next", "lines", "money", "levers", "share", "checks"] as const;
 
 export default function Report() {
   const { t } = useTranslation();
@@ -19,6 +22,7 @@ export default function Report() {
   const [whatIf, setWhatIf] = useState(false);
   if (!result) return <NoResult />;
   const procs = result.processes.filter((p) => p.see);
+  const rd = result.readiness;
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3 rounded-2xl border border-warn/40 bg-warnbg px-4 py-3 text-[13px] text-warnink">
@@ -29,38 +33,65 @@ export default function Report() {
       </div>
 
       <div className="flex flex-wrap items-center gap-5">
-        <ReadinessRing value={Number(result.readiness.score)} size={84} label={t("report.readiness")} />
+        <ReadinessRing value={Number(rd.score)} size={84} label={t("report.readiness")} />
         <div className="min-w-0 flex-1">
           <h2 className="text-2xl font-semibold tracking-tight">{t("report.title")}</h2>
           <p className="text-sm text-ink2">
-            {t("report.readiness")}: <b className="num">{Number(result.readiness.score).toFixed(0)}%</b> {t("report.readiness_d")} ·{" "}
-            {Object.entries(result.readiness.by_status).map(([k, v]) => `${t(`status.${k}`)}: ${v}`).join("; ")}
+            {t("report.readiness")}: <b className="num">{Number(rd.score).toFixed(0)}%</b> {t("report.readiness_d")} ·{" "}
+            {Object.entries(rd.by_status).map(([k, v]) => `${t(`status.${k}`)}: ${v}`).join("; ")}
           </p>
+          {rd.lines_total > 0 && (
+            <p className={`mt-1 text-sm font-semibold ${rd.lines_ready === rd.lines_total ? "text-goodink" : "text-warnink"}`}>
+              {t("report.lines_ready", { ready: rd.lines_ready, total: rd.lines_total })}
+            </p>
+          )}
           <p className="mt-1 flex items-center gap-1.5 text-[12px] text-muted">
             <MousePointerClick className="h-3.5 w-3.5" /> {t("report.click_hint")}
           </p>
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <nav aria-label={t("report.on_page")} className="-mx-1 flex flex-wrap gap-1.5">
+        {SECTIONS.map((s) => (
+          <a key={s} href={`#${s}`} className="chip hover:border-accent/40 hover:text-accent">
+            {t(`report.nav_${s}`)}
+          </a>
+        ))}
+      </nav>
+
+      <div id="next" className="scroll-mt-20">
+        <NextSteps />
+      </div>
+
+      <div id="lines" className="grid scroll-mt-20 gap-5 lg:grid-cols-2">
         {procs.map((p) => (
           <ProcessCard key={p.id} p={p} />
         ))}
       </div>
 
-      {procs.map((p) => (
-        <Lever key={p.id} p={p} result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
-      )).reverse()}
+      <div className="space-y-4">
+        {[...procs]
+          .sort((a, b) => Number(a.precursor.data === "ACTUAL_VERIFIED") - Number(b.precursor.data === "ACTUAL_VERIFIED"))
+          .map((p) => (
+            <Lever key={p.id} p={p} result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
+          ))}
+      </div>
 
-      <MoneySection result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
+      <div id="money" className="scroll-mt-20">
+        <MoneySection result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
+      </div>
 
-      <WhatIfPanel result={result} />
+      <div id="levers" className="scroll-mt-20">
+        <WhatIfPanel result={result} />
+      </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+      <div id="share" className="grid scroll-mt-20 gap-5 lg:grid-cols-[1.1fr_0.9fr]">
         <Explanations />
         <Exports />
       </div>
-      <Checks />
+      <div id="checks" className="scroll-mt-20">
+        <Checks />
+      </div>
     </div>
   );
 }
@@ -72,6 +103,9 @@ function ProcessCard({ p }: { p: ProcessResult }) {
   const fx = Number(result!.money.fx.value);
   const actual = p.precursor.data === "ACTUAL_VERIFIED";
   const contrib = Number(tree[`${p.id}.rod.contrib`]?.value ?? 0);
+  const b = p.buyer;
+  const onDefault = b.basis_2026 === "default";
+  const rp = result!.readiness.by_process?.[p.id];
   return (
     <article className="card min-w-0 p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -91,7 +125,10 @@ function ProcessCard({ p }: { p: ProcessResult }) {
           {t("report.see_short")} · t CO2 / t
         </div>
       </div>
-      <div className="mt-1 text-[12px] text-muted">{t("report.see")} · {result!.period_label}</div>
+      <div className="mt-1 text-[12px] text-muted">
+        {t("report.see")} · {result!.period_label}
+        {rp && <> · {t("report.inputs_verified", { good: rp.good, total: rp.total })}</>}
+      </div>
       {bundle?.project.is_demo && p.id === "P1" && (
         <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-good/30 bg-goodbg px-2 py-1 text-[11px] text-goodink">
           <BadgeCheck className="h-3.5 w-3.5" /> {t("report.ec_ref", { defaultValue: "Full precision {{v}} — matches EC Guidance 5d Example 3 (2.039 with rounded intermediates)", v: n(p.see, 4) })}
@@ -125,16 +162,26 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         <dd className="num text-right font-medium"><LensNum node={p.sefa_node}>{n(p.sefa, 3)}</LensNum></dd>
         <dt className="text-ink2">{t("report.sefa_y")}</dt>
         <dd className="num text-right font-medium"><LensNum node={p.sefa_y_node}>{n(p.sefa_y, 3)}</LensNum></dd>
-        <dt className="text-ink2">{t("report.exported")} (Q1–Q3)</dt>
+        <dt className="text-ink2">{t("report.exported")} ({Object.keys(p.exports_by_quarter).map((q) => q.slice(-2)).join(", ") || "—"})</dt>
         <dd className="num text-right font-medium"><LensNum node={`${p.id}.exports`}>{n(p.exports_t, 1)} t</LensNum></dd>
         <dt className="text-ink2">{t("report.certs")}</dt>
         <dd className="num text-right font-medium"><LensNum node={p.certificates_node}>{n(p.certificates_2026, 1)}</LensNum></dd>
-        <dt className="text-ink2">{t("report.cost")}</dt>
-        <dd className="num text-right font-semibold">
-          <LensNum node={p.cost_node}>{eur(p.cost_2026_eur)}</LensNum>
-          <span className="ml-1.5 font-normal text-muted">{inr(Number(p.cost_2026_eur) * fx)}</span>
+        <dt className={onDefault ? "text-muted" : "text-ink2"}>{t("report.cost_actual")}</dt>
+        <dd className={`num text-right ${onDefault ? "text-muted" : "font-semibold"}`}>
+          <LensNum node={b.cost_actual_node}>{eur(b.cost_actual_eur)}</LensNum>
+          {!onDefault && <span className="ml-1.5 font-normal text-muted">{inr(Number(b.cost_actual_eur) * fx)}</span>}
+        </dd>
+        <dt className={onDefault ? "text-ink2" : "text-muted"}>{t("report.cost_default")}</dt>
+        <dd className={`num text-right ${onDefault ? "font-semibold" : "text-muted"}`}>
+          <LensNum node={b.cost_default_node}>{eur(b.cost_default_eur)}</LensNum>
+          {onDefault && <span className="ml-1.5 font-normal text-muted">{inr(Number(b.cost_default_eur) * fx)}</span>}
         </dd>
       </dl>
+      <p className={`mt-3 rounded-lg border px-3 py-2 text-[12px] leading-relaxed ${onDefault ? "border-warn/40 bg-warnbg text-warnink" : "border-good/30 bg-goodbg text-goodink"}`}>
+        {onDefault
+          ? t("report.basis_default", { actual: eur(b.actual_eur_t), def: eur(b.default_eur_t) })
+          : t("report.basis_actual", { saving: eur(Number(b.cost_default_eur) - Number(b.cost_actual_eur)) })}
+      </p>
     </article>
   );
 }
@@ -142,6 +189,7 @@ function ProcessCard({ p }: { p: ProcessResult }) {
 function Explanations() {
   const { t } = useTranslation();
   const { result } = useProject();
+  const [more, setMore] = useState(false);
   return (
     <section className="card p-5">
       <h3 className="flex items-center gap-2 font-semibold">
@@ -151,7 +199,7 @@ function Explanations() {
         {result!.explanations.map((e) => (
           <div key={e.process}>
             <div className="text-[13px] font-semibold">{e.title}</div>
-            <p className="mt-1 text-[14px] leading-relaxed text-ink2">{e.text}</p>
+            <p className={`mt-1 text-[14px] leading-relaxed text-ink2 ${more ? "" : "line-clamp-3"}`}>{e.text}</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {e.citations.map((c) => (
                 <Link key={`${c.doc}${c.page}`} to={`/copilot?q=${encodeURIComponent(c.why)}`} className="chip hover:border-accent/40 hover:text-accent">
@@ -162,11 +210,16 @@ function Explanations() {
           </div>
         ))}
       </div>
+      {result!.explanations.length > 0 && (
+        <button className="link mt-3 text-[13px]" onClick={() => setMore((m) => !m)} aria-expanded={more}>
+          {more ? t("report.read_less") : t("report.read_more")}
+        </button>
+      )}
     </section>
   );
 }
 
-function Exports() {
+export function Exports() {
   const { t } = useTranslation();
   const { pid } = useProject();
   const [link, setLink] = useState<string | null>(null);
@@ -199,7 +252,7 @@ function Exports() {
           <ClipboardCheck className="h-4 w-4 text-muted" /> {t("exports.plan")}
         </Link>
       </div>
-      <div className="mt-4 rounded-xl border border-line bg-sunk p-3">
+      <div id="buyer-link" className="mt-4 scroll-mt-20 rounded-xl border border-line bg-sunk p-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Link2 className="h-4 w-4" /> {t("exports.buyer")}
         </div>
@@ -210,7 +263,7 @@ function Exports() {
           </button>
         ) : (
           <div className="mt-2 flex gap-2">
-            <input readOnly value={link} className="min-h-[40px] min-w-0 flex-1 rounded-lg border border-line2 bg-surface px-2 font-mono text-[12px]" onFocus={(e) => e.target.select()} />
+            <input readOnly value={link} className="min-h-[40px] min-w-0 flex-1 rounded-lg border border-line2 bg-surface px-2 font-mono text-[12px]" onFocus={(e) => e.target.select()} aria-label={t("exports.buyer")} />
             <button
               className="btn-ghost h-10 min-h-0 px-3"
               onClick={async () => {
@@ -235,14 +288,23 @@ function Exports() {
 function Checks() {
   const { t } = useTranslation();
   const { result } = useProject();
+  const [open, setOpen] = useState(false);
+  const checks = result!.checks;
+  const attention = checks.filter((c) => c.status === "fail" || c.status === "warn");
+  const passed = checks.filter((c) => c.status !== "fail" && c.status !== "warn");
+  const shown = open ? [...attention, ...passed] : attention;
+  const nPass = checks.filter((c) => c.status === "pass").length;
   return (
     <section className="card overflow-hidden">
-      <div className="border-b border-line px-5 py-3">
-        <h3 className="font-semibold">{t("report.checks")}</h3>
-        <p className="text-[12px] text-muted">{t("report.checks_d")}</p>
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold">{t("report.checks")}</h3>
+          <p className="text-[12px] text-muted">{t("report.checks_d")}</p>
+        </div>
+        <span className="text-[13px] text-ink2">{t("report.checks_summary", { pass: nPass, total: checks.length })}</span>
       </div>
       <ul className="divide-y divide-line">
-        {result!.checks.map((c) => (
+        {shown.map((c) => (
           <li key={c.id} className="flex flex-col gap-1 px-5 py-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="w-24 shrink-0">
               <StatusBadge status={c.status} />
@@ -250,6 +312,7 @@ function Checks() {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium">{c.name}</div>
               <div className="text-[12px] text-muted">{c.formula}</div>
+              {c.note && c.status !== "pass" && <div className="text-[12px] text-ink2">{c.note}</div>}
             </div>
             <div className="num text-[13px] text-ink2 sm:text-right">
               {c.result}
@@ -257,6 +320,14 @@ function Checks() {
             </div>
           </li>
         ))}
+        {passed.length > 0 && (
+          <li>
+            <button className="flex min-h-[44px] w-full items-center gap-2 px-5 text-[13px] text-ink2 hover:bg-sunk" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+              <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
+              {open ? t("report.checks_hide") : t("report.checks_show", { count: passed.length })}
+            </button>
+          </li>
+        )}
       </ul>
     </section>
   );

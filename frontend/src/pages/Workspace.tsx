@@ -1,10 +1,10 @@
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Camera, ClipboardList, FileCheck2, Loader2 } from "lucide-react";
+import { AlertTriangle, Camera, ClipboardList, FileCheck2, KeyRound, Loader2 } from "lucide-react";
 import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
 import { ReadinessRing } from "@/components/Charts";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { rememberProject } from "@/lib/session";
 import Capture from "./workspace/Capture";
 import Gaps from "./workspace/Gaps";
@@ -37,6 +37,7 @@ function Inner({ step }: { step: string }) {
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
+  if (error && !bundle && error instanceof ApiError && error.status === 401) return <Unlock />;
   if (error && !bundle)
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
@@ -80,16 +81,19 @@ function Inner({ step }: { step: string }) {
             {result?.mode && <span className="chip">{result.mode === "live" ? t("app.live") : t("app.replay")}</span>}
           </div>
           <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:truncate sm:text-[28px]">{p.company}</h1>
-          <p className="text-sm text-muted">
-            {p.city} · {p.country} · {p.period_label}
-          </p>
+          <p className="text-sm text-muted">{[p.city, p.country, p.period_label].filter(Boolean).join(" · ")}</p>
         </div>
         {result && (
           <Link to={`/p/${pid}/report`} className="hidden items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2 shadow-card sm:flex">
             <ReadinessRing value={Number(result.readiness.score)} size={56} />
             <div className="text-[12px] leading-tight">
               <div className="font-semibold">{t("report.readiness")}</div>
-              <div className="max-w-[160px] text-muted">{t("report.readiness_d")}</div>
+              <div className="max-w-[170px] text-muted">{t("report.readiness_d")}</div>
+              {result.readiness.lines_total > 0 && (
+                <div className={`mt-0.5 max-w-[170px] font-semibold ${result.readiness.lines_ready === result.readiness.lines_total ? "text-goodink" : "text-warnink"}`}>
+                  {t("report.lines_ready", { ready: result.readiness.lines_ready, total: result.readiness.lines_total })}
+                </div>
+              )}
             </div>
           </Link>
         )}
@@ -117,6 +121,46 @@ function Inner({ step }: { step: string }) {
         {step === "gaps" && <Gaps />}
         {step === "report" && <Report />}
       </div>
+    </div>
+  );
+}
+
+function Unlock() {
+  const { t } = useTranslation();
+  const { pid, refresh } = useProject();
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div className="mx-auto max-w-md px-4 py-16">
+      <form
+        className="card p-6"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setErr(null);
+          try {
+            await api.unlock(pid, code);
+            await refresh();
+          } catch (x) {
+            setErr((x as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <KeyRound className="h-7 w-7 text-accent" aria-hidden />
+        <h1 className="mt-3 text-xl font-semibold">{t("unlock.title")}</h1>
+        <p className="mt-1 text-sm text-ink2">{t("unlock.lead")}</p>
+        <label className="mt-4 block text-[13px]">
+          <span className="text-ink2">{t("unlock.label")}</span>
+          <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="characters" placeholder="XXXX-XXXX-XXXX" className="mt-1 min-h-[44px] w-full rounded-xl border border-line2 bg-surface px-3 font-mono tracking-wider" />
+        </label>
+        {err && <p className="mt-2 text-[13px] text-badink">{err}</p>}
+        <button className="btn-primary mt-4 w-full" disabled={busy || code.replace(/[^a-z0-9]/gi, "").length < 12}>
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {t("unlock.open")}
+        </button>
+      </form>
     </div>
   );
 }

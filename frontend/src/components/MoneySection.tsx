@@ -29,7 +29,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
   const s0 = series[0];
   const gap = Number(s0.gap_eur_t);
   const worse = gap < 0;
-  const annual = gap * Number(p.exports_t) * (12 / 9);
+  const annual = Number(p.buyer.annual_gap_eur); // year-to-date exports scaled to 12 months by the engine
 
   const chart: Series[] = useMemo(() => {
     const out: Series[] = [
@@ -83,7 +83,10 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
                 </div>
               </>
             ) : (
-              <p className="mt-2 rounded-xl border border-warn/50 bg-warnbg px-3 py-2 text-[13px] leading-relaxed text-warnink">{t("money.worse")}</p>
+              <p className="mt-2 rounded-xl border border-warn/50 bg-warnbg px-3 py-2 text-[13px] leading-relaxed text-warnink">
+                {t("money.worse_n", { actual: eur(s0.actual_eur_t), def: eur(s0.default_eur_t) })}
+                {wi && <> {t("money.worse_lever", { whatif: eur(Math.min(Number(wi[0].eur_t), Number(s0.default_eur_t))) })}</>}
+              </p>
             )}
           </div>
           <dl className="space-y-1.5 text-[13px]">
@@ -173,7 +176,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
               <p className="px-3 py-2 text-[11px] text-muted">* {t("money.assumption")}: €{n(result.money.projection_price.value, 2)}</p>
             </div>
           )}
-          <p className="mt-3 text-[12px] leading-relaxed text-muted">{t("money.formula")}</p>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted">{t("money.formula", { country: bundle?.project.country ?? "India" })}</p>
         </div>
       </div>
 

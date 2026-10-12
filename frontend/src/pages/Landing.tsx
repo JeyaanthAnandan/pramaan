@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Camera, FileCheck2, Factory, Globe2, Loader2, Play, ScanSearch, ScanEye, Scale, TrendingDown, ExternalLink } from "lucide-react";
 import { api } from "@/lib/api";
-import { rememberProject } from "@/lib/session";
+import { rememberPasscode, rememberProject } from "@/lib/session";
 import { StatusBadge } from "@/components/Status";
 
 interface HeroDoc { doc: string; src: string; w: number; h: number; title: string; fields: { label: string; text: string; unit: string; box: number[]; alt?: string | null }[] }
@@ -94,9 +94,10 @@ export default function Landing() {
   async function startOwn() {
     setErr(null);
     try {
-      const p = await api.createProject({ name: "My CBAM project", company: "My factory", country: "India" });
+      const p = await api.createProject({ name: "My CBAM project", company: t("setup.my_factory"), country: "India" });
       rememberProject(p.id);
-      nav(`/p/${p.id}/capture`);
+      rememberPasscode(p.id, p.access_key);
+      nav(`/p/${p.id}/capture#setup`);
     } catch (e) {
       setErr(String((e as Error).message));
     }

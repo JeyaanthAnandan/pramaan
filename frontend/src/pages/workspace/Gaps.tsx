@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Check, ChevronDown, Loader2, Pencil, Scale, ScanSearch, UserRound } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Loader2, PackagePlus, Pencil, Scale, ScanSearch, UserRound } from "lucide-react";
 import { api, imageUrl, type Gap } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { DocImage, CropView } from "@/components/DocImage";
 import { VoiceAnswer } from "@/components/VoiceAnswer";
 import { StatusBadge } from "@/components/Status";
 import { useLens } from "@/components/EvidenceLens";
+import { ProductLines } from "@/components/Setup";
 
-const GROUPS = ["review", "precursor", "activity", "energy", "exports", "extra", "control"];
+const GROUPS = ["review", "setup", "precursor", "activity", "energy", "exports", "extra", "control"];
 
 function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap) {
   const params: Record<string, unknown> = { ...g.params };
@@ -72,10 +73,40 @@ export default function Gaps() {
   );
 }
 
+function SetupGap({ g }: { g: Gap }) {
+  const { t } = useTranslation();
+  const { pid } = useProject();
+  const { title, q } = gapText(t, g);
+  return (
+    <section>
+      <h3 className="eyebrow mb-2">{t("gaps.group_setup")}</h3>
+      <div className={`card p-4 sm:p-5 ${g.status === "red" ? "border-bad/40" : "border-warn/50"}`}>
+        <div className="flex flex-wrap items-start gap-3">
+          <PackagePlus className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={g.status} />
+              <h4 className="font-semibold">{title}</h4>
+            </div>
+            <p className="mt-1 text-[13px] text-ink2">{q}</p>
+          </div>
+          <Link to={`/p/${pid}/capture#setup`} className="btn-ghost h-9 min-h-0">
+            {t("next.setup_cta")}
+          </Link>
+        </div>
+        <div className="mt-3">
+          <ProductLines embedded />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function GapGroup({ group, items }: { group: string; items: Gap[] }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   if (!items.length) return null;
+  if (group === "setup") return <SetupGap g={items[0]} />;
   const attention = items.filter((g) => g.status === "red" || g.status === "amber");
   const rest = items.filter((g) => g.status !== "red" && g.status !== "amber");
   const shown = open || attention.length === 0 ? [...attention, ...rest] : attention;
@@ -90,7 +121,7 @@ function GapGroup({ group, items }: { group: string; items: Gap[] }) {
           <li>
             <button className="flex min-h-[44px] w-full items-center gap-2 px-4 text-[13px] text-ink2 hover:bg-sunk" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
               <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
-              {open ? t("gaps.hide_ok", { defaultValue: "Hide items that are OK" }) : t("gaps.show_ok", { defaultValue: "Show {{n}} items that are OK", n: rest.length })}
+              {open ? t("gaps.hide_ok") : t("gaps.show_ok", { count: rest.length })}
             </button>
           </li>
         )}

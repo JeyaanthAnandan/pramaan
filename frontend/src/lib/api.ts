@@ -44,7 +44,38 @@ export interface MoneyPoint {
   actual_inr_t: string;
   default_inr_t: string;
   gap_inr_t: string;
+  buyer_eur_t: string;
+  buyer_inr_t: string;
+  basis: "actual" | "default";
   nodes: { actual: string; default: string; gap: string };
+}
+
+/** What the EU buyer pays: the cheaper of the exporter's data and the EU default (2026 imports). */
+export interface BuyerCost {
+  basis_2026: "actual" | "default";
+  actual_eur_t: string;
+  default_eur_t: string;
+  buyer_eur_t: string;
+  cost_actual_eur: string;
+  cost_actual_node: string;
+  cost_default_eur: string;
+  cost_default_node: string;
+  cost_buyer_eur: string;
+  cost_buyer_node: string;
+  gap_vs_default_eur_t: string;
+  annual_factor: string;
+  annual_gap_eur: string;
+  supplier_saving_eur_t: string | null;
+  supplier_saving_annual_eur: string | null;
+  with_supplier_eur_t?: string;
+}
+
+export interface Operations {
+  period_months: number;
+  gas_gj_per_t: string | null;
+  gas_node: string | null;
+  gas_monthly: { month: string; gj_per_t: string }[];
+  processes: Record<string, { yield_pct: string; yield_node: string; scrap_pct: string; scrap_node: string; rod_t: string; scrap_t: string; al_t: string; monthly: { month: string; scrap_pct: string | null; yield_pct: string | null }[] }>;
 }
 
 export interface ExtraParam { value: string | null; status: string; evidence: string[]; note?: string; optional?: boolean }
@@ -74,6 +105,7 @@ export interface ProcessResult {
   certificates_node: string;
   cost_2026_eur: string;
   cost_node: string;
+  buyer: BuyerCost;
   contribution: { key: string; label: string; value: string; node: string; status?: string }[];
   extra_parameters: Record<string, ExtraParam>;
   default_see_2026: string;
@@ -96,7 +128,13 @@ export interface Result {
     projection_price: { value: string; status: string; citation: string };
     price_2026: { value: string; node: string };
   };
-  readiness: { score: string; total: number; by_status: Record<string, number>; definition: string };
+  readiness: {
+    score: string; total: number; by_status: Record<string, number>; definition: string;
+    by_process: Record<string, { score: string; total: number; good: number; missing: number; review: number; precursor: "actual" | "default"; ready: boolean }>;
+    lines_ready: number; lines_total: number;
+  };
+  operations: Operations;
+  period_months: number;
   calc_tree: Record<string, CalcNode>;
   assumptions_used: string[];
   checks: Check[];
@@ -129,10 +167,19 @@ export interface Evidence {
 export interface TimelineEvent { seq: number; ts: string; agent: string; action: string; status: "start" | "done" | "error" | "info" | "review"; input_summary: string; output_summary: string; duration_ms: number | null; model: string | null; tokens_in: number | null; tokens_out: number | null; doc_id: string | null }
 export interface Run { id: string; project_id: string; mode: "live" | "replay"; status: "running" | "done" | "error"; started_at: string; finished_at: string | null; metrics: Record<string, any>; error: string | null; events?: TimelineEvent[] }
 
+export interface ProcessDef {
+  id: string; name: string; cn: string; cn_display: string; cn_desc: string; precursor_name: string; precursor_cn: string; precursor_supplier: string;
+  precursor_country?: string; source: "sample" | "owner" | "ai"; evidence_docs: string[]; rationale: string;
+}
+
+export interface LineIn { name: string; cn: string; precursor_name: string; precursor_cn: string; precursor_supplier: string; source?: string; rationale?: string; doc_ids?: string[] }
+
+export interface CnInfo { cn: string; cn_display: string; role: string; ok: boolean; description: string; default_value: string | null; default_locator: string | null; default_fallback: boolean; route: string | null; errors: string[] }
+
 export interface ProjectBundle {
   project: { id: string; name: string; company: string; country: string; city: string; year: number; period_label: string; months: string[]; is_demo: boolean; fx_inr_per_eur: string | null; projection_price_eur: string | null;
     supplier_requests: { process_id: string; supplier: string; status: "not_requested" | "requested" | "received" | "verified"; updated_at: string }[];
-    processes: { id: string; name: string; cn: string; cn_display: string; precursor_name: string; precursor_supplier: string }[] };
+    processes: ProcessDef[]; processes_confirmed: boolean; protected: boolean };
   documents: Doc[];
   last_run: Run | null;
   running: boolean;
@@ -140,15 +187,16 @@ export interface ProjectBundle {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public detail: unknown = null) { super(message); }
 }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(path, { ...init, headers: { ...(init?.body && !(init.body instanceof FormData) ? { "Content-Type": "application/json" } : {}), ...(init?.headers || {}) } });
   if (!r.ok) {
     let msg = r.statusText;
-    try { const j = await r.json(); msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail); } catch { /* keep statusText */ }
-    throw new ApiError(r.status, msg);
+    let detail: unknown = null;
+    try { const j = await r.json(); detail = j.detail; msg = typeof j.detail === "string" ? j.detail : j.detail?.message ?? JSON.stringify(j.detail); } catch { /* keep statusText */ }
+    throw new ApiError(r.status, msg, detail);
   }
   return r.json() as Promise<T>;
 }
@@ -157,7 +205,14 @@ export const api = {
   health: () => req<any>("/healthz"),
   demoLoad: (replay = false) => req<{ project_id: string; run_id: string; source: string }>("/api/demo/load", { method: "POST", body: JSON.stringify({ replay }) }),
   project: (pid: string) => req<ProjectBundle>(`/api/projects/${pid}`),
-  createProject: (body: { name: string; company: string; country?: string; city?: string }) => req<any>("/api/projects", { method: "POST", body: JSON.stringify(body) }),
+  createProject: (body: { name: string; company: string; country?: string; city?: string; months_to?: number }) =>
+    req<ProjectBundle["project"] & { access_key: string }>("/api/projects", { method: "POST", body: JSON.stringify(body) }),
+  unlock: (pid: string, passcode: string) => req<{ ok: boolean }>(`/api/projects/${pid}/unlock`, { method: "POST", body: JSON.stringify({ passcode }) }),
+  putLines: (pid: string, lines: LineIn[], confirm = true) => req<ProjectBundle["project"]>(`/api/projects/${pid}/product-lines`, { method: "PUT", body: JSON.stringify({ lines, confirm }) }),
+  suggestLines: (pid: string) => req<{ lines: ProcessDef[]; rejected: { proposal: Record<string, unknown>; errors: string[] }[]; notes: string; model: string | null }>(`/api/projects/${pid}/product-lines/suggest`, { method: "POST" }),
+  cn: (cn: string, country: string, role: "good" | "precursor") => req<CnInfo>(`/api/refdata/cn/${encodeURIComponent(cn.replace(/\D/g, "") || "0")}?country=${encodeURIComponent(country)}&role=${role}`),
+  cnSearch: (q: string, country: string) => req<{ cn: string; cn_display: string; description: string }[]>(`/api/refdata/cn/search?q=${encodeURIComponent(q)}&country=${encodeURIComponent(country)}`),
+  countries: () => req<string[]>("/api/refdata/countries"),
   patchProject: (pid: string, body: Record<string, unknown>) => req<any>(`/api/projects/${pid}`, { method: "PATCH", body: JSON.stringify(body) }),
   upload: (pid: string, files: File[]) => { const fd = new FormData(); files.forEach((f) => fd.append("files", f)); return req<{ documents: Doc[] }>(`/api/projects/${pid}/documents`, { method: "POST", body: fd }); },
   startRun: (pid: string, lang: string, mode?: "live" | "replay") => req<{ run_id: string; mode: string }>(`/api/projects/${pid}/runs`, { method: "POST", body: JSON.stringify({ lang, mode }) }),
