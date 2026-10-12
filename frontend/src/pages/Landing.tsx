@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, BadgeCheck, Calculator, Camera, Check, FileCheck2, Factory, FileSearch, Globe2, Loader2, Pause, Play, ScanEye, ScanSearch, Scale, Smartphone, Tags, TrendingDown, ExternalLink } from "lucide-react";
+import { ArrowRight, BadgeCheck, Calculator, Camera, Check, Compass, FileCheck2, Factory, FileSearch, Globe2, Loader2, Pause, Play, ScanEye, ScanSearch, Scale, Smartphone, Tags, TrendingDown, ExternalLink } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { lastProject, rememberPasscode, rememberProject } from "@/lib/session";
 import { useToast } from "@/components/Toast";
@@ -146,24 +146,25 @@ const FACTS = [
 export default function Landing() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const [busy, setBusy] = useState<"load" | "live" | "own" | null>(null);
+  const [busy, setBusy] = useState<"load" | "live" | "own" | "tour" | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const golden = useQuery({ queryKey: ["golden"], queryFn: api.golden, staleTime: 60_000 });
   const toast = useToast();
 
-  async function load(live: boolean) {
+  async function load(live: boolean, tour = false) {
     setErr(null);
-    setBusy(live ? "live" : "load");
+    setBusy(tour ? "tour" : live ? "live" : "load");
+    const where = (id: string) => (live ? `/p/${id}/capture?autorun=1` : `/p/${id}/report${tour ? "?tour=1" : ""}`);
     try {
       const r = await api.demoLoad(false);
       rememberProject(r.project_id);
-      nav(live ? `/p/${r.project_id}/capture?autorun=1` : `/p/${r.project_id}/report`);
+      nav(where(r.project_id));
     } catch (e) {
       const prev = lastProject();
       if (e instanceof ApiError && e.status === 429 && prev?.startsWith("demo-")) {
         // too many fresh copies from this address: reopen this visitor's earlier copy instead
         toast(t("toast.reuse_sample"), "info");
-        nav(live ? `/p/${prev}/capture?autorun=1` : `/p/${prev}/report`);
+        nav(where(prev));
       } else setErr(String((e as Error).message));
     } finally {
       setBusy(null);
@@ -207,7 +208,11 @@ export default function Landing() {
                 {busy === "load" ? t("landing.loading") : t("landing.load")}
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <button className="btn-ghost h-12 px-5" onClick={() => load(true)} disabled={!!busy} title={t("landing.live_hint")}>
+              <button className="btn-ghost h-12 px-5" onClick={() => load(false, true)} disabled={!!busy}>
+                {busy === "tour" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Compass className="h-4 w-4 text-accent" />}
+                {t("tour.landing")}
+              </button>
+              <button className="btn-quiet h-12 px-4" onClick={() => load(true)} disabled={!!busy} title={t("landing.live_hint")}>
                 {busy === "live" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {t("landing.live")}
               </button>

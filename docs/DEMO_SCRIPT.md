@@ -23,6 +23,8 @@ pulse** for two seconds while saying it: June ran +18.5 % on gas — ₹2,00,905
 
 ## Before recording
 
+0. For a judge's own visit, the landing page's **Take the 90-second tour** walks the same path (verdict → Evidence Lens → two readers → supplier link → Plant pulse → Ask → EC proof).
+
 1. `POST /api/demo/load` (or click **Load sample factory**) — the review card must be amber again.
 2. If Gemini is live on the deployment, record **Process live** for 0:20–0:45; otherwise use the
    timeline replay and do not claim live model timings.

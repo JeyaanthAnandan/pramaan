@@ -9,6 +9,18 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 4 — a 90-second guided tour for people with two minutes
+* Judge: the best parts (Evidence Lens, two readers, supplier loop, Ask, Plant pulse, EC proof) are spread
+  over a long report and two pages; a judge with two minutes would see the verdict and leave.
+* Built: `components/Tour.tsx` — seven stops (verdict, SEE number, two-reader comparison on Gaps, request
+  letter, Plant pulse, Ask, proof), spotlight with a moving hole (one element, huge shadow; the lit part
+  stays clickable), card placed below/above the target, step dots, Back/Next/Skip, arrow keys, Esc,
+  focus on Next, reduced motion = cuts. Layered under the Ask panel and the Evidence Lens so what it points
+  at can be opened over it. Starts from the landing ("Take the 90-second tour", loads the sample) or the
+  workspace chip "Take the tour" on the sample. en/hi/ta/vi.
+* Tests: `scripts/ui_smoke.py` now runs the tour end to end (CI e2e); axe 0 on landing + tour (light/dark,
+  1440/360).
+
 ### Iteration 3 — Plant pulse (theme: intelligent operations & industrial efficiency)
 * Judge: the theme is manufacturing operations; Pramaan read the operational data (gas bills, register)
   only for compliance. And the sample's months were perfectly flat (3.500 GJ/t, 15.0 % scrap every

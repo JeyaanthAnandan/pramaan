@@ -235,7 +235,7 @@ function ReviewCard({ g }: { g: Gap }) {
           </div>
           <h4 className="mt-2 text-lg font-semibold">{title}</h4>
           <p className="mt-1 text-sm text-ink2">{q}</p>
-          <div className="relative mt-4 grid grid-cols-2 gap-x-9 gap-y-3">
+          <div className="relative mt-4 grid grid-cols-2 gap-x-9 gap-y-3" data-tour="review">
             <div className={`rounded-xl border border-line bg-surface p-3 transition-shadow duration-500 ${ring("first")}`}>
               <div className="text-[11px] text-muted">{t("gaps.reader1")}</div>
               <div className="font-mono text-2xl">{ev.value_text}</div>

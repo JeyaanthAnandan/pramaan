@@ -105,6 +105,16 @@ def main() -> int:
                 expect(other.get_by_text("Stainless hexagon bolts").first).to_be_visible(timeout=10_000)
                 other.context.close()
                 print(f"[{name}] own project: product lines confirmed; passcode opens it on another device")
+                # the 90-second tour from the landing page: seven stops across report and gaps, ends on the proof
+                page.goto(base + "/", wait_until="networkidle")
+                page.get_by_role("button", name="Take the 90-second tour").click()
+                tour = page.locator('[role="dialog"][aria-labelledby="tour-title"]')
+                for _ in range(6):
+                    expect(tour).to_be_visible(timeout=15_000)
+                    tour.get_by_role("button", name="Next").click()
+                tour.get_by_role("button", name="See the proof").click()
+                page.wait_for_url("**/proof", timeout=15_000)
+                print(f"[{name}] guided tour: 7 stops, ends on the EC proof")
             else:
                 page.get_by_role("link", name="Close gaps").first.click()
                 expect(page.get_by_role("heading", name="What's missing?")).to_be_visible()

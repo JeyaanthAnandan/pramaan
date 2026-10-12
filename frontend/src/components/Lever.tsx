@@ -201,7 +201,7 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
   return (
     <Dialog.Root open={open} onOpenChange={(o) => { setOpen(o); if (o && !text) void load(lang); }}>
       <Dialog.Trigger asChild>
-        <button className={`${compact ? "btn-primary h-9 min-h-0" : "btn-primary w-full"} ${attention ? "glint" : ""}`}>
+        <button className={`${compact ? "btn-primary h-9 min-h-0" : "btn-primary w-full"} ${attention ? "glint" : ""}`} data-tour="letter">
           <FileSignature className="h-4 w-4" /> {t("lever.letter")}
         </button>
       </Dialog.Trigger>

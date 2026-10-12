@@ -1,10 +1,11 @@
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, useAnimate } from "motion/react";
-import { AlertTriangle, Check, KeyRound, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Compass, KeyRound, Loader2 } from "lucide-react";
 import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
 import { AskProvider } from "@/components/ReportAsk";
+import { TourProvider, useTour } from "@/components/Tour";
 import { ReadinessRing } from "@/components/Charts";
 import { WorkspaceSkeleton } from "@/components/Skeleton";
 import { api, ApiError } from "@/lib/api";
@@ -23,7 +24,9 @@ export default function Workspace() {
     <ProjectProvider pid={pid}>
       <LensProvider>
         <AskProvider>
-          <Inner step={step} />
+          <TourProvider>
+            <Inner step={step} />
+          </TourProvider>
         </AskProvider>
       </LensProvider>
     </ProjectProvider>
@@ -33,6 +36,7 @@ export default function Workspace() {
 function Inner({ step }: { step: string }) {
   const { t } = useTranslation();
   const { pid, bundle, result, loading, error } = useProject();
+  const tour = useTour();
   useEffect(() => {
     if (bundle) rememberProject(pid);
   }, [bundle, pid]);
@@ -88,6 +92,11 @@ function Inner({ step }: { step: string }) {
           <div className="flex flex-wrap items-center gap-2">
             {p.is_demo && <span className="chip border-warn/40 bg-warnbg text-warnink">{t("app.sample")}</span>}
             {result?.mode && <span className="chip">{result.mode === "live" ? t("app.live") : t("app.replay")}</span>}
+            {p.is_demo && result && (
+              <button className="chip border-accent/30 bg-accent/5 text-accent transition hover:bg-accent/10" onClick={tour}>
+                <Compass className="h-3 w-3" aria-hidden /> {t("tour.start")}
+              </button>
+            )}
           </div>
           <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:truncate sm:text-[28px]">{p.company}</h1>
           <p className="text-sm text-muted">{[p.city, p.country, p.period_label].filter(Boolean).join(" · ")}</p>

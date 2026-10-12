@@ -92,7 +92,7 @@ function Verdict() {
   const rose = useRise(securedAnnual); // a supplier's verified data just landed: show what it added
   const ask = useAsk();
   return (
-    <section className="card overflow-hidden" aria-labelledby="verdict-title">
+    <section className="card overflow-hidden" aria-labelledby="verdict-title" data-tour="verdict">
       <div className="p-5 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div className="min-w-0">
@@ -105,7 +105,7 @@ function Verdict() {
             <p className="flex items-center gap-1.5 text-[12px] text-muted">
               <MousePointerClick className="h-3.5 w-3.5" aria-hidden /> {t("report.click_hint")}
             </p>
-            <button className="btn-ghost min-h-[36px] px-3 text-[13px]" onClick={() => ask()}>
+            <button className="btn-ghost min-h-[36px] px-3 text-[13px]" onClick={() => ask()} data-tour="ask">
               <Sparkles className="h-4 w-4 text-accent" aria-hidden /> {t("ask.title")}
             </button>
           </div>
@@ -278,7 +278,7 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         <StatusBadge status={actual ? "VERIFIED_2R" : "DEFAULT_USED"} label={actual ? t("report.actual_verified") : t("report.default_used")} />
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-x-3 gap-y-1">
-        <div className="font-display text-[52px] font-semibold leading-none tracking-[-0.01em]">
+        <div className="font-display text-[52px] font-semibold leading-none tracking-[-0.01em]" data-tour="see">
           <LensNum node={p.see_node}>
             <AnimatedNumber value={p.see} format={(v) => n(v, 3)} countUp />
           </LensNum>
