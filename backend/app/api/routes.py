@@ -714,7 +714,7 @@ class DemoLoad(BaseModel):
 
 
 _demo_log: dict[str, deque[float]] = defaultdict(deque)
-DEMO_LOADS_PER_HOUR = 40
+DEMO_LOADS_PER_HOUR = 120  # per address; a room of judges can share one office address
 
 
 def _client_ip(request: Request) -> str:
