@@ -245,3 +245,13 @@ def test_whatif_yield_and_gas_levers(sample: tuple[TestClient, str]) -> None:
     s = c.post(f"/api/projects/{pid}/whatif", json={"process_id": "P2", "rod_see": "1.783", "rod_sefa": "0.919"}).json()
     assert s["series"][0]["basis_now"] == "default" and s["series"][0]["basis"] == "actual"
     assert c.post(f"/api/projects/{pid}/whatif", json={"process_id": "P1", "scrap_pct": "75"}).status_code == 422
+
+
+def test_results_saved_by_an_older_engine_are_recomputed(sample: tuple[TestClient, str]) -> None:
+    c, pid = sample
+    old = {k: v for k, v in store().get_latest_result(pid).items() if k not in {"operations", "period_months"}}  # type: ignore[union-attr]
+    for p in old["processes"]:
+        p.pop("buyer", None)
+    store().put_result(pid, "old-engine", old)
+    r = c.get(f"/api/projects/{pid}/results").json()
+    assert "operations" in r and all("buyer" in p for p in r["processes"] if "see" in p)

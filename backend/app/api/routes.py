@@ -44,6 +44,8 @@ def _result(pid: str) -> dict[str, Any]:
     r = store().get_latest_result(pid)
     if r is None:
         raise HTTPException(404, "no results yet - run the agents first")
+    if "operations" not in r:  # saved by an older engine version: recompute from the same evidence
+        r = recalculate(pid)
     return r
 
 
