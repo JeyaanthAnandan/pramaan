@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 import { ArrowRight, ClipboardList, Link2, ListChecks, PackageSearch, Send } from "lucide-react";
 import { useProject } from "@/lib/project";
 import { eur, inr } from "@/lib/format";
+import { rise, stagger } from "@/lib/motion";
 import { LetterDialog } from "./Lever";
 
 type Tone = "bad" | "warn" | "good";
@@ -61,7 +63,7 @@ export function NextSteps() {
                 <Send className="h-3 w-3" /> {t(`lever.st_${req.status}`)}
               </a>
             )}
-            <LetterDialog processId={p.id} supplier={p.precursor.supplier} onSent={refresh} compact />
+            <LetterDialog processId={p.id} supplier={p.precursor.supplier} onSent={refresh} compact attention />
           </div>
         ),
       });
@@ -115,11 +117,11 @@ export function NextSteps() {
       <h3 id="next-title" className="flex items-center gap-2 font-semibold">
         <ArrowRight className="h-4 w-4 text-accent" aria-hidden /> {t("next.title")}
       </h3>
-      <ol className="mt-3 space-y-2.5">
+      <motion.ol className="mt-3 space-y-2.5" variants={stagger(0.09, 0.15)} initial="hidden" animate="show">
         {steps.map((s, i) => (
-          <li key={s.key} className={`flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center ${TONE[s.tone]}`}>
+          <motion.li key={s.key} variants={rise} className={`flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center ${TONE[s.tone]}`}>
             <div className="flex min-w-0 flex-1 gap-3">
-              <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface font-mono text-[12px] font-semibold ${ICON_TONE[s.tone]}`} aria-hidden>
+              <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface font-mono text-[12px] font-semibold shadow-card ${ICON_TONE[s.tone]}`} aria-hidden>
                 {i + 1}
               </span>
               <div className="min-w-0">
@@ -128,9 +130,9 @@ export function NextSteps() {
               </div>
             </div>
             {s.action && <div className="shrink-0 sm:pl-2">{s.action}</div>}
-          </li>
+          </motion.li>
         ))}
-      </ol>
+      </motion.ol>
     </section>
   );
 }

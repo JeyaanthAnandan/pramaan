@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "motion/react";
 import { Check, CheckCircle2, Copy, KeyRound, Loader2, PackagePlus, Pencil, Plus, Sparkles, Trash2, XCircle } from "lucide-react";
 import { api, ApiError, type CnInfo, type ProcessDef } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { passcodeFor } from "@/lib/session";
+import { EASE } from "@/lib/motion";
 import { StatusBadge } from "./Status";
+import { useToast } from "./Toast";
 
-type Draft = Pick<ProcessDef, "name" | "cn" | "precursor_name" | "precursor_cn" | "precursor_supplier"> & { source?: string; rationale?: string; doc_ids?: string[] };
+type Draft = Pick<ProcessDef, "name" | "cn" | "precursor_name" | "precursor_cn" | "precursor_supplier"> & { source?: string; rationale?: string; doc_ids?: string[]; _k?: number };
 const EMPTY: Draft = { name: "", cn: "", precursor_name: "", precursor_cn: "", precursor_supplier: "" };
+let seq = 0;
+const keyed = (d: Draft): Draft => ({ ...d, _k: ++seq }); // stable keys so a removed line animates out, not the last one
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Own project set-up: who, which period, which product lines (typed, or proposed by Gemini). */
@@ -40,6 +45,7 @@ export function SetupCard() {
 
 function Passcode({ code }: { code: string }) {
   const { t } = useTranslation();
+  const toast = useToast();
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-accent/25 bg-accent/5 p-3 sm:flex-row sm:items-center">
@@ -54,11 +60,12 @@ function Passcode({ code }: { code: string }) {
           onClick={async () => {
             await navigator.clipboard.writeText(code);
             setCopied(true);
+            toast(t("toast.copied"));
             setTimeout(() => setCopied(false), 1500);
           }}
           aria-label={t("exports.copy")}
         >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4 animate-pop text-good" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>
     </div>
@@ -68,6 +75,7 @@ function Passcode({ code }: { code: string }) {
 function Details() {
   const { t } = useTranslation();
   const { pid, bundle, refresh } = useProject();
+  const toast = useToast();
   const p = bundle!.project;
   const countries = useQuery({ queryKey: ["countries"], queryFn: api.countries, staleTime: Infinity });
   const [company, setCompany] = useState(p.company);
@@ -83,6 +91,7 @@ function Details() {
     try {
       await api.patchProject(pid, { company, city, country, months_to: last });
       await refresh();
+      toast(t("toast.saved"));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -130,6 +139,7 @@ function Details() {
 export function ProductLines({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const { pid, bundle, refresh } = useProject();
+  const toast = useToast();
   const health = useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: 60_000 });
   const p = bundle!.project;
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
@@ -142,7 +152,7 @@ export function ProductLines({ embedded = false }: { embedded?: boolean }) {
   function edit(lines: Draft[]) {
     setErr(null);
     setLineErrs({});
-    setDrafts(lines.length ? lines : [{ ...EMPTY }]);
+    setDrafts((lines.length ? lines : [{ ...EMPTY }]).map(keyed));
   }
   async function suggest() {
     setBusy("suggest");
@@ -162,9 +172,10 @@ export function ProductLines({ embedded = false }: { embedded?: boolean }) {
     setErr(null);
     setLineErrs({});
     try {
-      await api.putLines(pid, lines, confirm);
+      await api.putLines(pid, lines.map(({ _k, ...l }) => l), confirm);
       setDrafts(null);
       await refresh();
+      toast(t("toast.lines_saved"));
     } catch (e) {
       if (e instanceof ApiError && e.detail && typeof e.detail === "object" && "lines" in (e.detail as Record<string, unknown>)) {
         setLineErrs((e.detail as { lines: Record<string, string[]> }).lines);
@@ -242,8 +253,9 @@ function Editor({ drafts, setDrafts, errors, country, onCancel, onSave, busy }: 
   const set = (i: number, patch: Partial<Draft>) => setDrafts(drafts.map((d, j) => (j === i ? { ...d, ...patch } : d)));
   return (
     <div className="space-y-3">
+      <AnimatePresence initial={false}>
       {drafts.map((d, i) => (
-        <fieldset key={i} className="rounded-xl border border-line bg-surface p-3">
+        <motion.fieldset key={d._k ?? i} className="rounded-xl border border-line bg-surface p-3" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.25, ease: EASE }}>
           <legend className="flex items-center gap-2 px-1 text-[12px] font-semibold">
             P{i + 1}
             {d.source === "ai" && <span className="chip border-accent/25 bg-accent/5 py-0 text-accent"><Sparkles className="h-3 w-3" /> {t("setup.by_ai")}</span>}
@@ -268,11 +280,12 @@ function Editor({ drafts, setDrafts, errors, country, onCancel, onSave, busy }: 
               <Trash2 className="h-3.5 w-3.5" /> {t("setup.remove")}
             </button>
           )}
-        </fieldset>
+        </motion.fieldset>
       ))}
+      </AnimatePresence>
       <div className="flex flex-wrap gap-2">
         {drafts.length < 6 && (
-          <button className="btn-ghost h-9 min-h-0" onClick={() => setDrafts([...drafts, { ...EMPTY }])}>
+          <button className="btn-ghost h-9 min-h-0" onClick={() => setDrafts([...drafts, keyed(EMPTY)])}>
             <Plus className="h-4 w-4" /> {t("setup.add_line")}
           </button>
         )}
@@ -314,7 +327,7 @@ function CnField({ label, value, onChange, country, role }: { label: string; val
         <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={t("setup.cn_hint")} className="num min-h-[40px] rounded-lg border border-line2 bg-page px-2" />
       </label>
       {!words && digits.length === 8 && check.data && (
-        <p className={`flex items-start gap-1 text-[12px] ${check.data.ok ? "text-goodink" : "text-badink"}`}>
+        <p key={`${digits}-${check.data.ok}`} className={`flex animate-rise items-start gap-1 text-[12px] ${check.data.ok ? "text-goodink" : "text-badink"}`}>
           {check.data.ok ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
           <span>{check.data.ok ? check.data.description : check.data.errors.join(" ")}</span>
         </p>

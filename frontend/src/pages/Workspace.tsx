@@ -1,15 +1,20 @@
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Camera, ClipboardList, FileCheck2, KeyRound, Loader2 } from "lucide-react";
+import { motion, useAnimate } from "motion/react";
+import { AlertTriangle, Check, KeyRound, Loader2 } from "lucide-react";
 import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
 import { ReadinessRing } from "@/components/Charts";
+import { WorkspaceSkeleton } from "@/components/Skeleton";
 import { api, ApiError } from "@/lib/api";
 import { rememberProject } from "@/lib/session";
+import { EASE, SPRING } from "@/lib/motion";
 import Capture from "./workspace/Capture";
 import Gaps from "./workspace/Gaps";
 import Report from "./workspace/Report";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const ORDER: Record<string, number> = { capture: 0, gaps: 1, report: 2 };
 
 export default function Workspace() {
   const { pid = "", step = "report" } = useParams();
@@ -30,13 +35,14 @@ function Inner({ step }: { step: string }) {
   }, [bundle, pid]);
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
+  // steps slide in the direction you move: forward from the right, back from the left
+  const prev = useRef(step);
+  const dir = (ORDER[step] ?? 0) >= (ORDER[prev.current] ?? 0) ? 1 : -1;
+  useEffect(() => {
+    prev.current = step;
+  }, [step]);
 
-  if (loading && !bundle)
-    return (
-      <div className="grid min-h-[50vh] place-items-center text-muted">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
+  if (loading && !bundle) return <WorkspaceSkeleton />;
   if (error && !bundle && error instanceof ApiError && error.status === 401) return <Unlock />;
   if (error && !bundle)
     return (
@@ -68,9 +74,9 @@ function Inner({ step }: { step: string }) {
   const red = gaps.filter((g) => g.status === "red").length;
   const amber = gaps.filter((g) => g.status === "amber").length;
   const steps = [
-    { key: "capture", icon: Camera, n: 1, label: t("steps.capture"), q: t("steps.capture_q"), meta: `${bundle.documents.length}` },
-    { key: "gaps", icon: ClipboardList, n: 2, label: t("steps.gaps"), q: t("steps.gaps_q"), meta: result ? `${red}·${amber}` : "" },
-    { key: "report", icon: FileCheck2, n: 3, label: t("steps.report"), q: t("steps.report_q"), meta: result ? `${Number(result.readiness.score).toFixed(0)}%` : "" },
+    { key: "capture", n: 1, label: t("steps.capture"), q: t("steps.capture_q"), done: !!result },
+    { key: "gaps", n: 2, label: t("steps.gaps"), q: t("steps.gaps_q"), done: !!result && red + amber === 0 },
+    { key: "report", n: 3, label: t("steps.report"), q: t("steps.report_q"), done: false },
   ];
   return (
     <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6">
@@ -83,44 +89,60 @@ function Inner({ step }: { step: string }) {
           <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:truncate sm:text-[28px]">{p.company}</h1>
           <p className="text-sm text-muted">{[p.city, p.country, p.period_label].filter(Boolean).join(" · ")}</p>
         </div>
-        {result && (
-          <Link to={`/p/${pid}/report`} className="hidden items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2 shadow-card sm:flex">
-            <ReadinessRing value={Number(result.readiness.score)} size={56} />
-            <div className="text-[12px] leading-tight">
-              <div className="font-semibold">{t("report.readiness")}</div>
-              <div className="max-w-[170px] text-muted">{t("report.readiness_d")}</div>
-              {result.readiness.lines_total > 0 && (
-                <div className={`mt-0.5 max-w-[170px] font-semibold ${result.readiness.lines_ready === result.readiness.lines_total ? "text-goodink" : "text-warnink"}`}>
-                  {t("report.lines_ready", { ready: result.readiness.lines_ready, total: result.readiness.lines_total })}
-                </div>
-              )}
-            </div>
-          </Link>
+        {result && step !== "report" && (
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, ease: EASE }} className="hidden sm:block">
+            <Link to={`/p/${pid}/report`} className="card-hover flex items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2 shadow-card">
+              <ReadinessRing value={Number(result.readiness.score)} size={56} stroke={6} label={t("report.readiness")} />
+              <div className="text-[12px] leading-tight">
+                <div className="font-semibold">{t("report.readiness")}</div>
+                <div className="max-w-[170px] text-muted">{t("report.readiness_d")}</div>
+                {result.readiness.lines_total > 0 && (
+                  <div className={`mt-0.5 max-w-[170px] font-semibold ${result.readiness.lines_ready === result.readiness.lines_total ? "text-goodink" : "text-warnink"}`}>
+                    {t("report.lines_ready", { ready: result.readiness.lines_ready, total: result.readiness.lines_total })}
+                  </div>
+                )}
+              </div>
+            </Link>
+          </motion.div>
         )}
       </div>
       <nav className="mt-6 grid grid-cols-3 gap-2" aria-label="Steps">
-        {steps.map((s) => (
-          <NavLink
-            key={s.key}
-            to={`/p/${pid}/${s.key}`}
-            className={({ isActive }) =>
-              `group relative flex min-h-[56px] min-w-0 flex-col items-start justify-center gap-1 rounded-2xl border px-2.5 py-2 transition sm:flex-row sm:items-center sm:gap-3 sm:px-4 ${isActive || step === s.key ? "border-ink bg-surface shadow-card" : "border-line bg-transparent hover:bg-surface"}`
-            }
-          >
-            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded font-mono text-xs font-semibold sm:h-8 sm:w-8 sm:text-sm ${step === s.key ? "bg-ink text-page" : "bg-sunk text-ink2"}`}>{s.n}</span>
-            <span className="min-w-0 max-w-full">
-              <span className="block text-[13px] font-semibold leading-tight sm:truncate sm:text-sm">{s.label}</span>
-              <span className="hidden truncate text-[12px] text-muted sm:block">{s.q}</span>
-            </span>
-            {s.meta && <span className="num ml-auto hidden rounded-full bg-sunk px-2 py-0.5 text-[11px] text-ink2 md:inline">{s.meta}</span>}
-          </NavLink>
-        ))}
+        {steps.map((s) => {
+          const on = step === s.key;
+          return (
+            <NavLink
+              key={s.key}
+              to={`/p/${pid}/${s.key}`}
+              aria-current={on ? "step" : undefined}
+              className={`group relative flex min-h-[56px] min-w-0 flex-col items-start justify-center gap-1 rounded-2xl border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-3 sm:px-4 ${on ? "border-transparent" : "border-line hover:border-line2 hover:bg-surface/70"}`}
+            >
+              {on && <motion.span layoutId="step-pill" className="absolute inset-0 rounded-2xl border border-ink bg-surface shadow-card" transition={SPRING} aria-hidden />}
+              <span className={`relative grid h-6 w-6 shrink-0 place-items-center rounded font-mono text-xs font-semibold transition-colors duration-300 sm:h-8 sm:w-8 sm:text-sm ${on ? "bg-ink text-page" : s.done ? "bg-goodbg text-goodink" : "bg-sunk text-ink2"}`}>
+                {s.done && !on ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-label="done" /> : s.n}
+              </span>
+              <span className="relative min-w-0 max-w-full">
+                <span className="block text-[13px] font-semibold leading-tight sm:truncate sm:text-sm">{s.label}</span>
+                <span className="hidden truncate text-[12px] text-muted sm:block">{s.q}</span>
+              </span>
+              <span className="relative ml-auto hidden items-center gap-1 md:flex">
+                {s.key === "capture" && <span className="num rounded-full bg-sunk px-2 py-0.5 text-[11px] text-ink2">{bundle.documents.length}</span>}
+                {s.key === "gaps" && result && (
+                  <>
+                    {red > 0 && <span className="num inline-flex items-center gap-1 rounded-full bg-badbg px-2 py-0.5 text-[11px] font-semibold text-badink"><span className="h-1.5 w-1.5 rounded-full bg-bad" aria-hidden />{red}</span>}
+                    {amber > 0 && <span className="num inline-flex items-center gap-1 rounded-full bg-warnbg px-2 py-0.5 text-[11px] font-semibold text-warnink"><span className="h-1.5 w-1.5 rounded-full bg-warn" aria-hidden />{amber}</span>}
+                  </>
+                )}
+                {s.key === "report" && result && <span className="num rounded-full bg-sunk px-2 py-0.5 text-[11px] text-ink2">{Number(result.readiness.score).toFixed(0)}%</span>}
+              </span>
+            </NavLink>
+          );
+        })}
       </nav>
-      <div className="mt-6">
+      <motion.div key={step} className="mt-6" initial={{ opacity: 0, x: dir * 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.32, ease: EASE }}>
         {step === "capture" && <Capture />}
         {step === "gaps" && <Gaps />}
         {step === "report" && <Report />}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -131,9 +153,13 @@ function Unlock() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [field, shake] = useAnimate<HTMLInputElement>(); // a wrong code shakes the field
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <form
+      <motion.form
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: EASE }}
         className="card p-6"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -144,23 +170,39 @@ function Unlock() {
             await refresh();
           } catch (x) {
             setErr((x as Error).message);
+            if (field.current) void shake(field.current, { x: [0, -8, 7, -5, 3, 0] }, { duration: 0.4 });
           } finally {
             setBusy(false);
           }
         }}
       >
-        <KeyRound className="h-7 w-7 text-accent" aria-hidden />
+        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10">
+          <KeyRound className="h-6 w-6 text-accent" aria-hidden />
+        </span>
         <h1 className="mt-3 text-xl font-semibold">{t("unlock.title")}</h1>
         <p className="mt-1 text-sm text-ink2">{t("unlock.lead")}</p>
         <label className="mt-4 block text-[13px]">
           <span className="text-ink2">{t("unlock.label")}</span>
-          <input value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="characters" placeholder="XXXX-XXXX-XXXX" className="mt-1 min-h-[44px] w-full rounded-xl border border-line2 bg-surface px-3 font-mono tracking-wider" />
+          <input
+            ref={field}
+            value={code}
+            onChange={(e) => {
+              // XXXX-XXXX-XXXX as you type (no look-alike characters are ever issued)
+              const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+              setCode(raw.match(/.{1,4}/g)?.join("-") ?? "");
+            }}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            placeholder="XXXX-XXXX-XXXX"
+            className="mt-1 min-h-[48px] w-full rounded-xl border border-line2 bg-surface px-3 text-center font-mono text-[18px] tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+          />
         </label>
         {err && <p className="mt-2 text-[13px] text-badink">{err}</p>}
         <button className="btn-primary mt-4 w-full" disabled={busy || code.replace(/[^a-z0-9]/gi, "").length < 12}>
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} {t("unlock.open")}
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 }

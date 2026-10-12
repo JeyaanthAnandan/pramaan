@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, Loader2, SendHorizonal, Sparkles } from "lucide-react";
+import { motion } from "motion/react";
+import { BookOpen, Loader2, MessageCircleQuestion, SendHorizonal, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
+import { EASE, rise, stagger } from "@/lib/motion";
 
 interface Turn { q: string; a?: any; err?: string }
 
@@ -41,20 +43,34 @@ export default function Copilot() {
       <h1 className="mt-3 text-3xl font-semibold tracking-tight">{t("copilot.title")}</h1>
       <p className="mt-2 text-ink2">{t("copilot.lead")}</p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <span className="text-[12px] font-semibold text-muted">{t("copilot.examples")}:</span>
-        {examples.data?.map((e) => (
-          <button key={e} className="chip min-h-[32px] px-3 text-[12px] hover:border-accent/40 hover:text-accent" onClick={() => ask(e)} disabled={busy}>
-            {e}
-          </button>
-        ))}
+      <div className="mt-6">
+        <div className="mb-2 text-[12px] font-semibold text-muted">{t("copilot.examples")}:</div>
+        <motion.div className="flex flex-wrap gap-2" variants={stagger(0.05, 0.1)} initial="hidden" animate={examples.data ? "show" : "hidden"}>
+          {examples.data?.map((e) => (
+            <motion.button key={e} variants={rise} className="inline-flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-left text-[13px] text-ink2 shadow-card transition hover:-translate-y-0.5 hover:border-accent/40 hover:text-accent disabled:opacity-50" onClick={() => ask(e)} disabled={busy}>
+              <MessageCircleQuestion className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
+              {e}
+            </motion.button>
+          ))}
+        </motion.div>
       </div>
 
       <div className="mt-6 space-y-6" aria-live="polite">
         {turns.map((turn, i) => (
           <div key={i} className="space-y-3">
-            <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-[14px] text-page">{turn.q}</div>
-            {!turn.a && !turn.err && <Loader2 className="h-5 w-5 animate-spin text-muted" />}
+            <motion.div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-[14px] text-page" initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.3, ease: EASE }}>
+              {turn.q}
+            </motion.div>
+            {!turn.a && !turn.err && (
+              <motion.div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-md border border-line bg-surface px-4 py-3 text-[13px] text-muted shadow-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+                <span className="flex gap-1" aria-hidden>
+                  {[0, 1, 2].map((d) => (
+                    <motion.span key={d} className="h-1.5 w-1.5 rounded-full bg-accent" animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity, delay: d * 0.15 }} />
+                  ))}
+                </span>
+                {t("copilot.thinking")}
+              </motion.div>
+            )}
             {turn.err && <p className="rounded-xl border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{turn.err}</p>}
             {turn.a && <Answer a={turn.a} />}
           </div>
@@ -81,7 +97,7 @@ export default function Copilot() {
 function Answer({ a }: { a: any }) {
   const { t } = useTranslation();
   return (
-    <div className="card p-4 sm:p-5">
+    <motion.div className="card p-4 sm:p-5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE }}>
       {a.answer ? (
         <div className="flex gap-3">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -91,13 +107,13 @@ function Answer({ a }: { a: any }) {
         <p className="text-[13px] text-muted">{t("copilot.retrieval")}</p>
       )}
       {a.citations?.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <motion.div className="mt-3 flex flex-wrap gap-1.5" variants={stagger(0.06, 0.2)} initial="hidden" animate="show">
           {a.citations.map((c: any) => (
-            <span key={`${c.doc}${c.page}`} className="chip border-accent/30 bg-accent/5 text-accent">
+            <motion.span key={`${c.doc}${c.page}`} variants={rise} className="chip border-accent/30 bg-accent/5 text-accent">
               <BookOpen className="h-3 w-3" /> {c.doc}, {t("copilot.page")} {c.page}
-            </span>
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
       )}
       {a.passages?.length > 0 && (
         <details className="mt-4" open={!a.answer}>
@@ -115,6 +131,6 @@ function Answer({ a }: { a: any }) {
         </details>
       )}
       {a.model && <div className="mt-3 font-mono text-[11px] text-muted">{a.model} · grounded on retrieved pages</div>}
-    </div>
+    </motion.div>
   );
 }

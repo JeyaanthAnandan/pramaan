@@ -9,7 +9,7 @@ const hi = {
     disclaimer: "Pramaan मान्यता-प्राप्त verifier का विकल्प नहीं है।",
   },
   nav: { home: "होम", workspace: "कार्यक्षेत्र", proof: "EC प्रमाण", metrics: "मेट्रिक्स", architecture: "आर्किटेक्चर", copilot: "नियम सहायक", theme: "थीम", language: "भाषा", skip: "सामग्री पर जाएँ" },
-  landing: {
+  landing: { built: "इनसे बना", pause: "डेमो रोकें", play: "डेमो चलाएँ", pipe_title: "एक फ़ोटो के साथ क्या होता है", pipe_lead: "दो अलग-अलग Gemini मॉडल हर मान पढ़ते हैं, दूसरा पहले का उत्तर देखे बिना; गणित एक निश्चित (deterministic) इंजन करता है।", pipe_photo: "फ़ोन की फ़ोटो", pipe_photo_d: "गैस बिल, रॉड इनवॉइस या हाथ से लिखा रजिस्टर", pipe_class: "Classifier", pipe_class_d: "दस्तावेज़ का प्रकार, भाषा और अवधि", pipe_r1: "पाठक 1", pipe_r1_d: "पूरा पन्ना पढ़ता है और हर मान पर बॉक्स बनाता है", pipe_r2: "पाठक 2", pipe_r2_d: "केवल कटा हिस्सा दोबारा पढ़ता है, पाठक 1 का उत्तर देखे बिना", pipe_engine: "CBAM इंजन", pipe_engine_d: "आयोग (Commission) के सूत्र, सटीक दशमलव में", pipe_out: "प्रमाण", pipe_out_d: "खरीदार के लिए प्रति टन लागत, verifier पैक, खरीदार लिंक",
     own: "या अपने दस्तावेज़ों से शुरू करें →",
     eyebrow: "EU CBAM · लोहा और इस्पात · 1 जनवरी 2026 से definitive चरण",
     title: "फ़ोन की फ़ोटो से CBAM का प्रमाण।",
@@ -38,7 +38,7 @@ const hi = {
     jp: "यही समस्या वियतनाम, चीन, कोरिया और इंडोनेशिया के निर्यातकों की भी है — Pramaan पूरे JAPAC के लिए बना है।",
   },
   steps: { capture: "फ़ोटो लें", gaps: "कमियाँ भरें", report: "रिपोर्ट", capture_q: "अपने दस्तावेज़ जोड़ें।", gaps_q: "क्या कमी है?", report_q: "यह रहा आपका प्रमाण।" },
-  capture: {
+  capture: { reading: "पढ़ा जा रहा है…",
     drop: "फ़ोटो या PDF यहाँ छोड़ें", or: "या", choose: "फ़ाइल चुनें", camera: "फ़ोटो खींचें", formats: "JPG, PNG, HEIC या PDF · हर फ़ाइल 15 MB तक",
     docs: "दस्तावेज़", run: "एजेंट चलाएँ", running: "एजेंट काम कर रहे हैं…", rerun: "एजेंट दोबारा चलाएँ", none: "अभी कोई दस्तावेज़ नहीं।",
     sample_cta: "इसकी जगह नमूना फ़ैक्टरी खोलें", classified: "पहचाना गया", extracted: "मान", uploaded: "प्रतीक्षा में",
@@ -77,7 +77,7 @@ const hi = {
       extra_pre_consumer_scrap_pct: { t: "pre-consumer स्क्रैप का हिस्सा — {{process}}", q: "लागू नहीं: स्क्रैप इनपुट नहीं।" },
     },
   },
-  report: {
+  report: { buyer_pays: "खरीदार यह भरेगा", your_data: "आपका डेटा", eu_default: "EU default values",
     ec_ref: "पूर्ण परिशुद्धता {{v}} — EC Guidance 5d Example 3 से मेल (गोल किए मध्यवर्ती मानों के साथ 2.039)",
     title: "यह रहा आपका प्रमाण", readiness: "तैयारी", readiness_d: "SEE के इनपुट दो पाठकों से सत्यापित या मंज़ूर",
     see: "Specific embedded emissions", see_short: "SEE", per_t: "t CO2 प्रति t", own: "अपनी प्रक्रिया", precursor: "Precursor", m: "प्रति t बोल्ट रॉड",
@@ -129,7 +129,7 @@ const hi = {
     fx: "INR प्रति EUR", price: "2027+ मूल्य (€)", assumption: "अनुमान", table: "तालिका", chart: "चार्ट", year: "वर्ष", eur_t: "€/t", inr_t: "₹/t",
   },
   exports: { title: "साझा करें और निर्यात", pdf: "PDF रिपोर्ट", xlsx: "Excel वर्कबुक", pack: "Verifier पैक (.zip)", buyer: "खरीदार लिंक", buyer_d: "केवल पढ़ने के लिए, लॉगिन नहीं। केवल सारांश — संयंत्र-स्तर के इनपुट नहीं।", create: "लिंक बनाएँ", copy: "लिंक कॉपी करें", copied: "लिंक कॉपी हुआ", plan: "ड्राफ्ट monitoring plan" },
-  lens: {
+  lens: { path: "रास्ता",
     sources_title: "इस संख्या के पीछे सब कुछ", values_from: "मान, इतने दस्तावेज़ों से पढ़े गए:", documents: "दस्तावेज़", official_values: "आधिकारिक मान", assumptions: "घोषित अनुमान",
     title: "Evidence Lens", source: "स्रोत", formula: "सूत्र", inputs: "इनपुट", readers: "दो-पाठक जाँच", reader1: "पाठक 1", reader2: "पाठक 2 (केवल कटा हिस्सा)", agree: "सहमत", disagree: "असहमत",
     approved: "मंज़ूर", by: "द्वारा", open_doc: "पूरा दस्तावेज़ खोलें", refdata: "आधिकारिक संदर्भ डेटा", assumption: "घोषित अनुमान", published: "प्रकाशित", locator: "कहाँ", back: "पीछे", value: "मान", as_read: "पन्ने पर जैसा लिखा है", status: "स्थिति", calc: "गणना", scenario: "परिदृश्य (what-if)", sha: "SHA-256", official: "आधिकारिक स्रोत खोलें",
@@ -146,9 +146,9 @@ const hi = {
     n3: "Example 3 में रॉड के 'SEE direct' के रूप में 1.567 (Example 1 का direct + indirect SEE) लिया गया है।",
   },
   metrics: { title: "मूल्यांकन मेट्रिक्स", lead: "24-दस्तावेज़ सिंथेटिक सेट पर extraction की सटीकता, दो-पाठक सहमति और समय। असली संख्याएँ, लक्ष्य से कम हों तब भी।", pending: "इस deployment पर अभी कोई लाइव Gemini मूल्यांकन नहीं चला है।", target: "लक्ष्य", field_acc: "फ़ील्ड सटीकता", agreement: "दो-पाठक सहमति", review_rate: "मानव-जाँच दर", per_doc: "प्रति दस्तावेज़ समय", total: "25 अपलोड → रिपोर्ट" },
-  copilot: { title: "नियम सहायक", lead: "CBAM पद्धति के बारे में पूछें। उत्तर आधिकारिक EC guidance के पेज का हवाला देते हैं।", placeholder: "अपने इस्पात उत्पादों के CBAM के बारे में पूछें…", ask: "पूछें", examples: "आज़माएँ", retrieval: "इस सर्वर पर Gemini कॉन्फ़िगर नहीं है: ये आधिकारिक guidance के सबसे प्रासंगिक पेज हैं।", passages: "Guidance से", page: "पृ." },
+  copilot: { thinking: "Guidance पढ़ी जा रही है…", title: "नियम सहायक", lead: "CBAM पद्धति के बारे में पूछें। उत्तर आधिकारिक EC guidance के पेज का हवाला देते हैं।", placeholder: "अपने इस्पात उत्पादों के CBAM के बारे में पूछें…", ask: "पूछें", examples: "आज़माएँ", retrieval: "इस सर्वर पर Gemini कॉन्फ़िगर नहीं है: ये आधिकारिक guidance के सबसे प्रासंगिक पेज हैं।", passages: "Guidance से", page: "पृ." },
   arch: { title: "आर्किटेक्चर", lead: "asia-southeast1 में एक Cloud Run सेवा (API + ऐप)। Agent Platform (global) पर Gemini। Firestore + Cloud Storage। LLM कभी गणना नहीं करता।" },
-  whatif: {
+  whatif: { chart_t: "खरीदार प्रति टन कितना भरेगा, 2026–2034", now: "अभी", with_changes: "इन बदलावों के साथ",
     title: "संचालन लीवर", lead: "आपका SEE और खरीदार की लागत किससे बदलेगी: रॉड सप्लायर का सत्यापित डेटा, आपकी yield (स्क्रैप) और हीट ट्रीटमेंट। वही deterministic इंजन; कुछ सहेजा नहीं जाता।",
     supplier: "{{precursor}}: सप्लायर का सत्यापित डेटा", yield: "Yield: स्क्रैप और कटिंग", scrap_pct: "स्क्रैप, रॉड का %", scrap_now: "अभी रॉड का {{v}} % (yield {{y}} %)।",
     heating: "हीट ट्रीटमेंट", gas: "प्राकृतिक गैस", electric: "बिजली", gas_gj: "प्रति टन गैस (GJ, NCV)", gas_now: "अभी {{v}} GJ/t।", reset: "मौजूदा मानों पर लौटें",
@@ -170,6 +170,8 @@ const hi = {
   },
   unlock: { title: "यह प्रोजेक्ट निजी है", lead: "प्रोजेक्ट पासकोड डालें। यह प्रोजेक्ट बनाते समय दिखाया गया था।", label: "पासकोड", open: "प्रोजेक्ट खोलें" },
   voice: { answer: "आवाज़ से उत्तर दें", record: "रिकॉर्ड", stop: "रोकें", heard: "सुना", none: "कोई मात्रा नहीं मिली", needs_live: "आवाज़ से उत्तर के लिए लाइव Gemini चाहिए (इस सर्वर पर कॉन्फ़िगर नहीं)" },
+  verdict: { secured_t: "आपका डेटा खरीदार का पैसा बचाता है", per_year: "वर्तमान मात्रा पर प्रति वर्ष", secured_one: "EU default values की तुलना में {{saving}}/t · {{product}}", secured_many: "{{count}} उत्पाद-लाइनों पर, EU default values की तुलना में", reach_t: "और बचत संभव", reach_one: "अगर {{supplier}} सत्यापित डेटा भेजे · {{product}} पर {{saving}}/t", reach_many: "अगर आपके रॉड सप्लायर सत्यापित डेटा भेजें", ready_t: "घोषणा के लिए तैयार", },
+  toast: { reuse_sample: "नमूना फ़ैक्टरी की आपकी पिछली कॉपी खोली जा रही है", approved: "{{value}} स्वीकृत — रिपोर्ट दोबारा गणना की गई", copied: "कॉपी हुआ", lines_saved: "उत्पाद-लाइनें सहेजी और पुष्टि की गईं", link_ready: "खरीदार लिंक बन गया", saved: "सहेजा गया", },
   common: { loading: "लोड हो रहा है…", error: "कुछ गलत हुआ", retry: "फिर कोशिश करें", close: "बंद करें", open: "खोलें", back: "पीछे", t: "t", of: "में से", yes: "हाँ", no: "नहीं", new: "नया", demo: "डेमो", print: "प्रिंट" },
 };
 export default hi;

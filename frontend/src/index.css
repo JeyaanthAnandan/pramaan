@@ -101,6 +101,8 @@
 }
 
 html, body { background: rgb(var(--page)); color: rgb(var(--ink)); }
+html { scroll-padding-top: 128px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 html[lang="hi"] body { font-family: "IBM Plex Sans Devanagari", "IBM Plex Sans", system-ui, sans-serif; }
 html[lang="ta"] body { font-family: "Noto Sans Tamil", "IBM Plex Sans", system-ui, sans-serif; }
@@ -111,16 +113,42 @@ html[lang="ta"] body { font-family: "Noto Sans Tamil", "IBM Plex Sans", system-u
 
 @layer components {
   .card { @apply rounded-2xl border border-line bg-surface shadow-card; }
-  .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply btn bg-accent text-accentink hover:brightness-110 active:brightness-95; }
-  .btn-ghost { @apply btn border border-line2 bg-surface text-ink hover:bg-sunk; }
+  /* clickable cards lift a little: the pointer is on something that opens */
+  .card-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:border-line2 hover:shadow-hover; }
+  .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100; }
+  .btn-primary { @apply btn bg-accent text-accentink shadow-cta hover:brightness-110 active:brightness-95; }
+  .btn-ghost { @apply btn border border-line2 bg-surface text-ink hover:border-ink/40 hover:bg-sunk; }
   .btn-quiet { @apply btn min-h-[36px] px-3 text-ink2 hover:bg-sunk hover:text-ink; }
   .chip { @apply inline-flex items-center gap-1 rounded border border-line px-2 py-0.5 text-[11px] font-medium text-ink2; }
   .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-muted; }
   .num { font-variant-numeric: tabular-nums; }
   .link { @apply text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent; }
   .clickable-num { @apply cursor-pointer rounded-md decoration-dotted underline-offset-4 transition hover:bg-accent/10 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60; }
+  /* arrows nudge forward on hover: "this goes somewhere" */
+  .nudge svg:last-child { @apply transition-transform duration-200; }
+  .nudge:hover svg:last-child { transform: translateX(3px); }
+
+  /* rubber stamp (Mill Certificate): verified / approved */
+  .stamp { @apply inline-flex select-none items-center gap-1.5 rounded-md border-[2.5px] px-2.5 py-1 font-mono text-[12px] font-semibold uppercase tracking-[0.14em]; }
+  .stamp-good { @apply border-good/80 text-goodink; background: rgb(var(--goodbg) / 0.85); }
+  .stamp-warn { @apply border-warn/80 text-warnink; background: rgb(var(--warnbg) / 0.85); }
+  .stamp-accent { @apply border-accent/80 text-accent; background: rgb(var(--surface) / 0.85); }
+
+  /* loading placeholders shaped like the page */
+  .skeleton { @apply relative overflow-hidden rounded-xl bg-sunk; }
+  .skeleton::after { content: ""; @apply absolute inset-0 -translate-x-full animate-shimmer; background: linear-gradient(90deg, transparent, rgb(var(--surface) / 0.55), transparent); }
+
+  /* one-time shine across the most important button on the page */
+  .glint { @apply relative overflow-hidden; }
+  .glint::after { content: ""; @apply pointer-events-none absolute inset-y-0 left-0 w-1/3 animate-glint; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.38), transparent); }
+
+  /* "within reach": hatched, not yet secured */
+  .hatch { background-image: repeating-linear-gradient(135deg, rgb(var(--accent) / 0.55) 0 2px, rgb(var(--accent) / 0.16) 2px 6px); }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
 ::selection { background: rgb(var(--accent) / 0.18); }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

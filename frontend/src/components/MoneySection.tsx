@@ -4,12 +4,15 @@ import { Lightbulb, Loader2, Table2, LineChart, Info } from "lucide-react";
 import { api, type Result } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
+import { AnimatedNumber, Segmented } from "@/lib/motion";
 import { MoneyChart, type Series } from "./Charts";
 import { LensNum } from "./EvidenceLens";
+import { useToast } from "./Toast";
 
 export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; whatIf: boolean; onWhatIf: (v: boolean) => void }) {
   const { t } = useTranslation();
   const { pid, refresh, bundle } = useProject();
+  const toast = useToast();
   const procs = result.processes.filter((p) => p.see);
   const [sel, setSel] = useState(procs[0]?.id ?? "P1");
   const [view, setView] = useState<"chart" | "table">("chart");
@@ -45,6 +48,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
     try {
       await api.patchProject(pid, { fx_inr_per_eur: fx, projection_price_eur: price });
       await refresh();
+      toast(t("toast.saved"));
     } finally {
       setSaving(false);
     }
@@ -58,13 +62,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
           <h2 className="text-xl font-semibold tracking-tight">{t("money.title")}</h2>
           <p className="mt-1 text-sm text-ink2">{t("money.lead")}</p>
         </div>
-        <div className="flex rounded-xl border border-line bg-sunk p-1" role="tablist">
-          {procs.map((x) => (
-            <button key={x.id} role="tab" aria-selected={sel === x.id} onClick={() => setSel(x.id)} className={`min-h-[36px] rounded-lg px-3 text-[13px] font-medium transition ${sel === x.id ? "bg-surface text-ink shadow-card" : "text-ink2 hover:text-ink"}`}>
-              CN {x.cn_display}
-            </button>
-          ))}
-        </div>
+        {procs.length > 1 && <Segmented value={sel} onChange={setSel} label={t("money.title")} options={procs.map((x) => ({ value: x.id, label: `CN ${x.cn_display}` }))} />}
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[260px_1fr]">
@@ -73,13 +71,17 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
             <div className="eyebrow">2026 · {p.name}</div>
             {!worse ? (
               <>
-                <div className="num mt-1 font-display text-[44px] font-semibold leading-none">
-                  <LensNum node={s0.nodes.gap}>{eur(gap)}</LensNum>
+                <div className="mt-1 font-display text-[44px] font-semibold leading-none">
+                  <LensNum node={s0.nodes.gap}>
+                    <AnimatedNumber value={gap} format={(v) => eur(v)} countUp />
+                  </LensNum>
                 </div>
-                <div className="mt-1 text-lg font-semibold text-ink2">{inr(s0.gap_inr_t)}</div>
+                <div className="mt-1 text-lg font-semibold text-ink2">
+                  <AnimatedNumber value={s0.gap_inr_t} format={(v) => inr(v)} countUp />
+                </div>
                 <div className="text-sm text-muted">{t("money.gap")}</div>
                 <div className="mt-3 rounded-xl border border-line bg-sunk px-3 py-2 text-[13px]">
-                  ≈ <b className="num">{eur(annual)}</b> · <b className="num">{inr(annual * Number(result.money.fx.value))}</b> {t("money.per_year")}
+                  ≈ <b><AnimatedNumber value={annual} format={(v) => eur(v)} /></b> · <b><AnimatedNumber value={annual * Number(result.money.fx.value)} format={(v) => inr(v)} /></b> {t("money.per_year")}
                 </div>
               </>
             ) : (
@@ -136,14 +138,16 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
 
         <div>
           <div className="mb-2 flex justify-end">
-            <div className="flex rounded-lg border border-line p-0.5">
-              <button className={`inline-flex min-h-[32px] items-center gap-1 rounded-md px-2 text-[12px] ${view === "chart" ? "bg-sunk text-ink" : "text-muted"}`} onClick={() => setView("chart")}>
-                <LineChart className="h-3.5 w-3.5" /> {t("money.chart")}
-              </button>
-              <button className={`inline-flex min-h-[32px] items-center gap-1 rounded-md px-2 text-[12px] ${view === "table" ? "bg-sunk text-ink" : "text-muted"}`} onClick={() => setView("table")}>
-                <Table2 className="h-3.5 w-3.5" /> {t("money.table")}
-              </button>
-            </div>
+            <Segmented
+              role="toggle"
+              size="sm"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "chart", label: t("money.chart"), icon: <LineChart className="h-3.5 w-3.5" aria-hidden /> },
+                { value: "table", label: t("money.table"), icon: <Table2 className="h-3.5 w-3.5" aria-hidden /> },
+              ]}
+            />
           </div>
           {view === "chart" ? (
             <MoneyChart series={chart} gapBetween={["default", "actual"]} ariaLabel={`${t("money.title")} CN ${p.cn_display}`} />

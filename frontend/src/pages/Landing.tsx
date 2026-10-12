@@ -2,64 +2,137 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Camera, FileCheck2, Factory, Globe2, Loader2, Play, ScanSearch, ScanEye, Scale, TrendingDown, ExternalLink } from "lucide-react";
-import { api } from "@/lib/api";
-import { rememberPasscode, rememberProject } from "@/lib/session";
-import { StatusBadge } from "@/components/Status";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowRight, BadgeCheck, Calculator, Camera, Check, FileCheck2, Factory, FileSearch, Globe2, Loader2, Pause, Play, ScanEye, ScanSearch, Scale, Smartphone, Tags, TrendingDown, ExternalLink } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
+import { lastProject, rememberPasscode, rememberProject } from "@/lib/session";
+import { useToast } from "@/components/Toast";
+import { EASE, Reveal, Stamp, rise, stagger, useAfter } from "@/lib/motion";
 
 interface HeroDoc { doc: string; src: string; w: number; h: number; title: string; fields: { label: string; text: string; unit: string; box: number[]; alt?: string | null }[] }
 
+/** The product in one loop: a value is boxed on the photo, reader 1 reads it from the page, reader 2
+ *  reads only the crop, and the verdict is stamped (agree = verified; disagree = a person checks). */
 function HeroLens() {
+  const { t } = useTranslation();
+  const reduce = useReducedMotion();
   const [docs, setDocs] = useState<HeroDoc[]>([]);
   const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hold, setHold] = useState(false); // pointer or focus inside: stop advancing
   useEffect(() => {
     fetch("/hero/hero.json").then((r) => r.json()).then(setDocs).catch(() => setDocs([]));
   }, []);
+  useEffect(() => {
+    if (reduce) setPaused(true);
+  }, [reduce]);
   const steps = docs.flatMap((d) => d.fields.map((f) => ({ d, f })));
   useEffect(() => {
-    if (!steps.length) return;
-    const id = window.setInterval(() => setI((x) => (x + 1) % steps.length), 2600);
+    if (!steps.length || paused || hold) return;
+    const id = window.setInterval(() => setI((x) => (x + 1) % steps.length), 3400);
     return () => window.clearInterval(id);
-  }, [steps.length]);
-  if (!steps.length) return <div className="card aspect-[4/5] animate-pulse" />;
+  }, [steps.length, paused, hold]);
+  const second = useAfter(650, [i]);
+  const verdict = useAfter(1250, [i]);
+  if (!steps.length) return <div className="skeleton aspect-[4/5] rounded-2xl" />;
   const { d, f } = steps[i];
   const review = !!f.alt;
   return (
-    <div className="relative">
+    <div className="relative" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
       <div className="card relative overflow-hidden p-2 shadow-lift">
         <div className="relative overflow-hidden rounded-xl bg-sunk" style={{ aspectRatio: `${d.w} / ${d.h}` }}>
           {docs.map((x) => (
             <img key={x.doc} src={x.src} alt={x.title} className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${x.doc === d.doc ? "opacity-100" : "opacity-0"}`} />
           ))}
           <div
-            className={`absolute rounded-[3px] border-2 transition-all duration-700 ease-[cubic-bezier(.2,.7,.2,1)] ${review ? "border-warn" : "border-good"} shadow-[0_0_0_9999px_rgb(0_0_0/0.22)]`}
+            className={`absolute overflow-hidden rounded-[3px] border-2 transition-all duration-700 ease-[cubic-bezier(.2,.7,.2,1)] ${review && verdict ? "border-warn" : "border-good"} shadow-[0_0_0_9999px_rgb(0_0_0/0.22)]`}
             style={{ top: `${f.box[0] / 10}%`, left: `${f.box[1] / 10}%`, height: `${(f.box[2] - f.box[0]) / 10}%`, width: `${(f.box[3] - f.box[1]) / 10}%` }}
-          />
+          >
+            <span key={i} className="absolute inset-y-0 left-0 w-1/2 animate-scanx bg-gradient-to-r from-transparent via-white/70 to-transparent [animation-delay:500ms]" aria-hidden />
+          </div>
+          <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-surface/90 px-2 py-1 shadow-card backdrop-blur">
+            <button type="button" onClick={() => setPaused((p) => !p)} className="grid h-6 w-6 place-items-center rounded-full text-ink2 hover:bg-sunk hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60" aria-label={paused ? t("landing.play") : t("landing.pause")}>
+              {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+            </button>
+            {steps.map((_, j) => (
+              <button key={j} type="button" onClick={() => setI(j)} className="group grid h-6 w-3.5 place-items-center" aria-label={`${j + 1} / ${steps.length}`} aria-current={j === i ? "step" : undefined}>
+                <span className={`block h-1.5 rounded-full transition-all duration-300 ${j === i ? "w-3.5 bg-accent" : "w-1.5 bg-line2 group-hover:bg-muted"}`} />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="absolute -bottom-6 left-4 right-4 sm:-left-8 sm:right-auto sm:w-[300px]">
-        <div key={i} className="card animate-rise p-4 shadow-lift">
-          <div className="flex items-center justify-between gap-2">
-            <span className="eyebrow truncate">{f.label}</span>
-            <StatusBadge status={review ? "NEEDS_REVIEW" : "VERIFIED_2R"} size="xs" />
-          </div>
+      <div className="absolute -bottom-6 left-4 right-4 sm:-left-8 sm:right-auto sm:w-[310px]">
+        <motion.div key={i} className="card relative p-4 shadow-lift" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+          <div className="eyebrow truncate">{f.label}</div>
+          {verdict && (
+            <span className="absolute -right-3 -top-3">
+              <Stamp tone={review ? "warn" : "good"} className="border-2 px-1.5 py-0.5 text-[10px] tracking-[0.08em] shadow-card">
+                {review ? "≠" : <Check className="h-3 w-3" aria-hidden />} {review ? t("status.NEEDS_REVIEW") : t("status.VERIFIED_2R")}
+              </Stamp>
+            </span>
+          )}
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tracking-tight">{f.text}</span>
             <span className="text-sm text-muted">{f.unit}</span>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
             <div className="rounded-lg bg-sunk px-2 py-1">
-              <div className="text-muted">Reader 1 · page</div>
+              <div className="text-muted">{t("gaps.reader1")}</div>
               <div className="font-mono text-ink">{f.text}</div>
             </div>
-            <div className={`rounded-lg px-2 py-1 ${review ? "bg-warnbg" : "bg-goodbg"}`}>
-              <div className="text-ink2">Reader 2 · crop</div>
+            <motion.div className={`rounded-lg px-2 py-1 transition-colors duration-500 ${verdict ? (review ? "bg-warnbg" : "bg-goodbg") : "bg-sunk"}`} initial={false} animate={second ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }} transition={{ duration: 0.3, ease: EASE }}>
+              <div className="text-ink2">{t("gaps.reader2")}</div>
               <div className="font-mono text-ink">{f.alt ?? f.text}</div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
+  );
+}
+
+const PIPE = [
+  { k: "photo", icon: Smartphone, m: "PWA · camera" },
+  { k: "class", icon: Tags, m: "gemini-3.8-flash" },
+  { k: "r1", icon: FileSearch, m: "gemini-3.8-flash" },
+  { k: "r2", icon: ScanEye, m: "gemini-3.5-flash-lite" },
+  { k: "engine", icon: Calculator, m: "Decimal · EC refdata" },
+  { k: "out", icon: FileCheck2, m: "PDF · Excel · pack" },
+];
+
+/** How one photo becomes a number a verifier can follow: a dot travels the stages in order. */
+function Pipeline() {
+  const { t } = useTranslation();
+  return (
+    <section className="mx-auto max-w-7xl px-4 sm:px-6">
+      <Reveal>
+        <h2 className="eyebrow">{t("landing.pipe_title")}</h2>
+        <p className="mt-2 max-w-2xl text-[15px] text-ink2">{t("landing.pipe_lead")}</p>
+      </Reveal>
+      <Reveal delay={0.1} className="relative mt-5">
+        <div className="pointer-events-none absolute left-[8.333%] right-[8.333%] top-[34px] z-[5] hidden h-px bg-line2 lg:block" aria-hidden>
+          <span className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 animate-travel rounded-full bg-accent shadow-[0_0_0_4px_rgb(var(--accent)/0.18)]" />
+        </div>
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {PIPE.map((s, i) => (
+            <li key={s.k} className="relative flex gap-3 rounded-2xl border border-line bg-surface p-3 shadow-card lg:flex-col lg:items-center lg:text-center">
+              <span className="relative z-10 grid h-11 w-11 shrink-0 animate-pipeglow place-items-center rounded-xl border border-line bg-surface text-accent" style={{ animationDelay: `${i}s` }}>
+                <s.icon className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">
+                  <span className="num mr-1 text-muted">{i + 1}</span>
+                  {t(`landing.pipe_${s.k}`)}
+                </div>
+                <div className="mt-0.5 text-[12px] leading-snug text-ink2">{t(`landing.pipe_${s.k}_d`)}</div>
+                <div className="mt-1 font-mono text-[10.5px] text-accent">{s.m}</div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Reveal>
+    </section>
   );
 }
 
@@ -73,9 +146,10 @@ const FACTS = [
 export default function Landing() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const [busy, setBusy] = useState<"load" | "live" | null>(null);
+  const [busy, setBusy] = useState<"load" | "live" | "own" | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const golden = useQuery({ queryKey: ["golden"], queryFn: api.golden, staleTime: 60_000 });
+  const toast = useToast();
 
   async function load(live: boolean) {
     setErr(null);
@@ -85,7 +159,12 @@ export default function Landing() {
       rememberProject(r.project_id);
       nav(live ? `/p/${r.project_id}/capture?autorun=1` : `/p/${r.project_id}/report`);
     } catch (e) {
-      setErr(String((e as Error).message));
+      const prev = lastProject();
+      if (e instanceof ApiError && e.status === 429 && prev?.startsWith("demo-")) {
+        // too many fresh copies from this address: reopen this visitor's earlier copy instead
+        toast(t("toast.reuse_sample"), "info");
+        nav(live ? `/p/${prev}/capture?autorun=1` : `/p/${prev}/report`);
+      } else setErr(String((e as Error).message));
     } finally {
       setBusy(null);
     }
@@ -93,6 +172,7 @@ export default function Landing() {
 
   async function startOwn() {
     setErr(null);
+    setBusy("own");
     try {
       const p = await api.createProject({ name: "My CBAM project", company: t("setup.my_factory"), country: "India" });
       rememberProject(p.id);
@@ -100,6 +180,8 @@ export default function Landing() {
       nav(`/p/${p.id}/capture#setup`);
     } catch (e) {
       setErr(String((e as Error).message));
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -109,12 +191,18 @@ export default function Landing() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60rem_30rem_at_80%_-10%,rgb(var(--accent)/0.10),transparent),radial-gradient(40rem_24rem_at_-10%_10%,rgb(var(--s3)/0.08),transparent)]" />
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-16">
-          <div className="animate-rise">
-            <span className="chip border-accent/25 bg-accent/5 text-accent">{t("landing.eyebrow")}</span>
-            <h1 className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">{t("landing.title")}</h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">{t("landing.lead")}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button className="btn-primary h-12 px-6 text-[15px]" onClick={() => load(false)} disabled={!!busy}>
+          <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
+            <motion.span variants={rise} className="chip border-accent/25 bg-accent/5 text-accent">
+              {t("landing.eyebrow")}
+            </motion.span>
+            <motion.h1 variants={rise} className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">
+              {t("landing.title")}
+            </motion.h1>
+            <motion.p variants={rise} className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">
+              {t("landing.lead")}
+            </motion.p>
+            <motion.div variants={rise} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button className="btn-primary glint nudge h-12 px-6 text-[15px]" onClick={() => load(false)} disabled={!!busy}>
                 {busy === "load" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Factory className="h-4 w-4" />}
                 {busy === "load" ? t("landing.loading") : t("landing.load")}
                 <ArrowRight className="h-4 w-4" />
@@ -123,45 +211,55 @@ export default function Landing() {
                 {busy === "live" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {t("landing.live")}
               </button>
-            </div>
-            <p className="mt-3 max-w-xl text-[13px] text-muted">{t("landing.sample_desc")}</p>
-            <button className="link mt-2 text-[13px]" onClick={startOwn} disabled={!!busy}>
-              {t("landing.own", { defaultValue: "Or start with your own documents →" })}
-            </button>
-            {err && <p className="mt-3 rounded-lg border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
-            <div className="mt-8 flex flex-wrap items-center gap-2">
-              <Link to="/proof" className="inline-flex items-center gap-2 rounded-full border border-good/30 bg-goodbg px-3 py-1.5 text-[13px] font-semibold text-goodink transition hover:brightness-95">
+            </motion.div>
+            <motion.div variants={rise}>
+              <p className="mt-3 max-w-xl text-[13px] text-muted">{t("landing.sample_desc")}</p>
+              <button className="link mt-2 inline-flex items-center gap-1.5 text-[13px]" onClick={startOwn} disabled={!!busy}>
+                {busy === "own" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {t("landing.own", { defaultValue: "Or start with your own documents →" })}
+              </button>
+              {err && <p className="mt-3 rounded-lg border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
+            </motion.div>
+            <motion.div variants={rise} className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <Link to="/proof" className="nudge inline-flex items-center gap-2 rounded-full border border-good/30 bg-goodbg px-3 py-1.5 text-[13px] font-semibold text-goodink transition hover:brightness-95">
                 <BadgeCheck className="h-4 w-4" />
                 {golden.data?.all_pass ? `${nCases}/${nCases}` : "…"} {t("landing.proof_strip")}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-              {["Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite", "ADK 2.x", "Cloud Run"].map((c) => (
-                <span key={c} className="chip">{c}</span>
-              ))}
-            </div>
-          </div>
-          <div className="mx-auto w-full max-w-[460px] pb-8 lg:mx-0 lg:justify-self-end">
+              <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-muted">
+                {t("landing.built")}:
+                {["Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite", "ADK 2.x", "Cloud Run"].map((c) => (
+                  <span key={c} className="chip">{c}</span>
+                ))}
+              </span>
+            </motion.div>
+          </motion.div>
+          <motion.div className="mx-auto w-full max-w-[460px] pb-8 lg:mx-0 lg:justify-self-end" initial={{ opacity: 0, y: 16, rotate: 0.6 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 0.6, ease: EASE, delay: 0.2 }}>
             <HeroLens />
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <h2 className="eyebrow">{t("landing.steps_title")}</h2>
+      <Pipeline />
+
+      <section className="mx-auto mt-14 max-w-7xl px-4 sm:px-6">
+        <Reveal>
+          <h2 className="eyebrow">{t("landing.steps_title")}</h2>
+        </Reveal>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {[
             { icon: Camera, ti: "step1_t", d: "step1_d" },
             { icon: ScanSearch, ti: "step2_t", d: "step2_d" },
             { icon: FileCheck2, ti: "step3_t", d: "step3_d" },
           ].map((s, i) => (
-            <div key={s.ti} className="card p-5">
+            <Reveal key={s.ti} delay={i * 0.08} className="card card-hover p-5">
               <div className="flex items-center gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-sm font-semibold text-page">{i + 1}</span>
                 <s.icon className="h-5 w-5 text-muted" aria-hidden />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{t(`landing.${s.ti}`)}</h3>
               <p className="mt-1 text-sm leading-relaxed text-ink2">{t(`landing.${s.d}`)}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -173,8 +271,8 @@ export default function Landing() {
             { icon: ScanEye, k: "2r" },
             { icon: Scale, k: "lever" },
             { icon: TrendingDown, k: "money" },
-          ].map((u) => (
-            <div key={u.k} className="card flex gap-4 p-5">
+          ].map((u, i) => (
+            <Reveal key={u.k} delay={(i % 2) * 0.08} className="card card-hover flex gap-4 p-5">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
                 <u.icon className="h-5 w-5" aria-hidden />
               </span>
@@ -182,23 +280,27 @@ export default function Landing() {
                 <h3 className="font-semibold">{t(`landing.usp_${u.k}`)}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-ink2">{t(`landing.usp_${u.k}_d`)}</p>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       <section className="mx-auto mt-14 max-w-7xl px-4 sm:px-6">
-        <h2 className="text-2xl font-semibold tracking-tight">{t("landing.why_title")}</h2>
-        <ul className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-          {FACTS.map((f) => (
-            <li key={f.k} className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-start sm:gap-6">
-              <p className="flex-1 text-[15px] leading-relaxed">{t(`landing.${f.k}`)}</p>
-              <a href={f.href} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-[12px] text-muted hover:text-accent sm:w-64 sm:justify-end">
-                {t("landing.src")}: {f.src} <ExternalLink className="h-3 w-3" />
-              </a>
-            </li>
-          ))}
-        </ul>
+        <Reveal>
+          <h2 className="text-2xl font-semibold tracking-tight">{t("landing.why_title")}</h2>
+        </Reveal>
+        <Reveal delay={0.05}>
+          <ul className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+            {FACTS.map((f) => (
+              <li key={f.k} className="flex flex-col gap-1 px-5 py-4 transition-colors hover:bg-sunk/40 sm:flex-row sm:items-start sm:gap-6">
+                <p className="flex-1 text-[15px] leading-relaxed">{t(`landing.${f.k}`)}</p>
+                <a href={f.href} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-[12px] text-muted hover:text-accent sm:w-64 sm:justify-end">
+                  {t("landing.src")}: {f.src} <ExternalLink className="h-3 w-3" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
         <p className="mt-4 flex items-center gap-2 text-sm text-ink2">
           <Globe2 className="h-4 w-4 text-muted" /> {t("landing.jp")}
         </p>

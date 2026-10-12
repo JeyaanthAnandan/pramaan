@@ -14,11 +14,17 @@ export function DocImage({ src, box, alt, zoomable = true, aspect, tone = "accen
 }) {
   const [zoom, setZoom] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [scan, setScan] = useState(0); // bumps once the zoom has landed: a reading beam sweeps the region
   useEffect(() => {
     setZoom(false);
     if (!box || !zoomable) return;
     const id = window.setTimeout(() => setZoom(true), 650);
-    return () => window.clearTimeout(id);
+    const id2 = window.setTimeout(() => setScan((x) => x + 1), 1500);
+    return () => {
+      window.clearTimeout(id);
+      window.clearTimeout(id2);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, box?.join(","), zoomable]);
 
   let transform = "none";
@@ -32,17 +38,28 @@ export function DocImage({ src, box, alt, zoomable = true, aspect, tone = "accen
     // translate the region's centre to the middle, then scale around the middle
     transform = `scale(${s}) translate(${50 - cx}%, ${50 - cy}%)`;
   }
-  const ring = { accent: "border-accent shadow-[0_0_0_9999px_rgb(0_0_0/0.28)]", good: "border-good shadow-[0_0_0_9999px_rgb(0_0_0/0.28)]", warn: "border-warn shadow-[0_0_0_9999px_rgb(0_0_0/0.28)]", bad: "border-bad shadow-[0_0_0_9999px_rgb(0_0_0/0.28)]" }[tone];
+  const ring = { accent: "border-accent", good: "border-good", warn: "border-warn", bad: "border-bad" }[tone];
+  const pad = box ? { t: (box[0] - 4) / 10, l: (box[1] - 5) / 10, b: (box[2] + 4) / 10, r: (box[3] + 5) / 10 } : null;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-line bg-sunk" style={{ aspectRatio: aspect ? String(aspect) : "3 / 4" }}>
       <div className="absolute inset-0 transition-transform duration-[900ms] ease-[cubic-bezier(.2,.7,.2,1)]" style={{ transform, transformOrigin: "center" }}>
         <img src={src} alt={alt} className={`h-full w-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`} onLoad={() => setLoaded(true)} draggable={false} />
+        {pad && (
+          // one dim layer with a hole cut around the value (no seams, works inside the scaled layer)
+          <div
+            className={`pointer-events-none absolute inset-0 bg-black/30 transition-opacity duration-700 ${loaded && zoom ? "opacity-100" : "opacity-0"}`}
+            style={{ clipPath: `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${pad.l}% ${pad.t}%, ${pad.r}% ${pad.t}%, ${pad.r}% ${pad.b}%, ${pad.l}% ${pad.b}%, ${pad.l}% ${pad.t}%)` }}
+            aria-hidden
+          />
+        )}
         {box && (
           <div
-            className={`absolute rounded-[3px] border-2 ${ring} animate-pulsebox transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+            className={`absolute overflow-hidden rounded-[3px] border-2 ${ring} transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
             style={{ top: `${(box[0] - 4) / 10}%`, left: `${(box[1] - 5) / 10}%`, height: `${(box[2] - box[0] + 8) / 10}%`, width: `${(box[3] - box[1] + 10) / 10}%` }}
-          />
+          >
+            {scan > 0 && <span key={scan} className="absolute inset-y-0 left-0 w-1/2 animate-scanx bg-gradient-to-r from-transparent via-white/70 to-transparent" aria-hidden />}
+          </div>
         )}
       </div>
       {!loaded && <div className="absolute inset-0 animate-pulse bg-sunk" />}

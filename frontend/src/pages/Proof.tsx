@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 import { BadgeCheck, CheckCircle2, FileWarning, Loader2, RotateCw, XCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { Reveal } from "@/lib/motion";
 
 export default function Proof() {
   const { t } = useTranslation();
@@ -16,7 +18,13 @@ export default function Proof() {
           <p className="mt-2 max-w-2xl text-ink2">{t("proof.lead")}</p>
         </div>
         {d && (
-          <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${d.all_pass ? "border-good/30 bg-goodbg text-goodink" : "border-bad/30 bg-badbg text-badink"}`}>
+          <motion.div
+            key={d.ran_at}
+            initial={{ opacity: 0, scale: 1.25, rotate: -4 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 420, damping: 22 }}
+            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${d.all_pass ? "border-good/30 bg-goodbg text-goodink" : "border-bad/30 bg-badbg text-badink"}`}
+          >
             <BadgeCheck className="h-8 w-8" />
             <div>
               <div className="text-lg font-semibold">{d.all_pass ? t("proof.all", { n: d.cases.length }) : t("proof.fail")}</div>
@@ -27,20 +35,26 @@ export default function Proof() {
             <button className="btn-quiet" onClick={() => q.refetch()} aria-label="Run again">
               {q.isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}
             </button>
-          </div>
+          </motion.div>
         )}
       </div>
-      {q.isLoading && <Loader2 className="mx-auto mt-16 h-6 w-6 animate-spin text-muted" />}
+      {q.isLoading && (
+        <div className="mt-8 space-y-4" aria-busy="true">
+          <div className="skeleton h-48" />
+          <div className="skeleton h-48" />
+        </div>
+      )}
       <div className="mt-8 space-y-4">
-        {d?.cases.map((c: any) => (
-          <article key={c.id} className="card overflow-hidden">
+        {d?.cases.map((c: any, ci: number) => (
+          <Reveal key={c.id} delay={Math.min(ci, 3) * 0.05}>
+          <article className="card overflow-hidden">
             <header className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-3">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-sm font-semibold text-page">{c.id}</span>
               <div className="min-w-0 flex-1">
                 <h2 className="font-semibold">{c.title}</h2>
                 <p className="text-[12px] text-muted">{c.source}</p>
               </div>
-              {c.pass ? <CheckCircle2 className="h-5 w-5 text-good" /> : <XCircle className="h-5 w-5 text-bad" />}
+              {c.pass ? <CheckCircle2 key={d.ran_at} className="h-5 w-5 animate-pop text-good" style={{ animationDelay: `${0.25 + c.checks.length * 0.07}s` }} /> : <XCircle className="h-5 w-5 text-bad" />}
             </header>
             <div className="grid gap-4 p-5 lg:grid-cols-[1fr_1.4fr]">
               <dl className="space-y-1 text-[13px]">
@@ -63,13 +77,16 @@ export default function Proof() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
-                    {c.checks.map((r: any) => (
+                    {c.checks.map((r: any, ri: number) => (
                       <tr key={r.key}>
                         <td className="py-1.5 pr-2">{r.label} <span className="text-muted">({r.unit})</span></td>
                         <td className="py-1.5 text-right font-semibold">{r.expected}</td>
                         <td className="py-1.5 text-right">{r.computed}</td>
                         <td className="py-1.5 text-right text-muted">±{r.tolerance}</td>
-                        <td className="py-1.5 pl-2 text-right">{r.pass ? <CheckCircle2 className="ml-auto h-4 w-4 text-good" aria-label={t("proof.pass")} /> : <XCircle className="ml-auto h-4 w-4 text-bad" aria-label={t("proof.fail")} />}</td>
+                        <td className="py-1.5 pl-2 text-right">
+                          {/* each comparison ticks in turn: re-computed live, not a saved screenshot */}
+                          {r.pass ? <CheckCircle2 key={d.ran_at} className="ml-auto h-4 w-4 animate-pop text-good" style={{ animationDelay: `${0.2 + ri * 0.07}s` }} aria-label={t("proof.pass")} /> : <XCircle className="ml-auto h-4 w-4 text-bad" aria-label={t("proof.fail")} />}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -77,6 +94,7 @@ export default function Proof() {
               </div>
             </div>
           </article>
+          </Reveal>
         ))}
       </div>
       <section className="mt-10 rounded-2xl border border-warn/40 bg-warnbg p-5">

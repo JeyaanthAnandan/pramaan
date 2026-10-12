@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowRight, Boxes, Calculator, ClipboardCheck, Cloud, Database, FileSearch, FileText, Hand, HardDrive, Inbox, MessageSquareText, ScanEye, ShieldCheck, Smartphone, Tags, Cpu, BookMarked, Activity } from "lucide-react";
 import { api } from "@/lib/api";
+import { Reveal } from "@/lib/motion";
 
 const FLOW = [
   { k: "Intake", icon: Inbox, m: "code", c: "documents → run" },
@@ -24,7 +25,7 @@ export default function Architecture() {
       <h1 className="mt-3 text-3xl font-semibold tracking-tight">{t("arch.title")}</h1>
       <p className="mt-2 max-w-3xl text-ink2">{t("arch.lead")}</p>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <Reveal className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="card p-5 sm:p-6">
           <div className="flex items-center gap-3 rounded-xl border border-line bg-sunk px-4 py-3 text-sm">
             <Smartphone className="h-5 w-5 text-muted" />
@@ -37,7 +38,8 @@ export default function Architecture() {
             </div>
             <ol className="grid gap-2 sm:grid-cols-2">
               {FLOW.map((f, i) => (
-                <li key={f.k} className="relative flex gap-3 rounded-xl border border-line bg-surface p-3">
+                // each agent lights up in pipeline order, the way a run flows through the graph
+                <li key={f.k} className="relative flex animate-nodeglow gap-3 rounded-xl border border-line bg-surface p-3" style={{ animationDelay: `${i}s` }}>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent"><f.icon className="h-4 w-4" /></span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 text-sm font-semibold">
@@ -69,7 +71,7 @@ export default function Architecture() {
             { icon: BookMarked, t: "Reference data (in repo)", d: `${h.data?.refdata?.files?.length ?? 7} JSON files from official EC files · SHA-256 manifest · parser ${h.data?.refdata?.parser_version ?? ""}` },
             { icon: Activity, t: "Cloud Logging + Trace", d: "structured logs, run receipts, timings" },
           ].map((s) => (
-            <div key={s.t} className="card flex gap-3 p-4">
+            <div key={s.t} className="card card-hover flex gap-3 p-4">
               <s.icon className="mt-0.5 h-5 w-5 shrink-0 text-muted" />
               <div>
                 <div className="text-sm font-semibold">{s.t}</div>
@@ -82,7 +84,7 @@ export default function Architecture() {
             The LLM never does arithmetic · no hand-typed regulatory values · temperature/top_p/top_k never set · only Gemini 3.x models.
           </div>
         </aside>
-      </div>
+      </Reveal>
     </div>
   );
 }

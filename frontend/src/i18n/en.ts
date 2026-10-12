@@ -8,7 +8,7 @@ const en = {
     disclaimer: "Pramaan is not a substitute for an accredited verifier.",
   },
   nav: { home: "Home", workspace: "Workspace", proof: "EC proof", metrics: "Metrics", architecture: "Architecture", copilot: "Rules copilot", theme: "Theme", language: "Language", skip: "Skip to content" },
-  landing: {
+  landing: { built: "Built with", pause: "Pause the demo", play: "Play the demo", pipe_title: "What happens to one photo", pipe_lead: "Two different Gemini models read every value, the second one blind; a deterministic engine does the arithmetic.", pipe_photo: "Phone photo", pipe_photo_d: "Gas bill, rod invoice or a handwritten log", pipe_class: "Classifier", pipe_class_d: "Document type, language and period", pipe_r1: "Reader 1", pipe_r1_d: "Reads the page and boxes every value", pipe_r2: "Reader 2", pipe_r2_d: "Re-reads only the cropped box, without seeing reader 1", pipe_engine: "CBAM engine", pipe_engine_d: "The Commission's formulas in exact decimals", pipe_out: "Proof", pipe_out_d: "Cost per tonne for the buyer, verifier pack, buyer link",
     own: "Or start with your own documents →",
     eyebrow: "EU CBAM · iron & steel · definitive period since 1 Jan 2026",
     title: "CBAM proof from a phone photo.",
@@ -37,7 +37,7 @@ const en = {
     jp: "The same problem hits exporters in Vietnam, China, Korea and Indonesia — Pramaan is built for JAPAC.",
   },
   steps: { capture: "Capture", gaps: "Close gaps", report: "Report", capture_q: "Add your documents.", gaps_q: "What's missing?", report_q: "Here's your proof." },
-  capture: {
+  capture: { reading: "Reading…",
     drop: "Drop photos or PDFs here", or: "or", choose: "Choose files", camera: "Take photo", formats: "JPG, PNG, HEIC or PDF · up to 15 MB each",
     docs: "Documents", run: "Run agents", running: "Agents working…", rerun: "Re-run agents", none: "No documents yet.",
     sample_cta: "Load sample factory instead", classified: "Classified", extracted: "values", uploaded: "Waiting",
@@ -76,7 +76,7 @@ const en = {
       extra_pre_consumer_scrap_pct: { t: "Pre-consumer scrap share — {{process}}", q: "Not applicable: no scrap input." },
     },
   },
-  report: {
+  report: { buyer_pays: "buyer pays", your_data: "Your data", eu_default: "EU default values",
     ec_ref: "Full precision {{v}} — matches EC Guidance 5d Example 3 (2.039 with rounded intermediates)",
     title: "Here's your proof", readiness: "Readiness", readiness_d: "of SEE inputs verified by two readers or approved",
     see: "Specific embedded emissions", see_short: "SEE", per_t: "t CO2 per t", own: "Own process", precursor: "Precursor", m: "Rod per t of bolts",
@@ -128,7 +128,7 @@ const en = {
     fx: "INR per EUR", price: "2027+ price (€)", assumption: "Assumption", table: "Table", chart: "Chart", year: "Year", eur_t: "€/t", inr_t: "₹/t",
   },
   exports: { title: "Share & export", pdf: "PDF report", xlsx: "Excel workbook", pack: "Verifier pack (.zip)", buyer: "Buyer link", buyer_d: "Read-only, no login. Summary only — no plant-level inputs.", create: "Create link", copy: "Copy link", copied: "Link copied", plan: "Draft monitoring plan" },
-  lens: {
+  lens: { path: "Path",
     sources_title: "Everything behind this number", values_from: "values read from", documents: "documents", official_values: "official values", assumptions: "stated assumptions",
     title: "Evidence Lens", source: "Source", formula: "Formula", inputs: "Inputs", readers: "Two-reader check", reader1: "Reader 1", reader2: "Reader 2 (crop only)", agree: "Agree", disagree: "Disagree",
     approved: "Approved", by: "by", open_doc: "Open full document", refdata: "Official reference data", assumption: "Stated assumption", published: "Published", locator: "Where", back: "Back", value: "Value", as_read: "As written on the page", status: "Status", calc: "Calculated", scenario: "Scenario (what-if)", sha: "SHA-256", official: "Open official source",
@@ -145,9 +145,9 @@ const en = {
     n3: "Example 3 uses 1.567 (Example 1's direct + indirect SEE) as the rod's 'SEE direct'.",
   },
   metrics: { title: "Evaluation metrics", lead: "Extraction accuracy on the 24-document synthetic set, two-reader agreement and timing. Real numbers, even when below target.", pending: "No live Gemini evaluation has been run on this deployment yet.", target: "Target", field_acc: "Field accuracy", agreement: "Two-reader agreement", review_rate: "Human-review rate", per_doc: "Time per document", total: "25 uploads → report" },
-  copilot: { title: "Rules copilot", lead: "Ask a CBAM method question. Answers cite the page of the official EC guidance.", placeholder: "Ask about CBAM for your steel goods…", ask: "Ask", examples: "Try", retrieval: "Gemini is not configured on this server: these are the most relevant pages of the official guidance.", passages: "From the guidance", page: "p." },
+  copilot: { thinking: "Reading the guidance…", title: "Rules copilot", lead: "Ask a CBAM method question. Answers cite the page of the official EC guidance.", placeholder: "Ask about CBAM for your steel goods…", ask: "Ask", examples: "Try", retrieval: "Gemini is not configured on this server: these are the most relevant pages of the official guidance.", passages: "From the guidance", page: "p." },
   arch: { title: "Architecture", lead: "One Cloud Run service (API + app) in asia-southeast1. Gemini on Agent Platform (global). Firestore + Cloud Storage. The LLM never does arithmetic." },
-  whatif: {
+  whatif: { chart_t: "What the buyer pays per tonne, 2026–2034", now: "Now", with_changes: "With these changes",
     title: "Operations levers", lead: "What would change your SEE and your buyer's cost: the rod supplier's verified data, your yield (scrap) and heat treatment. Same deterministic engine; nothing is saved.",
     supplier: "{{precursor}}: supplier's verified data", yield: "Yield: scrap and cut-offs", scrap_pct: "Scrap, % of rod", scrap_now: "Now {{v}} % of the rod (yield {{y}} %).",
     heating: "Heat treatment", gas: "Natural gas", electric: "Electric", gas_gj: "Gas per tonne (GJ, NCV)", gas_now: "Now {{v}} GJ/t.", reset: "Back to current values",
@@ -169,6 +169,8 @@ const en = {
   },
   unlock: { title: "This project is private", lead: "Enter the project passcode. It was shown when the project was created.", label: "Passcode", open: "Open project" },
   voice: { answer: "Answer by voice", record: "Record", stop: "Stop", heard: "Heard", none: "no quantity found", needs_live: "Voice answers need live Gemini (not configured on this server)" },
+  verdict: { secured_t: "Your data saves your buyer", per_year: "a year at current volumes", secured_one: "{{saving}}/t against EU default values · {{product}}", secured_many: "across {{count}} product lines, against EU default values", reach_t: "More within reach", reach_one: "if {{supplier}} sends verified data · {{saving}}/t on {{product}}", reach_many: "if your rod suppliers send verified data", ready_t: "Ready to declare", },
+  toast: { reuse_sample: "Opening your earlier copy of the sample factory", approved: "Approved {{value}} — the report is recalculated", copied: "Copied", lines_saved: "Product lines saved and confirmed", link_ready: "Buyer link created", saved: "Saved", },
   common: { loading: "Loading…", error: "Something went wrong", retry: "Retry", close: "Close", open: "Open", back: "Back", t: "t", of: "of", yes: "Yes", no: "No", new: "New", demo: "Demo", print: "Print" },
 };
 export default en;

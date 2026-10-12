@@ -10,7 +10,7 @@ const vi = {
     disclaimer: "Pramaan không thay thế tổ chức thẩm định được công nhận.",
   },
   nav: { home: "Trang chủ", workspace: "Không gian làm việc", proof: "Bằng chứng EC", metrics: "Chỉ số", architecture: "Kiến trúc", copilot: "Trợ lý quy định", theme: "Giao diện", language: "Ngôn ngữ", skip: "Đến nội dung" },
-  landing: {
+  landing: { built: "Xây dựng với", pause: "Tạm dừng bản demo", play: "Phát bản demo", pipe_title: "Điều gì xảy ra với một tấm ảnh", pipe_lead: "Hai mô hình Gemini khác nhau đọc từng giá trị, mô hình thứ hai đọc độc lập; một bộ máy tất định thực hiện phép tính.", pipe_photo: "Ảnh điện thoại", pipe_photo_d: "Hóa đơn gas, hóa đơn thép cuộn hoặc sổ ghi tay", pipe_class: "Bộ phân loại", pipe_class_d: "Loại tài liệu, ngôn ngữ và kỳ", pipe_r1: "Người đọc 1", pipe_r1_d: "Đọc cả trang và khoanh từng giá trị", pipe_r2: "Người đọc 2", pipe_r2_d: "Chỉ đọc lại vùng cắt, không thấy kết quả của người đọc 1", pipe_engine: "Bộ máy CBAM", pipe_engine_d: "Công thức của Ủy ban, tính bằng số thập phân chính xác", pipe_out: "Bằng chứng", pipe_out_d: "Chi phí mỗi tấn cho người mua, gói thẩm định, liên kết cho người mua",
     own: "Hoặc bắt đầu với tài liệu của bạn →",
     eyebrow: "EU CBAM · sắt thép · giai đoạn chính thức từ 1/1/2026",
     title: "Bằng chứng CBAM từ một tấm ảnh điện thoại.",
@@ -39,7 +39,7 @@ const vi = {
     jp: "Nhà xuất khẩu ở Việt Nam, Trung Quốc, Hàn Quốc và Indonesia gặp cùng vấn đề — Pramaan được xây dựng cho JAPAC.",
   },
   steps: { capture: "Chụp", gaps: "Bổ sung", report: "Báo cáo", capture_q: "Thêm tài liệu.", gaps_q: "Còn thiếu gì?", report_q: "Đây là bằng chứng của bạn." },
-  capture: {
+  capture: { reading: "Đang đọc…",
     drop: "Thả ảnh hoặc PDF vào đây", or: "hoặc", choose: "Chọn tệp", camera: "Chụp ảnh", formats: "JPG, PNG, HEIC hoặc PDF · tối đa 15 MB mỗi tệp",
     docs: "Tài liệu", run: "Chạy agent", running: "Agent đang làm việc…", rerun: "Chạy lại agent", none: "Chưa có tài liệu.",
     sample_cta: "Mở nhà máy mẫu thay thế", classified: "Đã phân loại", extracted: "giá trị", uploaded: "Đang chờ",
@@ -78,7 +78,7 @@ const vi = {
       extra_pre_consumer_scrap_pct: { t: "Tỷ lệ phế liệu trước tiêu dùng — {{process}}", q: "Không áp dụng: không có phế liệu đầu vào." },
     },
   },
-  report: {
+  report: { buyer_pays: "người mua trả", your_data: "Dữ liệu của bạn", eu_default: "Giá trị mặc định EU",
     ec_ref: "Độ chính xác đầy đủ {{v}} — khớp EC Guidance 5d Example 3 (2.039 với các giá trị trung gian đã làm tròn)",
     title: "Đây là bằng chứng của bạn", readiness: "Mức sẵn sàng", readiness_d: "đầu vào SEE được hai người đọc xác minh hoặc đã duyệt",
     see: "Phát thải hàm chứa riêng (SEE)", see_short: "SEE", per_t: "t CO2 mỗi t", own: "Quy trình nội bộ", precursor: "Precursor", m: "Thép cuộn mỗi t bu lông",
@@ -130,7 +130,7 @@ const vi = {
     fx: "INR mỗi EUR", price: "Giá 2027+ (€)", assumption: "Giả định", table: "Bảng", chart: "Biểu đồ", year: "Năm", eur_t: "€/t", inr_t: "₹/t",
   },
   exports: { title: "Chia sẻ & xuất", pdf: "Báo cáo PDF", xlsx: "Sổ Excel", pack: "Gói thẩm định (.zip)", buyer: "Liên kết cho người mua", buyer_d: "Chỉ xem, không cần đăng nhập. Chỉ bản tóm tắt — không có dữ liệu chi tiết của nhà máy.", create: "Tạo liên kết", copy: "Sao chép liên kết", copied: "Đã sao chép liên kết", plan: "Dự thảo kế hoạch giám sát (monitoring plan)" },
-  lens: {
+  lens: { path: "Đường dẫn",
     sources_title: "Mọi thứ đằng sau con số này", values_from: "giá trị đọc từ", documents: "tài liệu", official_values: "giá trị chính thức", assumptions: "giả định đã nêu",
     title: "Evidence Lens", source: "Nguồn", formula: "Công thức", inputs: "Đầu vào", readers: "Kiểm tra hai người đọc", reader1: "Người đọc 1", reader2: "Người đọc 2 (chỉ vùng cắt)", agree: "Khớp", disagree: "Không khớp",
     approved: "Đã duyệt", by: "bởi", open_doc: "Mở toàn bộ tài liệu", refdata: "Dữ liệu tham chiếu chính thức", assumption: "Giả định đã nêu", published: "Công bố", locator: "Vị trí", back: "Quay lại", value: "Giá trị", as_read: "Như ghi trên trang", status: "Trạng thái", calc: "Đã tính", scenario: "Kịch bản (giả định)", sha: "SHA-256", official: "Mở nguồn chính thức",
@@ -147,9 +147,9 @@ const vi = {
     n3: "Example 3 dùng 1.567 (SEE trực tiếp + gián tiếp của Example 1) làm 'SEE direct' của thép cuộn.",
   },
   metrics: { title: "Chỉ số đánh giá", lead: "Độ chính xác trích xuất trên bộ 24 tài liệu tổng hợp, mức khớp của hai người đọc và thời gian. Số liệu thật, kể cả khi dưới mục tiêu.", pending: "Chưa chạy đánh giá Gemini trực tiếp trên bản triển khai này.", target: "Mục tiêu", field_acc: "Độ chính xác trường", agreement: "Mức khớp hai người đọc", review_rate: "Tỷ lệ cần người kiểm tra", per_doc: "Thời gian mỗi tài liệu", total: "25 tệp tải lên → báo cáo" },
-  copilot: { title: "Trợ lý quy định", lead: "Hỏi về phương pháp CBAM. Câu trả lời dẫn số trang của hướng dẫn chính thức của EC.", placeholder: "Hỏi về CBAM cho hàng thép của bạn…", ask: "Hỏi", examples: "Thử", retrieval: "Máy chủ này chưa cấu hình Gemini: đây là các trang liên quan nhất của hướng dẫn chính thức.", passages: "Từ hướng dẫn", page: "tr." },
+  copilot: { thinking: "Đang đọc hướng dẫn…", title: "Trợ lý quy định", lead: "Hỏi về phương pháp CBAM. Câu trả lời dẫn số trang của hướng dẫn chính thức của EC.", placeholder: "Hỏi về CBAM cho hàng thép của bạn…", ask: "Hỏi", examples: "Thử", retrieval: "Máy chủ này chưa cấu hình Gemini: đây là các trang liên quan nhất của hướng dẫn chính thức.", passages: "Từ hướng dẫn", page: "tr." },
   arch: { title: "Kiến trúc", lead: "Một dịch vụ Cloud Run (API + ứng dụng) tại asia-southeast1. Gemini trên Agent Platform (global). Firestore + Cloud Storage. LLM không bao giờ tự làm phép tính." },
-  whatif: {
+  whatif: { chart_t: "Người mua trả mỗi tấn, 2026–2034", now: "Hiện tại", with_changes: "Với các thay đổi này",
     title: "Đòn bẩy vận hành", lead: "Điều gì làm thay đổi SEE và chi phí của người mua: dữ liệu đã thẩm định của nhà cung cấp thép cuộn, hiệu suất (phế liệu) và xử lý nhiệt. Cùng công cụ tính xác định; không lưu gì cả.",
     supplier: "{{precursor}}: dữ liệu đã thẩm định của nhà cung cấp", yield: "Hiệu suất: phế liệu và đầu mẩu", scrap_pct: "Phế liệu, % thép cuộn", scrap_now: "Hiện tại {{v}} % thép cuộn (hiệu suất {{y}} %).",
     heating: "Xử lý nhiệt", gas: "Khí thiên nhiên", electric: "Điện", gas_gj: "Gas mỗi tấn (GJ, NCV)", gas_now: "Hiện tại {{v}} GJ/t.", reset: "Về giá trị hiện tại",
@@ -171,6 +171,8 @@ const vi = {
   },
   unlock: { title: "Dự án này là riêng tư", lead: "Nhập mã truy cập dự án. Mã đã được hiển thị khi tạo dự án.", label: "Mã truy cập", open: "Mở dự án" },
   voice: { answer: "Trả lời bằng giọng nói", record: "Ghi âm", stop: "Dừng", heard: "Đã nghe", none: "không tìm thấy số lượng", needs_live: "Trả lời bằng giọng nói cần Gemini trực tiếp (chưa cấu hình trên máy chủ này)" },
+  verdict: { secured_t: "Dữ liệu của bạn giúp người mua tiết kiệm", per_year: "mỗi năm theo sản lượng hiện tại", secured_one: "{{saving}}/t so với giá trị mặc định EU · {{product}}", secured_many: "trên {{count}} dòng sản phẩm, so với giá trị mặc định EU", reach_t: "Có thể tiết kiệm thêm", reach_one: "nếu {{supplier}} gửi dữ liệu đã thẩm định · {{saving}}/t cho {{product}}", reach_many: "nếu các nhà cung cấp thép cuộn gửi dữ liệu đã thẩm định", ready_t: "Sẵn sàng khai báo", },
+  toast: { reuse_sample: "Đang mở bản sao nhà máy mẫu trước đó của bạn", approved: "Đã duyệt {{value}} — báo cáo đã được tính lại", copied: "Đã sao chép", lines_saved: "Đã lưu và xác nhận các dòng sản phẩm", link_ready: "Đã tạo liên kết cho người mua", saved: "Đã lưu", },
   common: { loading: "Đang tải…", error: "Đã xảy ra lỗi", retry: "Thử lại", close: "Đóng", open: "Mở", back: "Quay lại", t: "t", of: "trên", yes: "Có", no: "Không", new: "Mới", demo: "Demo", print: "In" },
 };
 export default vi;

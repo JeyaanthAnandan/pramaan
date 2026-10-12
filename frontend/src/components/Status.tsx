@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, CircleDashed, FileQuestion, Info, ShieldCheck, Sigma, Sparkles, XCircle, BookMarked, FlaskConical } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 // Colour carries status only, and always with an icon + a word (never colour alone).
@@ -36,14 +37,15 @@ export function toneOf(status: string): Tone {
   return MAP[status]?.tone ?? "neutral";
 }
 
-export function StatusBadge({ status, label, size = "sm" }: { status: string; label?: string; size?: "sm" | "xs" }) {
+export function StatusBadge({ status, label, size = "sm" }: { status: string; label?: ReactNode; size?: "sm" | "xs" }) {
   const { t } = useTranslation();
   const m = MAP[status] ?? { tone: "neutral" as Tone, icon: Info };
   const Icon = m.icon;
   return (
-    <span className={`inline-flex shrink-0 items-center gap-1 rounded border font-semibold ${TONE[m.tone]} ${size === "xs" ? "px-1.5 py-0 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
-      <Icon aria-hidden className={size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5"} />
-      {label ?? t(`status.${status}`, { defaultValue: status })}
+    // max-w-full: a long label (a supplier's name) wraps instead of pushing the page sideways on a phone
+    <span className={`inline-flex max-w-full shrink-0 items-center gap-1 rounded border font-semibold ${TONE[m.tone]} ${size === "xs" ? "px-1.5 py-0 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+      <Icon aria-hidden className={`shrink-0 ${size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5"}`} />
+      <span className="min-w-0">{label ?? t(`status.${status}`, { defaultValue: status })}</span>
     </span>
   );
 }

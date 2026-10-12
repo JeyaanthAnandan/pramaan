@@ -1,9 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowLeft, BookMarked, ChevronRight, ExternalLink, FileImage, FlaskConical, ScanSearch, Sigma, Sparkles, UserCheck, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowLeft, BookMarked, Check, ChevronRight, ExternalLink, FileImage, FlaskConical, ScanSearch, Sigma, Sparkles, UserCheck, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { imageUrl, type CalcNode } from "@/lib/api";
 import { useProject } from "@/lib/project";
+import { EASE, rise, stagger, useAfter } from "@/lib/motion";
 import { DocImage, CropView } from "./DocImage";
 import { StatusBadge, toneOf } from "./Status";
 import { when } from "@/lib/format";
@@ -16,16 +18,35 @@ export const useLens = () => useContext(Ctx);
 
 export function LensProvider({ children }: { children: ReactNode }) {
   const [stack, setStack] = useState<string[]>([]);
-  const open = useCallback((id: string) => setStack([id]), []);
+  const [isOpen, setIsOpen] = useState(false);
+  const [dir, setDir] = useState(1); // +1 drilling down, -1 going back: the panel slides that way
+  const open = useCallback((id: string) => {
+    setDir(1);
+    setStack([id]);
+    setIsOpen(true);
+  }, []);
   const value = useMemo(() => ({ open }), [open]);
   return (
     <Ctx.Provider value={value}>
       {children}
-      <Dialog.Root open={stack.length > 0} onOpenChange={(o) => !o && setStack([])}>
+      <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] data-[state=open]:animate-[rise_.2s_ease-out]" />
-          <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[560px] animate-sheet flex-col border-l border-line bg-page shadow-lift focus:outline-none" aria-describedby={undefined}>
-            {stack.length > 0 && <LensBody nodeId={stack[stack.length - 1]} depth={stack.length} push={(id) => setStack((s) => [...s, id])} pop={() => setStack((s) => s.slice(0, -1))} />}
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] data-[state=closed]:animate-fadeout data-[state=open]:animate-fadein" />
+          <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[560px] flex-col border-l border-line bg-page shadow-lift focus:outline-none data-[state=closed]:animate-sheetout data-[state=open]:animate-sheet" aria-describedby={undefined}>
+            {stack.length > 0 && (
+              <LensBody
+                stack={stack}
+                dir={dir}
+                push={(id) => {
+                  setDir(1);
+                  setStack((s) => [...s, id]);
+                }}
+                jump={(i) => {
+                  setDir(-1);
+                  setStack((s) => s.slice(0, i + 1));
+                }}
+              />
+            )}
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -33,29 +54,71 @@ export function LensProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function LensBody({ nodeId, depth, push, pop }: { nodeId: string; depth: number; push: (id: string) => void; pop: () => void }) {
+function LensBody({ stack, dir, push, jump }: { stack: string[]; dir: number; push: (id: string) => void; jump: (i: number) => void }) {
   const { t } = useTranslation();
   const { result } = useProject();
+  const nodeId = stack[stack.length - 1];
+  const depth = stack.length;
   const node = result?.calc_tree[nodeId];
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 });
+  }, [nodeId]);
   return (
     <>
-      <header className="flex items-center gap-2 border-b border-line bg-surface px-4 py-3">
-        {depth > 1 ? (
-          <button className="btn-quiet -ml-2" onClick={pop} aria-label={t("lens.back")}>
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-        ) : (
-          <ScanSearch className="h-5 w-5 text-accent" aria-hidden />
+      <header className="border-b border-line bg-surface px-4 py-3">
+        <div className="flex items-center gap-2">
+          {depth > 1 ? (
+            <button className="btn-quiet -ml-2" onClick={() => jump(depth - 2)} aria-label={t("lens.back")}>
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          ) : (
+            <ScanSearch className="h-5 w-5 text-accent" aria-hidden />
+          )}
+          <Dialog.Title className="flex-1 text-sm font-semibold">{t("lens.title")}</Dialog.Title>
+          <Dialog.Close className="btn-quiet -mr-2" aria-label={t("common.close")}>
+            <X className="h-4 w-4" />
+          </Dialog.Close>
+        </div>
+        {depth > 1 && (
+          <nav aria-label={t("lens.path")} className="mt-1.5">
+            <ol className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] text-muted">
+              {stack.map((id, i) => {
+                const label = result?.calc_tree[id]?.label ?? id;
+                const last = i === stack.length - 1;
+                return (
+                  <li key={`${id}-${i}`} className="flex min-w-0 items-center gap-1">
+                    {i > 0 && <ChevronRight className="h-3 w-3 shrink-0" aria-hidden />}
+                    {last ? (
+                      <span className="max-w-[180px] truncate font-medium text-ink2" aria-current="page" title={label}>{label}</span>
+                    ) : (
+                      <button className="max-w-[140px] truncate rounded hover:text-accent hover:underline" onClick={() => jump(i)} title={label}>{label}</button>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
         )}
-        <Dialog.Title className="flex-1 text-sm font-semibold">
-          {t("lens.title")}
-          {depth > 1 && <span className="ml-2 text-xs font-normal text-muted">· {depth - 1} ↓</span>}
-        </Dialog.Title>
-        <Dialog.Close className="btn-quiet -mr-2" aria-label={t("common.close")}>
-          <X className="h-4 w-4" />
-        </Dialog.Close>
       </header>
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5">{node ? <NodeView node={node} push={push} /> : <p className="text-sm text-muted">—</p>}</div>
+      <div ref={scroller} className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5">
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <motion.div
+            key={`${nodeId}-${depth}`}
+            custom={dir}
+            variants={{
+              enter: (d: number) => ({ opacity: 0, x: d * 28 }),
+              center: { opacity: 1, x: 0, transition: { duration: 0.24, ease: EASE } },
+              exit: (d: number) => ({ opacity: 0, x: d * -28, transition: { duration: 0.12, ease: "easeIn" } }),
+            }}
+            initial="enter"
+            animate="center"
+            exit="exit"
+          >
+            {node ? <NodeView node={node} push={push} /> : <p className="text-sm text-muted">—</p>}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </>
   );
 }
@@ -73,7 +136,7 @@ function NodeView({ node, push }: { node: CalcNode; push: (id: string) => void }
   const { t } = useTranslation();
   const src = node.source;
   return (
-    <div className="space-y-5 animate-rise" key={node.id}>
+    <div className="space-y-5">
       <div>
         <div className="eyebrow mb-1 flex items-center gap-2">
           {src?.kind === "evidence" ? <FileImage className="h-3.5 w-3.5" /> : src?.kind === "refdata" ? <BookMarked className="h-3.5 w-3.5" /> : src?.kind === "assumption" ? <FlaskConical className="h-3.5 w-3.5" /> : src?.kind === "scenario" ? <Sparkles className="h-3.5 w-3.5" /> : <Sigma className="h-3.5 w-3.5" />}
@@ -133,14 +196,14 @@ function Leaves({ node, push }: { node: CalcNode; push: (id: string) => void }) 
         {ev.length} {t("lens.values_from", { defaultValue: "values read from" })} {docCount} {t("lens.documents", { defaultValue: "documents" })} · {refs.length} {t("lens.official_values", { defaultValue: "official values" })} · {asm.length} {t("lens.assumptions", { defaultValue: "stated assumptions" })}
       </p>
       {ev.length > 0 && (
-        <ul className="grid grid-cols-2 gap-2">
+        <motion.ul className="grid grid-cols-2 gap-2" variants={stagger(0.04, 0.1)} initial="hidden" animate="show">
           {shown.map((l) => {
             const d = l.source?.doc_id ? docs[l.source.doc_id] : undefined;
             const aspect = d?.width && d?.height ? d.width / d.height : 0.75;
             const box = l.source?.box_2d;
             return (
-              <li key={l.id}>
-                <button onClick={() => push(l.id)} className="group w-full overflow-hidden rounded-xl border border-line bg-surface text-left transition hover:border-accent/40">
+              <motion.li key={l.id} variants={rise}>
+                <button onClick={() => push(l.id)} className="group w-full overflow-hidden rounded-xl border border-line bg-surface text-left transition duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-hover">
                   {box ? <CropView src={imageUrl(pid, l.source!.doc_id!)} box={[Math.max(0, box[0] - 8), Math.max(0, box[1] - 30), Math.min(1000, box[2] + 8), Math.min(1000, box[3] + 30)]} alt={l.label} imgAspect={aspect} /> : null}
                   <div className="px-2 py-1.5">
                     <div className="flex items-center justify-between gap-1">
@@ -150,10 +213,10 @@ function Leaves({ node, push }: { node: CalcNode; push: (id: string) => void }) 
                     <div className="truncate text-[11px] text-muted">{l.label}</div>
                   </div>
                 </button>
-              </li>
+              </motion.li>
             );
           })}
-        </ul>
+        </motion.ul>
       )}
       {ev.length > 8 && (
         <button className="btn-quiet mt-1 w-full" onClick={() => setAll((a) => !a)}>
@@ -182,13 +245,13 @@ function Inputs({ node, push }: { node: CalcNode; push: (id: string) => void }) 
   return (
     <section>
       <div className="eyebrow mb-1.5">{t("lens.inputs")}</div>
-      <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+      <motion.ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface" variants={stagger(0.05, 0.05)} initial="hidden" animate="show">
         {node.children.map((cid) => {
           const c = tree[cid];
           if (!c) return null;
           return (
-            <li key={cid}>
-              <button onClick={() => push(cid)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-sunk focus-visible:bg-sunk focus-visible:outline-none">
+            <motion.li key={cid} variants={rise}>
+              <button onClick={() => push(cid)} className="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-sunk focus-visible:bg-sunk focus-visible:outline-none">
                 <span className={`h-8 w-1 shrink-0 rounded-full ${{ good: "bg-good", warn: "bg-warn", bad: "bg-bad", neutral: "bg-line2", info: "bg-accent" }[toneOf(c.status)]}`} aria-hidden />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm">{c.label}</span>
@@ -196,12 +259,12 @@ function Inputs({ node, push }: { node: CalcNode; push: (id: string) => void }) 
                 </span>
                 <span className="num shrink-0 text-sm font-semibold">{c.display ?? "—"}</span>
                 <span className="w-14 shrink-0 truncate text-[11px] text-muted">{c.unit !== "-" ? c.unit : ""}</span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" aria-hidden />
               </button>
-            </li>
+            </motion.li>
           );
         })}
-      </ul>
+      </motion.ul>
     </section>
   );
 }
@@ -215,6 +278,9 @@ function EvidenceView({ node }: { node: CalcNode }) {
   const src = s.doc_id ? imageUrl(pid, s.doc_id) : "";
   const aspect = doc?.width && doc?.height ? doc.width / doc.height : 0.75;
   const tone = { good: "good", warn: "warn", bad: "bad", neutral: "accent", info: "accent" }[toneOf(node.status)] as "good" | "warn" | "bad" | "accent";
+  // read in order: reader 1 (the page), reader 2 (only the crop), then whether they agree
+  const second = useAfter(500, [node.id]);
+  const verdict = useAfter(950, [node.id]);
   if (doc?.content_type.startsWith("audio/")) {
     return (
       <div className="space-y-3">
@@ -249,17 +315,36 @@ function EvidenceView({ node }: { node: CalcNode }) {
       {ev && (
         <section>
           <div className="eyebrow mb-1.5">{t("lens.readers")}</div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="relative grid gap-3 sm:grid-cols-2 sm:gap-x-9">
             <div className="rounded-xl border border-line bg-surface p-3">
               <div className="text-[11px] text-muted">{t("lens.reader1")}</div>
               <div className="font-mono text-lg">{ev.value_text}</div>
               <div className="mt-1 truncate text-[11px] text-muted">{ev.extractor_model}</div>
             </div>
-            <div className={`rounded-xl border p-3 ${ev.second_reading?.agrees ? "border-good/40 bg-goodbg" : "border-warn/50 bg-warnbg"}`}>
+            <motion.div
+              className={`rounded-xl border p-3 transition-colors duration-500 ${verdict ? (ev.second_reading?.agrees ? "border-good/40 bg-goodbg" : "border-warn/50 bg-warnbg") : "border-line bg-surface"}`}
+              initial={false}
+              animate={second ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+              transition={{ duration: 0.35, ease: EASE }}
+            >
               <div className="text-[11px] text-ink2">{t("lens.reader2")}</div>
               <div className="font-mono text-lg">{ev.second_reading?.reading_value ?? "—"}</div>
               <div className="mt-1 truncate text-[11px] text-ink2">{ev.second_reading?.model} · {ev.second_reading?.agrees ? t("lens.agree") : t("lens.disagree")}</div>
-            </div>
+            </motion.div>
+            <AnimatePresence>
+              {verdict && ev.second_reading && (
+                <motion.span
+                  key="v"
+                  className={`absolute left-1/2 top-1/2 hidden h-7 w-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border bg-surface shadow-card sm:grid ${ev.second_reading.agrees ? "border-good/50 text-goodink" : "border-warn/60 text-warnink"}`}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 20 }}
+                  aria-hidden
+                >
+                  {ev.second_reading.agrees ? <Check className="h-4 w-4" /> : <span className="font-mono text-[15px] font-semibold">≠</span>}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
           {ev.second_reading?.crop_box && (
             <div className="mt-3">

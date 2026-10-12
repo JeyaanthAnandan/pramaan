@@ -1,8 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { motion } from "motion/react";
+import { ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
+import { AnimatedNumber, rise, stagger } from "@/lib/motion";
 import { Logo, LangSwitch } from "@/components/Layout";
 
 const EXTRA_LABELS: Record<string, string> = {
@@ -30,7 +32,13 @@ export default function Share() {
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-8">
-        {q.isLoading && <Loader2 className="mx-auto mt-20 h-6 w-6 animate-spin text-muted" />}
+        {q.isLoading && (
+          <div className="space-y-4" aria-busy="true">
+            <div className="skeleton h-12" />
+            <div className="skeleton h-24" />
+            <div className="skeleton h-64" />
+          </div>
+        )}
         {q.isError && <p className="mt-20 text-center text-muted">{t("buyer.none")}</p>}
         {s && (
           <>
@@ -45,19 +53,21 @@ export default function Share() {
                 <div><dt className="inline text-muted">{t("buyer.operator")}: </dt><dd className="inline font-medium">{s.operator}, {s.country}</dd></div>
                 <div><dt className="inline text-muted">{t("buyer.period")}: </dt><dd className="inline font-medium">{s.period}</dd></div>
                 <div><dt className="inline text-muted">{t("buyer.generated")}: </dt><dd className="inline">{new Date(s.generated_at).toLocaleString()}</dd></div>
-                <div className="sm:col-span-2 text-[12px] text-muted">{s.method}</div>
               </dl>
+              <p className="mt-1 text-[12px] text-muted">{s.method}</p>
             </div>
-            <div className="mt-6 space-y-4">
+            <motion.div className="mt-6 space-y-4" variants={stagger(0.1, 0.1)} initial="hidden" animate="show">
               {s.goods.map((g) => (
-                <section key={g.cn} className="card p-5">
+                <motion.section key={g.cn} variants={rise} className="card p-5">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <div>
                       <div className="eyebrow">CN {g.cn}</div>
                       <h2 className="font-semibold">{g.description}</h2>
                     </div>
                     <div className="text-right">
-                      <div className="num font-display text-4xl font-semibold">{g.see_direct}</div>
+                      <div className="font-display text-4xl font-semibold">
+                        <AnimatedNumber value={g.see_direct} format={(v) => v.toFixed((String(g.see_direct).split(".")[1] ?? "").length)} countUp />
+                      </div>
                       <div className="text-[12px] text-muted">{t("buyer.see_direct")} · t CO2e / t</div>
                     </div>
                   </div>
@@ -83,9 +93,9 @@ export default function Share() {
                     <div className="rounded-xl bg-sunk p-3"><dt className="text-[11px] text-muted">SEFA</dt><dd className="num">{g.sefa} t CO2e/t</dd></div>
                     <div className="rounded-xl bg-sunk p-3"><dt className="text-[11px] text-muted">Default SEE 2026 (for comparison)</dt><dd className="num">{g.default_see_2026_for_comparison} t CO2e/t</dd></div>
                   </dl>
-                </section>
+                </motion.section>
               ))}
-            </div>
+            </motion.div>
             <p className="mt-8 text-center text-[12px] text-muted">Pramaan · {t("app.disclaimer")}</p>
           </>
         )}

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Factory, FlameKindling, Loader2, Recycle, Truck, Zap } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Factory, FlameKindling, Loader2, Recycle, RotateCcw, Truck, Zap } from "lucide-react";
 import type { Result } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
+import { AnimatedNumber, EASE, Segmented } from "@/lib/motion";
+import { MoneyChart } from "./Charts";
 
 interface SimPoint { year: number; eur_t: string; inr_t: string; now_eur_t: string; default_eur_t: string; buyer_now_eur_t: string; buyer_eur_t: string; buyer_inr_t: string; basis_now: "actual" | "default"; basis: "actual" | "default" }
 interface Sim {
@@ -95,13 +98,7 @@ export function WhatIfPanel({ result }: { result: Result }) {
           </h2>
           <p className="mt-1 text-sm text-ink2">{t("whatif.lead")}</p>
         </div>
-        <div className="flex rounded-xl border border-line bg-sunk p-1" role="tablist" aria-label={t("whatif.title")}>
-          {procs.map((x) => (
-            <button key={x.id} role="tab" aria-selected={proc === x.id} onClick={() => setProc(x.id)} className={`min-h-[36px] rounded-lg px-3 text-[13px] font-medium ${proc === x.id ? "bg-surface text-ink shadow-card" : "text-ink2"}`}>
-              CN {x.cn_display}
-            </button>
-          ))}
-        </div>
+        {procs.length > 1 && <Segmented value={proc} onChange={setProc} label={t("whatif.title")} options={procs.map((x) => ({ value: x.id, label: `CN ${x.cn_display}` }))} />}
       </div>
       <div className="mt-5 grid gap-6 lg:grid-cols-[340px_1fr]">
         <div className="space-y-3 text-[13px]">
@@ -152,13 +149,16 @@ export function WhatIfPanel({ result }: { result: Result }) {
             <legend className="flex items-center gap-1.5 px-1 text-[12px] font-semibold">
               <FlameKindling className="h-3.5 w-3.5 text-muted" aria-hidden /> {t("whatif.heating")}
             </legend>
-            <div className="flex gap-2">
-              {(["gas", "electric"] as const).map((h) => (
-                <button key={h} onClick={() => setHeating(h)} className={`flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border text-[13px] ${heating === h ? "border-ink bg-surface font-semibold" : "border-line text-ink2"}`} aria-pressed={heating === h}>
-                  {h === "gas" ? <FlameKindling className="h-4 w-4" /> : <Zap className="h-4 w-4" />} {h === "gas" ? t("whatif.gas") : t("whatif.electric")}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              role="toggle"
+              className="w-full"
+              value={heating}
+              onChange={setHeating}
+              options={[
+                { value: "gas", label: t("whatif.gas"), icon: <FlameKindling className="h-4 w-4" aria-hidden /> },
+                { value: "electric", label: t("whatif.electric"), icon: <Zap className="h-4 w-4" aria-hidden /> },
+              ]}
+            />
             {heating === "gas" && ops?.gas_gj_per_t && (
               <>
                 <label className="flex items-center justify-between gap-2">
@@ -170,16 +170,16 @@ export function WhatIfPanel({ result }: { result: Result }) {
             )}
             {heating === "electric" && <p className="text-[12px] text-ink2">{sim?.note}</p>}
           </fieldset>
-          <button className="link text-[12px]" onClick={reset}>
-            {t("whatif.reset")}
+          <button className="link inline-flex items-center gap-1 text-[12px] disabled:no-underline disabled:opacity-50" onClick={reset} disabled={!touched.size && heating === "gas"}>
+            <RotateCcw className="h-3 w-3" aria-hidden /> {t("whatif.reset")}
           </button>
         </div>
-        <div>
+        <div className="min-w-0">
           {err && <p className="mb-3 rounded-xl border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
-          <div className={`grid grid-cols-2 gap-3 transition ${busy ? "opacity-60" : ""}`} aria-live="polite">
-            <Stat label="SEE (t CO2/t)" now={n(p.see, 3)} next={sim ? n(sim.see, 3) : "…"} delta={sim ? Number(sim.see) - Number(p.see) : 0} />
-            <Stat label={t("whatif.cost26")} now={s26 ? eur(s26.buyer_now_eur_t) : "…"} next={s26 ? eur(s26.buyer_eur_t) : "…"} sub={s26 ? `${inr(s26.buyer_inr_t)} · ${basisLabel(s26.basis)}` : ""} delta={s26 ? Number(s26.buyer_eur_t) - Number(s26.buyer_now_eur_t) : 0} />
-            <Stat label={t("whatif.cost30")} now={s30 ? eur(s30.buyer_now_eur_t) : "…"} next={s30 ? eur(s30.buyer_eur_t) : "…"} sub={s30 ? basisLabel(s30.basis) : ""} delta={s30 ? Number(s30.buyer_eur_t) - Number(s30.buyer_now_eur_t) : 0} />
+          <div className={`grid grid-cols-2 gap-3 transition-opacity ${busy ? "opacity-70" : ""}`} aria-live="polite">
+            <Stat label="SEE (t CO2/t)" now={Number(p.see)} next={sim ? Number(sim.see) : null} fmt={(v) => n(v, 3)} />
+            <Stat label={t("whatif.cost26")} now={s26 ? Number(s26.buyer_now_eur_t) : null} next={s26 ? Number(s26.buyer_eur_t) : null} fmt={(v) => eur(v)} sub={s26 ? `${inr(s26.buyer_inr_t)} · ${basisLabel(s26.basis)}` : ""} />
+            <Stat label={t("whatif.cost30")} now={s30 ? Number(s30.buyer_now_eur_t) : null} next={s30 ? Number(s30.buyer_eur_t) : null} fmt={(v) => eur(v)} sub={s30 ? basisLabel(s30.basis) : ""} />
             <div className="rounded-xl border border-line bg-surface p-3">
               <div className="text-[11px] text-muted">{t("whatif.vsdefault")}</div>
               {s26 ? (
@@ -191,44 +191,78 @@ export function WhatIfPanel({ result }: { result: Result }) {
                   <div className="num mt-1 text-2xl font-semibold">{eur(0)}</div>
                 )
               ) : (
-                <div className="mt-1 text-2xl">…</div>
+                <div className="skeleton mt-2 h-7 w-24" />
               )}
               {s26 && <div className="text-[11px] text-muted">{t("whatif.default_is", { v: eur(s26.default_eur_t) })}</div>}
             </div>
           </div>
-          {(rodSaved > EPS || gasSaved > EPS) && (
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              {rodSaved > EPS && <Plant label={t("whatif.rod_saved")} value={`${n(rodSaved, 0)} t`} />}
-              {gasSaved > EPS && <Plant label={t("whatif.gas_saved")} value={`${n(gasSaved, 0)} GJ`} />}
+          <AnimatePresence initial={false}>
+            {(rodSaved > EPS || gasSaved > EPS) && (
+              <motion.div key="plant" className="grid grid-cols-2 gap-3 overflow-hidden" initial={{ height: 0, opacity: 0, marginTop: 0 }} animate={{ height: "auto", opacity: 1, marginTop: 12 }} exit={{ height: 0, opacity: 0, marginTop: 0 }} transition={{ duration: 0.3, ease: EASE }}>
+                {rodSaved > EPS && <Plant label={t("whatif.rod_saved")} value={rodSaved} unit="t" />}
+                {gasSaved > EPS && <Plant label={t("whatif.gas_saved")} value={gasSaved} unit="GJ" />}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {touched.has("scrap") && <p className="mt-3 text-[12px] leading-relaxed text-muted">{t("whatif.scrap_note")}</p>}
+          {sim && (
+            <div className="mt-4 rounded-xl border border-line p-3">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <div className="text-[12px] font-semibold text-ink2">{t("whatif.chart_t")}</div>
+                {busy && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" aria-hidden />}
+              </div>
+              <MoneyChart
+                compact
+                height={210}
+                ariaLabel={t("whatif.chart_t")}
+                series={[
+                  { key: "now", label: t("whatif.now"), color: "--s1", points: sim.series.map((x) => ({ x: x.year, y: Number(x.buyer_now_eur_t) })) },
+                  ...(touched.size || heating === "electric"
+                    ? [{ key: "next", label: t("whatif.with_changes"), color: "--s3", dashed: true, points: sim.series.map((x) => ({ x: x.year, y: Number(x.buyer_eur_t), inr: Number(x.buyer_inr_t) })) }]
+                    : []),
+                ]}
+              />
             </div>
           )}
-          {touched.has("scrap") && <p className="mt-3 text-[12px] leading-relaxed text-muted">{t("whatif.scrap_note")}</p>}
-          {busy && <Loader2 className="mt-2 h-4 w-4 animate-spin text-muted" />}
         </div>
       </div>
     </section>
   );
 }
 
-function Stat({ label, now, next, sub, delta }: { label: string; now: string; next: string; sub?: string; delta: number }) {
+/** Now -> with these changes. The new value tweens as you drag, so the eye follows what moved. */
+function Stat({ label, now, next, fmt, sub }: { label: string; now: number | null; next: number | null; fmt: (v: number) => string; sub?: string }) {
+  const delta = now !== null && next !== null ? next - now : 0;
   const changed = Math.abs(delta) > EPS;
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
       <div className="text-[11px] text-muted">{label}</div>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-        {changed && <span className="num text-sm text-muted line-through decoration-muted/50">{now}</span>}
-        <span className={`num text-2xl font-semibold ${changed ? (delta < 0 ? "text-goodink" : "text-badink") : ""}`}>{next}</span>
+        <AnimatePresence initial={false}>
+          {changed && now !== null && (
+            <motion.span key="was" className="num text-sm text-muted line-through decoration-muted/50" initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
+              {fmt(now)}
+            </motion.span>
+          )}
+        </AnimatePresence>
+        {next === null ? (
+          <span className="skeleton inline-block h-7 w-20" />
+        ) : (
+          <AnimatedNumber value={next} format={fmt} className={`text-2xl font-semibold transition-colors duration-300 ${changed ? (delta < 0 ? "text-goodink" : "text-badink") : ""}`} />
+        )}
       </div>
       {sub && <div className="text-[11px] text-muted">{sub}</div>}
     </div>
   );
 }
 
-function Plant({ label, value }: { label: string; value: string }) {
+function Plant({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <div className="rounded-xl border border-good/30 bg-goodbg/60 p-3">
       <div className="text-[11px] text-goodink">{label}</div>
-      <div className="num mt-0.5 text-xl font-semibold text-goodink">{value}</div>
+      <div className="mt-0.5 text-xl font-semibold text-goodink">
+        <AnimatedNumber value={value} format={(v) => `${n(v, 0)} ${unit}`} />
+      </div>
     </div>
   );
 }
