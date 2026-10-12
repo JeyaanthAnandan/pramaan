@@ -148,7 +148,8 @@ def _gas(c: Ctx) -> dict[str, Any]:
     c.ref_leaf("ref.ng.ef", "Emission factor, natural gas", f["ef"])
     tco2 = e.fuel_emissions_t(gj_ncv, f["ef"].value)
     t.calc("gas.tco2", "Direct emissions from natural gas", tco2, "t CO2", "AD(TJ, NCV) × EF × OxF(1)", ["gas.gj_ncv", "ref.ng.ef"])
-    return {"tco2": tco2, "missing": missing}
+    monthly_gj = {m: e.ncv_from_gcv(e.gj_gcv_from_mmbtu(_num(x), gj_per.value), ratio.value) for m, x in by_month.items()}
+    return {"tco2": tco2, "missing": missing, "gj_ncv": gj_ncv, "monthly_gj_ncv": monthly_gj}
 
 
 def _price_2026(c: Ctx, process_exports: dict[str, dict[str, Decimal]]) -> tuple[str, Decimal]:
@@ -172,6 +173,69 @@ def _price_2026(c: Ctx, process_exports: dict[str, dict[str, Decimal]]) -> tuple
         "y2026.price", "Certificate price 2026 (export-weighted)", price, "EUR/certificate", "Σ price_q × tonnes_q / Σ tonnes_q", children
     )
     return "y2026.price", price
+
+
+def _operations(c: Ctx, al: dict[str, Decimal], gas: dict[str, Any]) -> dict[str, Any]:
+    """Operational KPIs from the same evidence (yield, scrap share of rod, gas energy per tonne).
+
+    Informational: none of these enter SEE directly; they show where the plant's own levers are
+    (less scrap -> less rod per tonne; less gas per tonne -> lower direct emissions)."""
+    t = c.tree
+    months = c.project.months
+    total_al = sum(al.values(), D(0))
+    out: dict[str, Any] = {"period_months": len(months), "processes": {}, "gas_gj_per_t": None, "gas_node": None, "gas_monthly": []}
+    if total_al > 0 and gas["gj_ncv"] > 0:
+        t.calc(
+            "gas.gj_per_t",
+            "Gas energy per tonne produced (NCV)",
+            gas["gj_ncv"] / total_al,
+            "GJ/t",
+            "GJ(NCV) ÷ Σ AL",
+            ["gas.gj_ncv", *[f"{p.id}.al" for p in c.project.processes]],
+        )
+        out["gas_gj_per_t"], out["gas_node"] = str(gas["gj_ncv"] / total_al), "gas.gj_per_t"
+        for m in months:
+            prod = sum((_num(x[0]) for p in c.project.processes if (x := c.pick("produced_t", p.id, m))), D(0))
+            gj = gas["monthly_gj_ncv"].get(m)
+            if gj is not None and prod > 0:
+                out["gas_monthly"].append({"month": m, "gj_per_t": str(gj / prod)})
+    for p in c.project.processes:
+        a = al.get(p.id, D(0))
+        rod = t.get(f"{p.id}.rod.mass").value or D(0)
+        scrap = t.get(f"{p.id}.scrap").value or D(0)
+        if a <= 0 or rod <= 0:
+            continue
+        t.calc(f"{p.id}.yield", f"Yield — {p.name}", a / rod * 100, "%", "AL ÷ rod consumed × 100", [f"{p.id}.al", f"{p.id}.rod.mass"])
+        t.calc(
+            f"{p.id}.scrap_share",
+            f"Scrap share of rod — {p.name}",
+            scrap / rod * 100,
+            "%",
+            "scrap ÷ rod consumed × 100",
+            [f"{p.id}.scrap", f"{p.id}.rod.mass"],
+        )
+        monthly = []
+        for m in months:
+            r_, s_, a_ = c.pick("rod_consumed_t", p.id, m), c.pick("scrap_t", p.id, m), c.pick("produced_t", p.id, m)
+            if r_ and _num(r_[0]) > 0:
+                monthly.append(
+                    {
+                        "month": m,
+                        "scrap_pct": str(_num(s_[0]) / _num(r_[0]) * 100) if s_ else None,
+                        "yield_pct": str(_num(a_[0]) / _num(r_[0]) * 100) if a_ else None,
+                    }
+                )
+        out["processes"][p.id] = {
+            "yield_pct": str(a / rod * 100),
+            "yield_node": f"{p.id}.yield",
+            "scrap_pct": str(scrap / rod * 100),
+            "scrap_node": f"{p.id}.scrap_share",
+            "rod_t": str(rod),
+            "scrap_t": str(scrap),
+            "al_t": str(a),
+            "monthly": monthly,
+        }
+    return out
 
 
 def _year_params(c: Ctx, year: int) -> dict[str, tuple[str, Decimal]]:
@@ -236,6 +300,9 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
     money: dict[str, list[dict[str, Any]]] = {}
     whatif_money: dict[str, list[dict[str, Any]]] = {}
     see_inputs: list[tuple[str, str]] = []  # (node_id, status) for readiness
+    proc_inputs: dict[str, list[tuple[str, str]]] = {}
+    proc_actual: dict[str, bool] = {}
+    annual = D(12) / D(len(project.months) or 12)  # year-to-date -> per year at current volumes
 
     for p in procs:
         pid = p.id
@@ -365,13 +432,17 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
         )
 
         # readiness inputs: evidence leaves under SEE + defaulted precursor slot
+        mine: list[tuple[str, str]] = []
         for leaf in tree.leaves_under(see_nid):
             if leaf.source and leaf.source.get("kind") == "evidence":
-                see_inputs.append((leaf.id, leaf.status))
+                mine.append((leaf.id, leaf.status))
         if not actual:
-            see_inputs.append((rs_nid, DEFAULT_USED))
+            mine.append((rs_nid, DEFAULT_USED))
         for m_ in [n for n in [f"{pid}.al", f"{pid}.rod.mass"] if tree.get(n).status == MISSING]:
-            see_inputs.append((m_, MISSING))
+            mine.append((m_, MISSING))
+        see_inputs.extend(mine)
+        proc_inputs[pid] = mine
+        proc_actual[pid] = actual
 
         # ---- certificates for 2026 imports (per quarter)
         cert_kids = []
@@ -429,7 +500,7 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
         dv_good = refdata.default_value(project.country, p.cn)
         c.ref_leaf(f"ref.dv.{p.cn}", f"Default value {project.country}, CN {p.cn_display}", dv_good)
         good_route = (dv_good.extra.get("route") or "").strip("()") or None
-        series = []
+        series: list[dict[str, Any]] = []
         for yr in YEARS:
             yp = years[yr]
             if yr == 2026:
@@ -512,6 +583,10 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
             gap = cd.cost_eur_per_t - ca.cost_eur_per_t
             gap_nid = f"{pid}.y{yr}.gap"
             tree.calc(gap_nid, f"Money on the table per t {yr}", gap, "EUR/t", "default cost − actual cost", [cd_nid, ca_nid])
+            # The buyer can only gain from the exporter's data when it beats the default: while a
+            # precursor is on its marked-up default, the good's own default can be the cheaper path.
+            basis = "actual" if ca.cost_eur_per_t <= cd.cost_eur_per_t else "default"
+            buyer = min(ca.cost_eur_per_t, cd.cost_eur_per_t)
             series.append(
                 {
                     "year": yr,
@@ -524,13 +599,84 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
                     "actual_eur_t": str(ca.cost_eur_per_t),
                     "default_eur_t": str(cd.cost_eur_per_t),
                     "gap_eur_t": str(gap),
+                    "buyer_eur_t": str(buyer),
+                    "basis": basis,
                     "actual_inr_t": str(ca.cost_eur_per_t * fx.value),
                     "default_inr_t": str(cd.cost_eur_per_t * fx.value),
                     "gap_inr_t": str(gap * fx.value),
+                    "buyer_inr_t": str(buyer * fx.value),
                     "nodes": {"actual": ca_nid, "default": cd_nid, "gap": gap_nid},
                 }
             )
         money[pid] = series
+
+        # ---- the same 2026 imports on EU default values (per quarter, like the actual path)
+        y0 = project.year
+        d_see0 = tree.get(f"{pid}.y{y0}.default_see").value or D(0)
+        d_sy0 = tree.get(f"{pid}.y{y0}.default_sefa_y").value or D(0)
+        dcost_kids = []
+        cost_default = D(0)
+        for quarter, t_q in sorted(exports[pid].items()):
+            r = e.certificates([e.ImportLine(t_q, d_see0, d_sy0, quarter)])
+            qn = int(quarter[-1])
+            dnid = f"{pid}.cert_default.{quarter}"
+            tree.calc(
+                dnid,
+                f"Certificates for {quarter} imports — EU default values",
+                r.certificates,
+                "certificates",
+                "M × (SEE_default − SEFA_default,y)",
+                [f"{pid}.exports", f"{pid}.y{y0}.default_see", f"{pid}.y{y0}.default_sefa_y"],
+            )
+            pref = refdata.quarter_price(y0, qn)
+            pn = c.ref_leaf(f"ref.price.{y0}Q{qn}", f"CBAM certificate price Q{qn} {y0}", pref)
+            cnid = f"{pid}.cost_default.{quarter}"
+            tree.calc(
+                cnid,
+                f"Buyer's CBAM cost {quarter} — EU default values",
+                r.certificates * pref.value,
+                "EUR",
+                "certificates × price(quarter)",
+                [dnid, pn],
+            )
+            cost_default += r.certificates * pref.value
+            dcost_kids.append(cnid)
+        tree.calc(
+            f"{pid}.cost_default.total",
+            f"Buyer's CBAM cost, 2026 imports on EU default values — {p.name}",
+            cost_default,
+            "EUR",
+            "Σ quarterly cost",
+            dcost_kids or ["as.cpp"],
+        )
+        s0 = series[0]
+        basis0 = s0["basis"]
+        tree.calc(
+            f"{pid}.cost_buyer.total",
+            f"Buyer's CBAM cost, 2026 imports — cheaper path ({'your data' if basis0 == 'actual' else 'EU default values'})",
+            cost_2026 if basis0 == "actual" else cost_default,
+            "EUR",
+            "min(cost on your data, cost on EU default values)",
+            [f"{pid}.cost.total", f"{pid}.cost_default.total"],
+        )
+        exp_t = sum(exports[pid].values(), D(0))
+        buyer_info: dict[str, Any] = {
+            "basis_2026": basis0,
+            "actual_eur_t": s0["actual_eur_t"],
+            "default_eur_t": s0["default_eur_t"],
+            "buyer_eur_t": s0["buyer_eur_t"],
+            "cost_actual_eur": str(cost_2026),
+            "cost_actual_node": f"{pid}.cost.total",
+            "cost_default_eur": str(cost_default),
+            "cost_default_node": f"{pid}.cost_default.total",
+            "cost_buyer_eur": str(cost_2026 if basis0 == "actual" else cost_default),
+            "cost_buyer_node": f"{pid}.cost_buyer.total",
+            "gap_vs_default_eur_t": s0["gap_eur_t"],
+            "annual_factor": str(annual),
+            "annual_gap_eur": str(D(s0["gap_eur_t"]) * exp_t * annual),
+            "supplier_saving_eur_t": None,
+            "supplier_saving_annual_eur": None,
+        }
 
         # ---- what-if: supplier sends verified data (Precursor Lever)
         wi = project.what_if.get(pid)
@@ -572,7 +718,7 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
                 [f"ref.bmA.{p.cn}", f"{pid}.rod.m", f"whatif.{pid}.rod.sefa"],
                 status="SCENARIO",
             )
-            ws = []
+            ws: list[dict[str, Any]] = []
             for yr in YEARS:
                 yp = years[yr]
                 price = price_2026 if yr == 2026 else proj_price.value
@@ -604,6 +750,11 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
                     }
                 )
             whatif_money[pid] = ws
+            with_supplier = min(D(ws[0]["eur_t"]), D(s0["default_eur_t"]))
+            saving = D(s0["buyer_eur_t"]) - with_supplier
+            buyer_info["supplier_saving_eur_t"] = str(saving)
+            buyer_info["supplier_saving_annual_eur"] = str(saving * exp_t * annual)
+            buyer_info["with_supplier_eur_t"] = str(with_supplier)
 
         # ---- extra parameters (Guidance 5d Table 3-1)
         def avg(field: str) -> dict[str, Any]:
@@ -689,6 +840,7 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
                 "certificates_node": f"{pid}.cert.total",
                 "cost_2026_eur": str(cost_2026),
                 "cost_node": f"{pid}.cost.total",
+                "buyer": buyer_info,
                 "contribution": contrib,
                 "extra_parameters": extra,
                 "default_see_2026": series[0]["see_default"],
@@ -700,12 +852,31 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
     by_status: dict[str, int] = defaultdict(int)
     for _, s in see_inputs:
         by_status[s] += 1
+    by_process: dict[str, dict[str, Any]] = {}
+    for pid_, items in proc_inputs.items():
+        ok = sum(1 for _, s in items if s in GOOD_STATUSES)
+        missing = sum(1 for _, s in items if s == MISSING)
+        review = sum(1 for _, s in items if s in (NEEDS_REVIEW, "PENDING"))
+        by_process[pid_] = {
+            "score": str(D(ok) / D(len(items)) * 100 if items else D(0)),
+            "total": len(items),
+            "good": ok,
+            "missing": missing,
+            "review": review,
+            "precursor": "actual" if proc_actual[pid_] else "default",
+            # declarable on actual data: verified precursor data and every SEE input read and agreed/approved
+            "ready": proc_actual[pid_] and ok == len(items),
+        }
     readiness = {
         "score": str((D(len(good)) / D(len(see_inputs)) * 100) if see_inputs else D(0)),
         "total": len(see_inputs),
         "by_status": dict(by_status),
+        "by_process": by_process,
+        "lines_ready": sum(1 for v in by_process.values() if v["ready"]),
+        "lines_total": len(by_process),
         "definition": "Share of SEE-relevant inputs that are VERIFIED_2R (two readers agree) or APPROVED (human).",
     }
+    operations = _operations(c, al, gas)
     return {
         "computed_at": now(),
         "project_id": project.id,
@@ -721,6 +892,8 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
             "price_2026": {"value": str(price_2026), "node": "y2026.price"},
         },
         "gas": {"tco2": str(gas["tco2"]), "missing": gas["missing"]},
+        "operations": operations,
+        "period_months": len(project.months),
         "readiness": readiness,
         "calc_tree": tree.to_json(),
         "assumptions_used": sorted(c.used_assumptions),

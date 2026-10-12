@@ -80,6 +80,24 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
         found = {x.period: x for x in evidence if x.field_key == field and x.process == process and x.period}
         return list(found.values()), [m for m in project.months if m not in found]
 
+    if not project.processes or not project.processes_confirmed:
+        gaps.append(
+            {
+                "id": "setup.product_lines",
+                "process": None,
+                "group": "setup",
+                "kind": "product_lines" if project.processes else "product_lines_missing",
+                "status": "amber" if project.processes else "red",
+                "params": {
+                    "n": len(project.processes),
+                    "lines": "; ".join(f"{p.name} (CN {p.cn_display})" for p in project.processes),
+                },
+                "evidence_ids": [],
+                "suggested_doc": "export_invoice",
+                "ask": "owner",
+            }
+        )
+
     for p in project.processes:
         pr = procs.get(p.id, {})
         for field, kind, doc_hint in [

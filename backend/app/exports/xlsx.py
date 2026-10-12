@@ -71,7 +71,9 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
             "SEFA 2026",
             "Exported t",
             "Certificates 2026",
-            "Buyer cost EUR",
+            "Buyer cost EUR (your data)",
+            "Buyer cost EUR (EU default)",
+            "Cheaper for the buyer",
         ]
     )
     for c in ws[7]:
@@ -93,9 +95,11 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
                     _num(p["exports_t"]),
                     _num(p["certificates_2026"]),
                     _num(p["cost_2026_eur"]),
+                    _num(p["buyer"]["cost_default_eur"]),
+                    "your data" if p["buyer"]["basis_2026"] == "actual" else "EU default",
                 ]
             )
-    for i, w in enumerate([14, 30, 10, 12, 10, 10, 18, 10, 10, 11, 16, 15], 1):
+    for i, w in enumerate([14, 30, 10, 12, 10, 10, 18, 10, 10, 11, 16, 18, 18, 18], 1):
         ws.column_dimensions[get_column_letter(i)].width = w
 
     docs = {d.id: d for d in documents}

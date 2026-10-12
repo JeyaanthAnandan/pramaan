@@ -28,7 +28,7 @@ table, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after
 <div><b>{{ project.company }}</b> — {{ project.city }}, {{ project.country }}</div>
 <div class="banner"><b>PROVISIONAL.</b> Year-to-date data, not yet verified by an accredited verifier. Pramaan is not a substitute for an accredited verifier. Mode: {{ result.mode }} · run {{ result.run_id }} · computed {{ result.computed_at }}.</div>
 <div class="kpis">
- <div class="kpi"><span class="muted small">Readiness (inputs verified or approved)</span><b>{{ readiness }}%</b></div>
+ <div class="kpi"><span class="muted small">Readiness (inputs verified or approved)</span><b>{{ readiness }}%</b><span class="small">{{ lines_ready }} of {{ lines_total }} product lines on actual data</span></div>
  {% for p in procs %}<div class="kpi"><span class="muted small">SEE · CN {{ p.cn_display }}</span><b>{{ p.see3 }} t CO2/t</b><span class="small">{{ p.name }}</span></div>{% endfor %}
 </div>
 <h2>1. Specific embedded emissions per CN group</h2>
@@ -40,9 +40,10 @@ table, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after
 {% for p in procs %}<div class="small">{{ p.name }} — contribution: own process {{ p.own_pct }}% · precursor {{ 100 - p.own_pct }}%</div>
 <div class="bar"><span style="width: {{ p.own_pct }}%; background:#5b6b7a"></span><span style="width: {{ 100 - p.own_pct }}%; background:{% if p.precursor.data == 'ACTUAL_VERIFIED' %}#7ea08a{% else %}#c8796b{% endif %}"></span></div>{% endfor %}
 <h2>2. Free allocation adjustment, certificates and cost (2026 imports)</h2>
-<table><tr><th>CN</th><th class="n">SEFA</th><th class="n">SEFA 2026</th><th class="n">Exported (t)</th><th class="n">Certificates</th><th class="n">Buyer cost (EUR)</th><th class="n">Buyer cost (INR)</th></tr>
-{% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td class="n">{{ p.sefa3 }}</td><td class="n">{{ p.sefay3 }}</td><td class="n">{{ p.exports }}</td><td class="n">{{ p.certs }}</td><td class="n">{{ p.cost }}</td><td class="n">{{ p.cost_inr }}</td></tr>{% endfor %}
+<table><tr><th>CN</th><th class="n">SEFA</th><th class="n">SEFA 2026</th><th class="n">Exported (t)</th><th class="n">Certificates (your data)</th><th class="n">Buyer cost, your data (EUR)</th><th class="n">Buyer cost, EU default (EUR)</th><th>Cheaper for the buyer</th></tr>
+{% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td class="n">{{ p.sefa3 }}</td><td class="n">{{ p.sefay3 }}</td><td class="n">{{ p.exports }}</td><td class="n">{{ p.certs }}</td><td class="n">{{ p.cost }}</td><td class="n">{{ p.cost_default }}</td><td>{% if p.basis == 'actual' %}<span class="ok">your data</span>{% else %}<span class="warn">EU default</span>{% endif %}<br><span class="small muted">INR {{ p.cost_buyer_inr }}</span></td></tr>{% endfor %}
 </table>
+<p class="small muted">While a precursor is on its marked-up default value, the good's own EU default can be cheaper for the buyer than the exporter's data. The supplier's verified data is then the lever (section 3).</p>
 <p class="small muted">SEFA = BM column A (own process) + Σ m_i × SEFA_i; SEFA_2026 = CBAM factor 0.975 × CSCF 1 × SEFA (Guidance 4; Decision (EU) 2026/1862). Certificates = EE − FAA − carbon price paid (0). Quarterly prices: Q1 €75.36, Q2 €75.28, Q3 €82.32 (EC). FX {{ fx }} INR/EUR (assumption).</p>
 <h2>3. Money on the table — buyer's CBAM cost per tonne</h2>
 {% for p in procs %}<div class="keep"><div><b>{{ p.name }} (CN {{ p.cn_display }})</b></div>
@@ -52,7 +53,7 @@ table, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after
 <tr><td>Difference (EUR/t)</td>{% for s in p.series %}<td class="n">{{ s.g }}</td>{% endfor %}</tr>
 {% if p.whatif %}<tr><td>If supplier sends verified data</td>{% for s in p.whatif %}<td class="n">{{ s }}</td>{% endfor %}</tr>{% endif %}
 </table></div>{% endfor %}
-<p class="small muted">Cost per t = max(0, SEE − SEFA_y) × price. Default SEE = DV(India, CN) × (1 + mark-up: 10 % 2026, 20 % 2027, 30 % 2028+). 2027+ price = €{{ proj_price }} (assumption, editable). <b>Myth-buster:</b> some estimates multiply embedded emissions by 2.5 % in 2026. The Commission's formula subtracts a benchmark-based free allocation, so everything above the benchmark is payable: in EC Example 1, 3,690 certificates are due on 15,670 t embedded (23.5 %), not 5 %.</p>
+<p class="small muted">Cost per t = max(0, SEE − SEFA_y) × price. Default SEE = DV({{ project.country }}, CN) × (1 + mark-up: 10 % 2026, 20 % 2027, 30 % 2028+). 2027+ price = €{{ proj_price }} (assumption, editable). <b>Myth-buster:</b> some estimates multiply embedded emissions by 2.5 % in 2026. The Commission's formula subtracts a benchmark-based free allocation, so everything above the benchmark is payable: in EC Example 1, 3,690 certificates are due on 15,670 t embedded (23.5 %), not 5 %.</p>
 <h2>4. Control checks (EC Guidance No. 2, Step 7)</h2>
 <table><tr><th>Check</th><th>Result</th><th>Tolerance</th><th>Status</th></tr>
 {% for c in result.checks %}<tr><td>{{ c.name }}<br><span class="small muted">{{ c.formula }}</span></td><td>{{ c.result }}</td><td>{{ c.tolerance }}</td><td class="{{ {'pass':'ok','fail':'bad','warn':'warn'}.get(c.status,'muted') }}">{{ c.status }}</td></tr>{% endfor %}
@@ -93,6 +94,9 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
                 "certs": _fmt(p["certificates_2026"], 1),
                 "cost": _fmt(p["cost_2026_eur"], 0),
                 "cost_inr": _fmt(Decimal(p["cost_2026_eur"]) * fx, 0),
+                "cost_default": _fmt(p["buyer"]["cost_default_eur"], 0),
+                "cost_buyer_inr": _fmt(Decimal(p["buyer"]["cost_buyer_eur"]) * fx, 0),
+                "basis": p["buyer"]["basis_2026"],
                 "own_pct": int((Decimal(tree[f"{p['id']}.own_share"]["value"]) * 100).quantize(Decimal(1))),
                 "series": [
                     {"year": s["year"], "a": _fmt(s["actual_eur_t"], 0), "d": _fmt(s["default_eur_t"], 0), "g": _fmt(s["gap_eur_t"], 0)}
@@ -107,6 +111,8 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
         "result": result,
         "procs": procs,
         "readiness": q(Decimal(result["readiness"]["score"]), 0),
+        "lines_ready": result["readiness"].get("lines_ready", 0),
+        "lines_total": result["readiness"].get("lines_total", len(procs)),
         "fx": result["money"]["fx"]["value"],
         "proj_price": result["money"]["projection_price"]["value"],
     }

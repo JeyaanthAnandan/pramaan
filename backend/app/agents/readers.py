@@ -39,7 +39,8 @@ def _extract_system(project: Project) -> str:
         "grouping like 1,10,460.80 -> 110460.80). For each value give box_2d = [ymin, xmin, ymax, xmax] normalised to 0-1000 that "
         "tightly encloses only the value itself (not its label). If a figure is crossed out and replaced, report the replacement and "
         "box both. Monthly rows: set period=YYYY-MM. Export invoice line items: set period to the calendar quarter of the invoice date "
-        f"(YYYY-Qn). Product lines of this factory: {procs}. Set process to P1/P2 when a value belongs to one line (carbon vs stainless). "
+        f"(YYYY-Qn). Product lines of this factory: {procs}. Set process to the product line id (P1, P2, ...) when a value belongs "
+        "to one line; decide from the material, grade, CN code or product name printed next to it. "
         "Never invent values; skip fields that are not on the document. Do not compute anything."
     )
 

@@ -103,7 +103,10 @@ def extraction_schema() -> dict[str, Any]:
                         },
                         "label": {"type": "string"},
                         "period": {"type": "string", "description": "YYYY-MM for monthly values, YYYY-Qn for quarters, empty otherwise"},
-                        "process": {"type": "string", "description": "P1 or P2 when the value belongs to one product line, else empty"},
+                        "process": {
+                            "type": "string",
+                            "description": "product line id (P1, P2, ...) when the value belongs to one line, else empty",
+                        },
                     },
                     "required": ["field_key", "value_text", "box_2d"],
                 },

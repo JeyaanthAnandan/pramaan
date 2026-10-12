@@ -9,11 +9,11 @@ from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
-from app import refdata
+from app import access, refdata
 from app.agents.workflow import BUS, RUNS, execute, recalculate
 from app.cbam.golden import run_all
 from app.config import settings
@@ -22,7 +22,7 @@ from app.evidence import blobs
 from app.evidence.models import DOC_TYPES, Document, Evidence, ProcessDef, Project, Run, ShareLink, now
 from app.evidence.store import store
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(access.require)])
 _run_log: dict[str, deque[float]] = defaultdict(deque)
 MAX_UPLOAD = 15 * 1024 * 1024
 ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "application/pdf"}
@@ -33,6 +33,11 @@ def _project(pid: str) -> Project:
     if p is None:
         raise HTTPException(404, "project not found")
     return p
+
+
+def _public(p: Project) -> dict[str, Any]:
+    """Project as the API shows it: never the passcode hash."""
+    return {**p.model_dump(exclude={"access_hash"}), "protected": bool(p.access_hash)}
 
 
 def _result(pid: str) -> dict[str, Any]:
@@ -50,20 +55,58 @@ class NewProject(BaseModel):
     company: str
     country: str = "India"
     city: str = ""
-    processes: list[ProcessDef] | None = None
+    months_to: int | None = None  # last month of the reporting period (1-12); default Jan-Sep YTD
+    processes: list[ProcessDef] | None = None  # scripted set-ups; people use PUT /product-lines
 
 
 @router.post("/projects")
-def create_project(body: NewProject) -> dict[str, Any]:
+def create_project(body: NewProject, request: Request, response: Response) -> dict[str, Any]:
+    """An exporter's own project: private (passcode), product lines set by the owner or proposed by
+    the ProductLines agent from the uploaded invoices."""
+    from app.cbam.products import countries, months_upto, sync_supplier_requests
+
+    if body.country not in countries():
+        raise HTTPException(422, "unknown country (use the name in the EU default-value tables)")
     p = Project(
-        name=body.name,
-        company=body.company,
+        name=body.name[:120],
+        company=body.company[:160],
         country=body.country,
-        city=body.city,
-        processes=body.processes or [pp.model_copy() for pp in loader.PROCESSES],
+        city=body.city[:120],
+        processes=body.processes or [],
+        processes_confirmed=bool(body.processes),
     )
+    if body.months_to:
+        p.months, p.period_label = months_upto(p.year, body.months_to)
+    sync_supplier_requests(p)
+    code = access.new_passcode()
+    p.access_hash = access.hash_code(p.id, code)
     store().put_project(p)
-    return p.model_dump()
+    access.set_cookie(request, response, p.id, code)
+    return {**_public(p), "access_key": code}
+
+
+class Unlock(BaseModel):
+    passcode: str
+
+
+_unlock_log: dict[str, deque[float]] = defaultdict(deque)
+
+
+@router.post("/projects/{pid}/unlock")
+def unlock(pid: str, body: Unlock, request: Request, response: Response) -> dict[str, Any]:
+    ip = _client_ip(request)
+    window, t = _unlock_log[ip], time.time()
+    while window and t - window[0] > 3600:
+        window.popleft()
+    if len(window) >= 20:
+        raise HTTPException(429, "too many passcode attempts; try again later")
+    window.append(t)
+    p = _project(pid)
+    if p.access_hash and not access.matches(pid, p.access_hash, body.passcode):
+        raise HTTPException(401, "wrong passcode")
+    if p.access_hash:
+        access.set_cookie(request, response, pid, body.passcode)
+    return {"ok": True, "project_id": pid}
 
 
 @router.get("/projects/{pid}")
@@ -73,7 +116,7 @@ def get_project(pid: str) -> dict[str, Any]:
     runs = st.list_runs(pid)
     last = runs[-1] if runs else None
     return {
-        "project": p.model_dump(),
+        "project": _public(p),
         "documents": [d.model_dump() for d in sorted(st.list_documents(pid), key=lambda d: (d.doc_type or "zz", d.filename))],
         "last_run": last.model_dump(exclude={"events"}) if last else None,
         "running": any(r.status == "running" for r in runs),
@@ -85,11 +128,29 @@ class ProjectPatch(BaseModel):
     fx_inr_per_eur: str | None = None
     projection_price_eur: str | None = None
     supplier_status: dict[str, str] | None = None  # process_id -> status
+    name: str | None = None
+    company: str | None = None
+    city: str | None = None
+    country: str | None = None
+    months_to: int | None = None
 
 
 @router.patch("/projects/{pid}")
 def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
+    from app.cbam.products import countries, months_upto
+
     p = _project(pid)
+    if not p.is_demo:  # the fictional sample's identity and period are fixed
+        for name, limit in (("name", 120), ("company", 160), ("city", 120)):
+            v = getattr(body, name)
+            if v is not None and v.strip():
+                setattr(p, name, v.strip()[:limit])
+        if body.country is not None:
+            if body.country not in countries():
+                raise HTTPException(422, "unknown country (use the name in the EU default-value tables)")
+            p.country = body.country
+        if body.months_to is not None:
+            p.months, p.period_label = months_upto(p.year, body.months_to)
     for name in ("fx_inr_per_eur", "projection_price_eur"):
         v = getattr(body, name)
         if v is not None:
@@ -114,7 +175,7 @@ def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
     store().put_project(p)
     if store().get_latest_result(pid):
         recalculate(pid)
-    return p.model_dump()
+    return _public(p)
 
 
 @router.post("/projects/{pid}/documents")
@@ -154,7 +215,9 @@ def document_image(pid: str, doc_id: str) -> Response:
     d = store().get_document(pid, doc_id)
     if d is None:
         raise HTTPException(404, "document not found")
-    return Response(blobs.load(d.uri), media_type=d.content_type, headers={"Cache-Control": "public, max-age=3600"})
+    p = store().get_project(pid)
+    cache = "public, max-age=3600" if p is not None and not p.access_hash else "private, max-age=3600"
+    return Response(blobs.load(d.uri), media_type=d.content_type, headers={"Cache-Control": cache})
 
 
 # ------------------------------------------------------------------ runs + SSE
@@ -359,6 +422,103 @@ def get_share(token: str) -> dict[str, Any]:
     return {"summary": s.summary_snapshot, "created_at": s.created_at}
 
 
+# ------------------------------------------------------------------ product lines (own projects)
+
+
+class LineIn(BaseModel):
+    id: str | None = None
+    name: str = ""
+    cn: str = ""
+    precursor_name: str = ""
+    precursor_cn: str = ""
+    precursor_supplier: str = ""
+    source: str | None = None
+    doc_ids: list[str] | None = None
+    rationale: str | None = None
+
+
+class LinesIn(BaseModel):
+    lines: list[LineIn]
+    confirm: bool = True
+
+
+@router.put("/projects/{pid}/product-lines")
+def put_product_lines(pid: str, body: LinesIn) -> dict[str, Any]:
+    """Set or confirm the product lines (each CN code is validated against the official refdata)."""
+    from app.cbam.products import build_line, sync_supplier_requests
+
+    p = _project(pid)
+    if p.is_demo:
+        raise HTTPException(409, "the sample factory's product lines are fixed")
+    if not 1 <= len(body.lines) <= 6:
+        raise HTTPException(422, "between 1 and 6 product lines")
+    lines, problems = [], {}
+    for i, raw in enumerate(body.lines):
+        src = raw.source if raw.source in {"owner", "ai"} else "owner"
+        pdef, errors = build_line(raw.model_dump(), f"P{i + 1}", p.country, source=src)
+        if pdef is None:
+            problems[str(i)] = errors
+        else:
+            lines.append(pdef)
+    if problems:
+        raise HTTPException(422, {"message": "Some product lines are not usable", "lines": problems})
+    cns = [x.cn for x in lines]
+    if len(set(cns)) != len(cns):
+        raise HTTPException(422, {"message": "Each product line needs its own CN code", "lines": {}})
+    p.processes = lines
+    p.processes_confirmed = body.confirm
+    sync_supplier_requests(p)
+    store().put_project(p)
+    if store().get_latest_result(pid):
+        recalculate(pid)
+    return _public(p)
+
+
+@router.post("/projects/{pid}/product-lines/suggest")
+async def suggest_product_lines(pid: str) -> dict[str, Any]:
+    """ProductLines agent on demand: Gemini proposes lines from the uploaded export and steel-input
+    invoices (classifying them first if needed). Nothing is saved until the owner confirms."""
+    from app.agents.product_lines import propose
+    from app.agents.readers import classify
+
+    p = _project(pid)
+    if not settings().gemini_configured:
+        raise HTTPException(503, "Proposing product lines needs live Gemini, which is not configured on this server.")
+    docs = [d for d in store().list_documents(pid) if d.content_type.startswith("image/")]
+    for d in docs:
+        if not d.doc_type:
+            r = await classify(blobs.load(d.uri), d.content_type)
+            d.doc_type = r.data.get("doc_type")
+            d.languages = r.data.get("languages") or []
+            d.title = r.data.get("title") or d.filename
+            d.doc_type_confidence = float(r.data.get("confidence") or 0)
+            d.state = "classified"
+            store().put_document(d)
+    out = await propose(p, docs)
+    return {**out, "lines": [x.model_dump() for x in out["lines"]]}
+
+
+@router.get("/refdata/cn/search")
+def cn_search(q: str = "", country: str = "India") -> list[dict[str, Any]]:
+    from app.cbam.products import search
+
+    return search(q[:60], country)
+
+
+@router.get("/refdata/cn/{cn}")
+def cn_lookup(cn: str, country: str = "India", role: str = "good") -> dict[str, Any]:
+    from app.cbam.products import cn_info
+
+    return cn_info(cn[:20], country, "precursor" if role == "precursor" else "good")
+
+
+@router.get("/refdata/countries")
+def cn_countries() -> list[str]:
+    from app.cbam.products import countries
+
+    return countries()
+
+
 # ------------------------------------------------------------------ decarbonisation what-if (X2)
 
 
@@ -367,6 +527,8 @@ class WhatIf(BaseModel):
     rod_see: str | None = None
     rod_sefa: str | None = None
     heating: str = "gas"
+    scrap_pct: str | None = None  # scrap and cut-offs as % of rod consumed
+    gas_gj_per_t: str | None = None  # heat-treatment gas per tonne (NCV)
 
 
 @router.post("/projects/{pid}/whatif")
@@ -376,21 +538,29 @@ def whatif(pid: str, body: WhatIf) -> dict[str, Any]:
     _project(pid)
     r = _result(pid)
 
-    def num(v: str | None, name: str) -> Decimal | None:
+    def num(v: str | None, name: str, hi: int = 50) -> Decimal | None:
         if v in (None, ""):
             return None
         try:
             d = Decimal(str(v))
         except InvalidOperation as exc:
             raise HTTPException(422, f"{name} must be a number") from exc
-        if d < 0 or d > 50:
+        if not d.is_finite() or d < 0 or d > hi:
             raise HTTPException(422, f"{name} out of range")
         return d
 
     if body.heating not in {"gas", "electric"}:
         raise HTTPException(422, "heating must be gas or electric")
     try:
-        return simulate(r, body.process_id, num(body.rod_see, "rod_see"), num(body.rod_sefa, "rod_sefa"), body.heating)
+        return simulate(
+            r,
+            body.process_id,
+            num(body.rod_see, "rod_see"),
+            num(body.rod_sefa, "rod_sefa"),
+            body.heating,
+            scrap_pct=num(body.scrap_pct, "scrap_pct", 60),
+            gas_gj_per_t=num(body.gas_gj_per_t, "gas_gj_per_t", 20),
+        )
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
 

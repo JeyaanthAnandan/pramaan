@@ -30,6 +30,7 @@ PROCESSES = [
         precursor_name="Carbon-steel wire rod",
         precursor_cn="72139149",
         precursor_supplier="Northern Wire Rod Mills (SAMPLE)",
+        source="sample",
     ),
     ProcessDef(
         id="P2",
@@ -40,6 +41,7 @@ PROCESSES = [
         precursor_name="Stainless wire rod",
         precursor_cn="72210010",
         precursor_supplier="Indus Stainless Rods (SAMPLE)",
+        source="sample",
     ),
 ]
 

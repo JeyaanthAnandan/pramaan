@@ -113,6 +113,9 @@ class ProcessDef(BaseModel):
     precursor_cn: str
     precursor_supplier: str
     precursor_country: str = "India"
+    source: Literal["sample", "owner", "ai"] = "owner"  # who defined this product line
+    evidence_docs: list[str] = Field(default_factory=list)  # documents the AI proposal was read from
+    rationale: str = ""
 
 
 class SupplierRequest(BaseModel):
@@ -133,6 +136,8 @@ class Project(BaseModel):
     period_label: str = "Jan-Sep 2026 (provisional, year-to-date)"
     months: list[str] = Field(default_factory=lambda: [f"2026-{m:02d}" for m in range(1, 10)])
     processes: list[ProcessDef] = Field(default_factory=list)
+    processes_confirmed: bool = True  # False while product lines are AI-proposed or not yet set
+    access_hash: str | None = None  # sha256 of the project passcode; None = open (fictional samples)
     is_demo: bool = False
     created_at: str = Field(default_factory=now)
     fx_inr_per_eur: str | None = None  # user override; default from refdata assumption

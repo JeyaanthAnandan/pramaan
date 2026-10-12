@@ -1,9 +1,12 @@
 """ADK 2.x workflow graph for one processing run.
 
-    Intake -> Classifier -> Extractor -> SecondReader --(mismatch)--> HumanReview --+
-                                               |                                   |
-                                               +--------------(all agree)----------+--> ControlChecks
+    Intake -> Classifier -> ProductLines -> Extractor -> SecondReader --(mismatch)--> HumanReview --+
+                                                                         |                                   |
+                                                                         +--------------(all agree)----------+--> ControlChecks
     ControlChecks -> GapFinder (calls the Calculator tool) -> Explainer -> Reporter
+
+ProductLines uses the owner's product lines, or (none set, live mode) asks Gemini to propose them
+from the export and steel-input invoices; every proposed CN code is validated against refdata.
 
 Every node emits timeline events (agent, action, input/output summary, duration, model,
 tokens) that stream to the browser over SSE and are saved as the run's receipt.
@@ -238,6 +241,55 @@ async def classifier(node_input: dict[str, Any]) -> dict[str, Any]:
     for err in errors:
         c.emit("Classifier", "Failed", status="error", output_summary=err[:300])
     c.stats["classified"] = len(docs) - len(errors)
+    return {"run_id": c.run.id}
+
+
+@node
+async def product_lines(node_input: dict[str, Any]) -> dict[str, Any]:
+    """Product lines decide how every value is assigned (which CN group it belongs to). If the owner
+    has not set them, Gemini proposes them from the export and steel-input invoices; code validates
+    every CN code against the official refdata and a person confirms them on the Gaps page."""
+    c = _ctx(node_input)
+    st = store()
+    p = c.project
+    if p.processes:
+        who = {"sample": "sample", "owner": "set by the owner", "ai": "proposed by Gemini"}.get(p.processes[0].source, "")
+        c.emit(
+            "ProductLines",
+            "Product lines",
+            input_summary=f"{len(p.processes)} lines · {who}",
+            output_summary="; ".join(f"{x.id} {x.name} (CN {x.cn_display}) ← {x.precursor_name}" for x in p.processes)[:300]
+            + ("" if p.processes_confirmed else " · awaiting confirmation"),
+            model=None,
+        )
+        return {"run_id": c.run.id}
+    if c.mode != "live":
+        raise RuntimeError("No product lines yet: add them on the Capture page, or run with live Gemini so Pramaan can propose them")
+    from app.agents.product_lines import propose
+    from app.cbam.products import sync_supplier_requests
+
+    t0 = time.perf_counter()
+    c.emit("ProductLines", "Proposing product lines from export and steel-input invoices", status="start", model=settings().model_flash)
+    out = await propose(p, st.list_documents(p.id))
+    c.add_tokens("ProductLines", out.get("tokens_in"), out.get("tokens_out"))
+    if not out["lines"]:
+        reasons = "; ".join(e for r in out["rejected"] for e in r["errors"])[:200] or out.get("notes", "")
+        raise RuntimeError(f"Could not set up product lines from the documents ({reasons}). Add them on the Capture page.")
+    p.processes = out["lines"]
+    p.processes_confirmed = False
+    sync_supplier_requests(p)
+    st.put_project(p)
+    c.emit(
+        "ProductLines",
+        "Proposed product lines (awaiting confirmation)",
+        input_summary=f"{len(out.get('documents', []))} invoices",
+        output_summary="; ".join(f"{x.id} {x.name} (CN {x.cn_display}) ← {x.precursor_name}" for x in p.processes)[:300]
+        + (f" · {len(out['rejected'])} rejected by the CN check" if out["rejected"] else ""),
+        duration_ms=int((time.perf_counter() - t0) * 1000),
+        model=out.get("model"),
+        tokens_in=out.get("tokens_in"),
+        tokens_out=out.get("tokens_out"),
+    )
     return {"run_id": c.run.id}
 
 
@@ -488,7 +540,7 @@ async def reporter(node_input: dict[str, Any]) -> Event:
 WORKFLOW = Workflow(
     name="pramaan_run",
     edges=[
-        ("START", intake, classifier, extractor, second_reader),
+        ("START", intake, classifier, product_lines, extractor, second_reader),
         (second_reader, {"review": human_review, "ok": control_checks}),
         (human_review, control_checks),
         (control_checks, gap_finder, explainer, reporter),
