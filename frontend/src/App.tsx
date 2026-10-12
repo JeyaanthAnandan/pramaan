@@ -16,6 +16,7 @@ const Metrics = lazy(() => import("@/pages/Metrics"));
 const Architecture = lazy(() => import("@/pages/Architecture"));
 const Copilot = lazy(() => import("@/pages/Copilot"));
 const Share = lazy(() => import("@/pages/Share"));
+const Supplier = lazy(() => import("@/pages/Supplier"));
 const Plan = lazy(() => import("@/pages/Plan"));
 
 function Start() {
@@ -35,11 +36,13 @@ const Fallback = PageSkeleton;
 
 function Shell() {
   const loc = useLocation();
-  if (loc.pathname.startsWith("/share/")) {
+  if (loc.pathname.startsWith("/share/") || loc.pathname.startsWith("/supplier/")) {
+    // links for people outside the factory (the EU buyer, the rod supplier): no workspace chrome
     return (
       <Suspense fallback={<Fallback />}>
         <Routes>
           <Route path="/share/:token" element={<Share />} />
+          <Route path="/supplier/:token" element={<Supplier />} />
         </Routes>
       </Suspense>
     );

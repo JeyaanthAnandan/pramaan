@@ -54,6 +54,24 @@ Industrial Efficiency) by team **Innovative Warriors**.
 |---|---|
 | ![Money on the table](docs/screenshots/money.jpg) | ![EC proof](docs/screenshots/proof.jpg) |
 
+### Closing the loop: the supplier uploads, the money moves
+
+For bolts made from bought wire rod, the rod is about 90 % of the embedded emissions, so the biggest
+lever sits with the rod supplier. The request letter (English / हिंदी) carries a **supplier upload
+link**: copy it or send it on WhatsApp. The supplier opens it on a phone with no account, sees only
+what is asked and why, and uploads its verified CBAM communication. The same agents read it
+(Classifier, Extractor, blind crop-only second reader, checks, Calculator) and the line switches
+from the EU default to verified actual data. On the sample, Indus Stainless Rods' statement moves
+the stainless bolts from **€402 to €97 per tonne** and the verdict from €409,545 to **€572,546 a
+year, 2 of 2 product lines ready**, live on the exporter's open report. The supplier sees what was
+read from its own document, never the exporter's plant data; the link can only add documents to that
+one product line. On the fictional sample, *Open as the supplier* plays the supplier's side with a
+bundled statement (`demo/supplier`).
+
+| The supplier, on a phone | The exporter's report, a few seconds later |
+|---|---|
+| ![Supplier upload link](docs/screenshots/supplier-phone.jpg) | ![The money moves](docs/screenshots/supplier-money-moves.jpg) |
+
 ### Design: motion that explains
 
 The "Mill Certificate" look (IBM Plex, paper and navy ink, statuses drawn as stamps) moves only

@@ -195,3 +195,19 @@ export function useAfter(ms: number, deps: unknown[] = []): boolean {
   }, [ms, reduce, ...deps]);
   return on;
 }
+
+/** How much a value just went up (for a few seconds after it rises), e.g. "+€163,002" when a
+ *  supplier's verified data lands. Null otherwise, and on the first render. */
+export function useRise(value: number, ms = 4500): number | null {
+  const prev = useRef<number | null>(null);
+  const [delta, setDelta] = useState<number | null>(null);
+  useEffect(() => {
+    const before = prev.current;
+    prev.current = value;
+    if (before === null || !(value > before + 0.5)) return;
+    setDelta(value - before);
+    const id = window.setTimeout(() => setDelta(null), ms);
+    return () => window.clearTimeout(id);
+  }, [value, ms]);
+  return delta;
+}

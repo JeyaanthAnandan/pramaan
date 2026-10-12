@@ -58,7 +58,7 @@ Could you please send us, for the rod delivered to us in 2026:
 4. Any carbon price effectively paid in India for these emissions.
 5. The extra parameters for iron or steel (EC Guidance No. 5d, Table 3-1): main reducing agent; mass % of Mn, Cr, Ni and total other alloy elements; tonnes of scrap used per tonne of crude steel; share of pre-consumer scrap.
 
-The Commission's template for the operator's emissions report, or a signed statement with the same items, is fine. A reply by 15 November 2026 would let our buyer prepare the first CBAM declaration, due by 30 September 2027 for 2026 imports.
+The Commission's template for the operator's emissions report, or a signed statement with the same items, is fine.{link_line} A reply by 15 November 2026 would let our buyer prepare the first CBAM declaration, due by 30 September 2027 for 2026 imports.
 
 We will use your data only for CBAM reporting. Our EU buyer receives only the aggregated SEE of our goods, never your installation data.
 
@@ -84,7 +84,7 @@ HI = """विषय: सत्यापित CBAM embedded-emissions डेट
 4. इन उत्सर्जनों पर भारत में वास्तव में चुकाया गया कोई carbon price, यदि हो।
 5. लोहा/इस्पात के अतिरिक्त पैरामीटर (EC Guidance No. 5d, Table 3-1): मुख्य reducing agent; Mn, Cr, Ni और अन्य alloy तत्वों का mass %; प्रति टन crude steel में प्रयुक्त scrap (टन); pre-consumer scrap का हिस्सा।
 
-Commission का operator's emissions report template, या इन्हीं बिंदुओं वाला हस्ताक्षरित वक्तव्य, दोनों स्वीकार्य हैं। 15 नवंबर 2026 तक उत्तर मिलने पर हमारा खरीदार 2026 के आयात की पहली CBAM declaration (30 सितंबर 2027 तक देय) तैयार कर पाएगा।
+Commission का operator's emissions report template, या इन्हीं बिंदुओं वाला हस्ताक्षरित वक्तव्य, दोनों स्वीकार्य हैं।{link_line} 15 नवंबर 2026 तक उत्तर मिलने पर हमारा खरीदार 2026 के आयात की पहली CBAM declaration (30 सितंबर 2027 तक देय) तैयार कर पाएगा।
 
 आपका डेटा केवल CBAM रिपोर्टिंग के लिए उपयोग होगा। हमारे EU खरीदार को केवल हमारे माल का कुल SEE मिलेगा, आपके संयंत्र का डेटा कभी नहीं।
 
@@ -94,8 +94,17 @@ Commission का operator's emissions report template, या इन्ही�
 """
 
 
-def supplier_letter(project: Project, proc: ProcessDef, result: dict[str, Any], lang: str = "en") -> dict[str, Any]:
+LINK_LINE = {
+    "en": " You can also upload it directly, from a phone and without an account, here: {url}",
+    "hi": " आप इसे सीधे यहाँ भी अपलोड कर सकते हैं, फ़ोन से और बिना account के: {url}",
+}
+
+
+def supplier_letter(
+    project: Project, proc: ProcessDef, result: dict[str, Any], lang: str = "en", link_url: str | None = None
+) -> dict[str, Any]:
     f = _facts(project, proc, result)
+    f["link_line"] = LINK_LINE["hi" if lang == "hi" else "en"].format(url=link_url) if link_url else ""
     return {
         "process_id": proc.id,
         "supplier": proc.precursor_supplier,

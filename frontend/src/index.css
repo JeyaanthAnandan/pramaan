@@ -120,6 +120,7 @@ html[lang="ta"] body { font-family: "Noto Sans Tamil", "IBM Plex Sans", system-u
   .btn-ghost { @apply btn border border-line2 bg-surface text-ink hover:border-ink/40 hover:bg-sunk; }
   .btn-quiet { @apply btn min-h-[36px] px-3 text-ink2 hover:bg-sunk hover:text-ink; }
   .chip { @apply inline-flex items-center gap-1 rounded border border-line px-2 py-0.5 text-[11px] font-medium text-ink2; }
+  .input { @apply min-h-[40px] rounded-lg border border-line2 bg-surface px-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50; }
   .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-muted; }
   .num { font-variant-numeric: tabular-nums; }
   .link { @apply text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent; }

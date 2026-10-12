@@ -178,7 +178,7 @@ export interface CnInfo { cn: string; cn_display: string; role: string; ok: bool
 
 export interface ProjectBundle {
   project: { id: string; name: string; company: string; country: string; city: string; year: number; period_label: string; months: string[]; is_demo: boolean; fx_inr_per_eur: string | null; projection_price_eur: string | null;
-    supplier_requests: { process_id: string; supplier: string; status: "not_requested" | "requested" | "received" | "verified"; updated_at: string }[];
+    supplier_requests: { process_id: string; supplier: string; status: "not_requested" | "requested" | "received" | "verified"; updated_at: string; link_token?: string | null }[];
     processes: ProcessDef[]; processes_confirmed: boolean; protected: boolean };
   documents: Doc[];
   last_run: Run | null;
@@ -223,7 +223,15 @@ export const api = {
     req<{ evidence: Evidence; readiness: Result["readiness"] }>(`/api/projects/${pid}/evidence/${eid}`, { method: "PATCH", body: JSON.stringify(body) }),
   share: (pid: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/share`, { method: "POST" }),
   getShare: (token: string) => req<{ summary: BuyerSummary; created_at: string }>(`/api/share/${token}`),
-  letter: (pid: string, process_id: string, lang: string) => req<{ text: string; lang: string; supplier: string; facts: Record<string, string> }>(`/api/projects/${pid}/supplier-letter`, { method: "POST", body: JSON.stringify({ process_id, lang }) }),
+  letter: (pid: string, process_id: string, lang: string) => req<{ text: string; lang: string; supplier: string; facts: Record<string, string>; link: { token: string; url: string } }>(`/api/projects/${pid}/supplier-letter`, { method: "POST", body: JSON.stringify({ process_id, lang }) }),
+  supplierLink: (pid: string, process_id: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/supplier-link`, { method: "POST", body: JSON.stringify({ process_id }) }),
+  supplier: (token: string) => req<SupplierView>(`/api/supplier/${token}`),
+  supplierSample: (token: string) => req<{ run_id: string; mode: string; status: string }>(`/api/supplier/${token}/sample`, { method: "POST" }),
+  supplierUpload: (token: string, files: File[]) => {
+    const fd = new FormData();
+    files.forEach((f) => fd.append("files", f));
+    return req<{ run_id: string; mode: string; status: string }>(`/api/supplier/${token}/documents`, { method: "POST", body: fd });
+  },
   plan: (pid: string, lang: string) => req<any>(`/api/projects/${pid}/monitoring-plan?lang=${lang}`),
   golden: () => req<any>("/api/golden"),
   metrics: () => req<any>("/api/metrics"),
@@ -234,3 +242,17 @@ export const api = {
 
 export const imageUrl = (pid: string, docId: string) => `/api/projects/${pid}/documents/${docId}/image`;
 export const exportUrl = (pid: string, kind: "pdf" | "xlsx" | "pack") => `/api/projects/${pid}/export/${kind}`;
+
+/** What the supplier sees behind its upload link: the request, its own documents and what was read from them. */
+export interface SupplierView {
+  request: { company: string; city: string; country: string; supplier: string; precursor: string; precursor_cn: string; product: string; product_cn: string; is_demo: boolean };
+  status: "not_requested" | "requested" | "received" | "verified";
+  updated_at: string;
+  running: boolean;
+  failed: boolean;
+  documents: { id: string; title: string; state: string; doc_type: string | null; width: number | null; height: number | null }[];
+  values: { field_key: string; label: string; value_text: string; unit: string; status: string; doc_id: string; box_2d: number[] | null }[];
+  sample_available: boolean;
+}
+
+export const supplierImageUrl = (token: string, docId: string) => `/api/supplier/${token}/documents/${docId}/image`;

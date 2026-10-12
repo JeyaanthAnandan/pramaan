@@ -22,11 +22,18 @@ REPLAY_MODEL = "replay:ground-truth"
 
 @lru_cache(maxsize=1)
 def truth() -> dict[str, dict[str, Any]]:
-    path: Path = settings().demo_dir / "ground_truth.json"
-    if not path.exists():
-        return {}
-    data = json.loads(path.read_text())
-    return {Path(d["file"]).name: d for d in data["documents"]}
+    """The 24 sample documents plus the supplier pack (documents a supplier sends after the
+    exporter's request, demo/supplier), keyed by file name."""
+    out: dict[str, dict[str, Any]] = {}
+    for path in (settings().demo_dir / "ground_truth.json", settings().demo_dir / "supplier" / "ground_truth.json"):
+        if path.exists():
+            out.update({Path(d["file"]).name: d for d in json.loads(path.read_text())["documents"]})
+    return out
+
+
+def supplier_pack() -> list[dict[str, Any]]:
+    path: Path = settings().demo_dir / "supplier" / "ground_truth.json"
+    return json.loads(path.read_text())["documents"] if path.exists() else []
 
 
 def for_filename(filename: str) -> dict[str, Any] | None:

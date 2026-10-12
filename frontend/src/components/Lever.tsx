@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "motion/react";
-import { ArrowRight, Check, Copy, Download, FileSignature, Loader2, Scale, X } from "lucide-react";
+import { ArrowRight, Check, Copy, Download, ExternalLink, FileSignature, Link2, Loader2, MessageCircle, Scale, X } from "lucide-react";
 import { api, type ProcessResult, type Result } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, n } from "@/lib/format";
@@ -183,6 +183,7 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<"en" | "hi">("en");
   const [text, setText] = useState<string>("");
+  const [link, setLink] = useState<{ token: string; url: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   async function load(l: "en" | "hi") {
@@ -191,6 +192,7 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
     try {
       const r = await api.letter(pid, processId, l);
       setText(r.text);
+      setLink(r.link);
       await onSent();
     } finally {
       setBusy(false);
@@ -235,6 +237,7 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
               </motion.pre>
             )}
           </div>
+          {link && <SupplierLinkRow link={link} supplier={supplier} lang={lang} />}
           <div className="flex gap-2 border-t border-line px-4 py-3">
             <button
               className="btn-ghost"
@@ -255,5 +258,44 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+/** The supplier's upload link: copy it, send it on WhatsApp (how Indian suppliers actually reply), or
+ *  on the fictional sample open it yourself and play the supplier. */
+function SupplierLinkRow({ link, supplier, lang }: { link: { token: string; url: string }; supplier: string; lang: "en" | "hi" }) {
+  const { t, i18n } = useTranslation();
+  const { bundle } = useProject();
+  const toast = useToast();
+  const isDemo = !!bundle?.project.is_demo;
+  const company = bundle?.project.company ?? "";
+  const wa = `https://wa.me/?text=${encodeURIComponent(i18n.t("lever.wa_text", { lng: lang, supplier, company, url: link.url }))}`;
+  return (
+    <div className="border-t border-line bg-sunk/60 px-4 py-3">
+      <div className="flex items-center gap-2 text-[13px] font-semibold">
+        <Link2 className="h-4 w-4 text-accent" aria-hidden /> {t("lever.link_t", { supplier })}
+      </div>
+      <p className="mt-0.5 text-[12px] text-muted">{t("lever.link_d")}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <input readOnly value={link.url} aria-label={t("lever.link_t", { supplier })} className="input min-w-0 flex-1 basis-56 font-mono text-[12px]" onFocus={(e) => e.currentTarget.select()} />
+        <button
+          className="btn-ghost"
+          onClick={async () => {
+            await navigator.clipboard.writeText(link.url);
+            toast(t("toast.copied"));
+          }}
+        >
+          <Copy className="h-4 w-4" /> {t("exports.copy")}
+        </button>
+        <a className="btn-ghost" href={wa} target="_blank" rel="noopener noreferrer">
+          <MessageCircle className="h-4 w-4" /> WhatsApp
+        </a>
+        {isDemo && (
+          <a className="btn-primary" href={`/supplier/${link.token}`} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4" /> {t("lever.as_supplier")}
+          </a>
+        )}
+      </div>
+    </div>
   );
 }

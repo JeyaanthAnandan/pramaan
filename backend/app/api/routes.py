@@ -184,11 +184,15 @@ def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
 async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any]:  # noqa: B008
     """Photos (JPG/PNG/WebP/HEIC) and PDFs. Everything is normalised to JPEG pages (one document per
     page) so cropping, the blind second reader and the Evidence Lens work the same for every input."""
+    _project(pid)
+    return {"documents": [d.model_dump() for d in await save_uploads(pid, files)]}
+
+
+async def save_uploads(pid: str, files: list[UploadFile], uploaded_by: str = "owner", limit: int = 40) -> list[Document]:
     from app.evidence.normalize import to_pages
 
-    _project(pid)
-    out = []
-    for f in files[:40]:
+    out: list[Document] = []
+    for f in files[:limit]:
         data = await f.read()
         if len(data) > MAX_UPLOAD:
             raise HTTPException(413, f"{f.filename}: larger than 15 MB")
@@ -205,11 +209,20 @@ async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any
         stem = name.rsplit(".", 1)[0]
         for i, (jpeg, w, h) in enumerate(pages):
             fname = f"{stem}.jpg" if len(pages) == 1 else f"{stem}-p{i + 1}.jpg"
-            d = Document(project_id=pid, filename=fname, content_type="image/jpeg", uri="pending", width=w, height=h, title=fname)
+            d = Document(
+                project_id=pid,
+                filename=fname,
+                content_type="image/jpeg",
+                uri="pending",
+                width=w,
+                height=h,
+                title=fname,
+                uploaded_by=uploaded_by,
+            )
             d.uri, d.sha256 = blobs.save(pid, d.id, fname, jpeg, "image/jpeg")
             store().put_document(d)
-            out.append(d.model_dump())
-    return {"documents": out}
+            out.append(d)
+    return out
 
 
 @router.get("/projects/{pid}/documents/{doc_id}/image")
@@ -419,7 +432,7 @@ def share(pid: str) -> dict[str, Any]:
 @router.get("/share/{token}")
 def get_share(token: str) -> dict[str, Any]:
     s = store().get_share(token)
-    if s is None:
+    if s is None or s.kind != "buyer":
         raise HTTPException(404, "link not found or expired")
     return {"summary": s.summary_snapshot, "created_at": s.created_at}
 
@@ -658,23 +671,41 @@ class LetterRequest(BaseModel):
     lang: str = "en"
 
 
-@router.post("/projects/{pid}/supplier-letter")
-def supplier_letter(pid: str, body: LetterRequest) -> dict[str, Any]:
-    p = _project(pid)
-    r = _result(pid)
-    from app.exports.letters import supplier_letter as make
+class SupplierLinkIn(BaseModel):
+    process_id: str
 
+
+@router.post("/projects/{pid}/supplier-link")
+def supplier_link(pid: str, body: SupplierLinkIn, request: Request) -> dict[str, Any]:
+    """One upload link per product line for the steel-input supplier (no account needed)."""
+    from app.api.supplier import ensure_link, public_url
+
+    p = _project(pid)
     proc = next((x for x in p.processes if x.id == body.process_id), None)
     if proc is None:
         raise HTTPException(404, "process not found")
-    letter = make(p, proc, r, body.lang)
+    link = ensure_link(p, proc)
+    return {"token": link.token, "url": public_url(request, f"/supplier/{link.token}")}
+
+
+@router.post("/projects/{pid}/supplier-letter")
+def supplier_letter(pid: str, body: LetterRequest, request: Request) -> dict[str, Any]:
+    from app.api.supplier import ensure_link, public_url
+    from app.exports.letters import supplier_letter as make
+
+    p = _project(pid)
+    r = _result(pid)
+    proc = next((x for x in p.processes if x.id == body.process_id), None)
+    if proc is None:
+        raise HTTPException(404, "process not found")
+    link = ensure_link(p, proc)  # the letter carries the supplier's upload link
+    url = public_url(request, f"/supplier/{link.token}")
+    letter = make(p, proc, r, body.lang, link_url=url)
     for sr in p.supplier_requests:
-        if sr.process_id == proc.id and sr.status == "not_requested":
-            sr.status = "requested"
-            sr.updated_at = now()
+        if sr.process_id == proc.id:
             sr.letter_lang = body.lang
     store().put_project(p)
-    return letter
+    return {**letter, "link": {"token": link.token, "url": url}}
 
 
 @router.get("/projects/{pid}/monitoring-plan")
@@ -694,7 +725,7 @@ class Ask(BaseModel):
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 # Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
 # cannot run up the demo's bill; the caps sit well above what a room of judges asks.
-AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30}
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30}
 
 
 def _ai_limit(request: Request, bucket: str) -> None:
@@ -702,7 +733,7 @@ def _ai_limit(request: Request, bucket: str) -> None:
     while window and t - window[0] > 3600:
         window.popleft()
     if len(window) >= AI_CALLS_PER_HOUR[bucket]:
-        raise HTTPException(429, "too many questions from this address in the last hour; try again later")
+        raise HTTPException(429, "too many requests from this address in the last hour; try again later")
     window.append(t)
 
 

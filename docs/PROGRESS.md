@@ -1,6 +1,29 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-13 IST, early morning (third mock judging on the live deployment; fixes pushed, **not deployed yet**)._
+_Last updated: 2026-10-13 IST, night (10 judging/improvement iterations in progress; fixes pushed, **not deployed yet**)._
+
+## 2026-10-13 (night) — 10 judging/improvement iterations
+
+Plan (each: judge against the rubric → build → test → push, CI green): 1 supplier loop · 2 report-aware
+copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guided tour for judges ·
+5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
+and visuals · 10 final judging.
+
+### Iteration 1 — close the Precursor Lever's loop (supplier upload link)
+* Judge: the biggest lever (rod data ≈ 90 % of SEE) ended in a letter; nothing in the product showed the
+  data coming back. Impact and innovation both hinge on that loop.
+* Built: one upload link per product line (`ShareLink` kind `supplier`), carried in the EN/HI letter,
+  copy / WhatsApp / *Open as the supplier* (sample). Public phone-first page `/supplier/:token`: what is
+  asked and why, upload (camera/PDF), a sample statement for the fictional factory, progress (sent →
+  received → read by two AI readers → verified), what was read with two-reader badges, privacy note.
+  The upload runs the same agents on the new document only, then marks the request verified when the
+  line uses the supplier's verified data. The exporter's open report polls while a link is out, says
+  so in a toast and the verdict tweens with a "+€163,002" badge.
+* Sample supplier pack: `demo/generate_supplier_pack.py` → `demo/supplier/stmt-ISR-2026.jpg` (fictional
+  Indus Stainless Rods, SEE 1.783 / SEFA 0.919 = EC Example 2 / Table 4-14), replayed like the sample,
+  outside the 24-document eval set.
+* Result on the sample: stainless bolts €402 → €97/t; verdict €409,545 → €572,546 a year; 2 of 2 lines
+  ready; readiness 100 %. Tests: `tests/test_supplier.py` (6). axe: 0 violations (light/dark, 1440/360).
 
 ## 2026-10-13 (early morning) — third mock judging, on the live deployment
 

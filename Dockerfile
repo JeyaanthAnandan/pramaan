@@ -25,6 +25,7 @@ COPY backend/eval/metrics.json* ./eval/
 COPY demo/ground_truth.json /srv/demo/ground_truth.json
 COPY demo/out /srv/demo/out
 COPY demo/cache /srv/demo/cache
+COPY demo/supplier /srv/demo/supplier
 COPY docs/regulation/*.pdf /srv/regulation/
 # parse the EC guidance once here, so a new instance answers its first copilot question in seconds
 RUN PRAMAAN_DATA_DIR=/srv/regulation python -c "from app.copilot.service import corpus; print(len(corpus()), 'copilot chunks')"

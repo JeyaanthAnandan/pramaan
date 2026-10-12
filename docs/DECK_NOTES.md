@@ -73,6 +73,12 @@ register and scrap log, export invoices) → 213 values, each with its region on
 | If the rod supplier sends verified data | — | SEE **2.371** (= EC G2), cost **€97/t** (−€306/t, ≈ €163,000/yr) |
 * "What to do next" (top of the report): (1) ask Indus Stainless Rods for verified data, (2)
   approve one value, (3) send the carbon-steel data to the buyer.
+* **The loop closes in the product** (show it live, split screen): the request letter carries a
+  supplier upload link (WhatsApp, no account). The supplier uploads its verified statement, the same
+  two AI readers check it, and the exporter's open report moves by itself: stainless bolts €402 →
+  **€97/t**, verdict €409,545 → **€572,546 a year**, **2 of 2 lines ready**. Three parties, one data
+  chain: supplier → exporter → EU buyer, each seeing only what it needs (the supplier never sees plant
+  data; the buyer never sees the supplier's installation data).
 * **Operations levers** (same engine): stainless with EC Example 2 rod data + electric heat
   treatment → SEE 8.889 → 2.174, buyer €402 → **€81/t**, 2,870 GJ gas a year no longer burned.
   Carbon bolts, scrap 15 % → 10 % of rod → SEE 2.040 → 1.937 and **111 t of rod saved a year**,

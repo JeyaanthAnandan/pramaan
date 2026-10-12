@@ -125,6 +125,7 @@ class SupplierRequest(BaseModel):
     status: Literal["not_requested", "requested", "received", "verified"] = "not_requested"
     updated_at: str = Field(default_factory=now)
     letter_lang: str | None = None
+    link_token: str | None = None  # the supplier's upload link (a ShareLink of kind "supplier")
 
 
 class Project(BaseModel):
@@ -178,5 +179,7 @@ class ShareLink(BaseModel):
     token: str = Field(default_factory=lambda: secrets.token_urlsafe(12))
     project_id: str
     summary_snapshot: dict[str, Any]
+    kind: Literal["buyer", "supplier"] = "buyer"  # buyer: read-only summary; supplier: upload for one line
+    process_id: str | None = None
     created_at: str = Field(default_factory=now)
     expires_at: str | None = None

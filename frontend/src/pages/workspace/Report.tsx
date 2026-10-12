@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { api, exportUrl, type ProcessResult } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
-import { AnimatedNumber, Collapse, SPRING, rise, stagger } from "@/lib/motion";
+import { AnimatedNumber, Collapse, SPRING, rise, stagger, useRise } from "@/lib/motion";
 import { LensNum } from "@/components/EvidenceLens";
 import { ContributionBar, CostBars, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
@@ -81,6 +81,7 @@ function Verdict() {
   const reachAnnual = reach.reduce((a, p) => a + Number(p.buyer.supplier_saving_annual_eur ?? 0), 0);
   const allReady = rd.lines_total > 0 && rd.lines_ready === rd.lines_total;
   const cols = 1 + Number(securedAnnual > 0) + Number(reachAnnual > 0);
+  const rose = useRise(securedAnnual); // a supplier's verified data just landed: show what it added
   return (
     <section className="card overflow-hidden" aria-labelledby="verdict-title">
       <div className="p-5 sm:p-6">
@@ -101,8 +102,23 @@ function Verdict() {
               <div className="flex items-center gap-1.5 text-[12px] font-semibold text-goodink">
                 <ShieldCheck className="h-4 w-4" aria-hidden /> {t("verdict.secured_t")}
               </div>
-              <div className="mt-2 font-display text-[36px] font-semibold leading-none tracking-tight">
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-[36px] font-semibold leading-none tracking-tight">
                 <AnimatedNumber value={securedAnnual} format={(v) => eur(v)} countUp />
+                <AnimatePresence>
+                  {rose && (
+                    <motion.span
+                      key="rise"
+                      className="rounded-full bg-good px-2.5 py-1 font-sans text-[13px] font-semibold tracking-normal text-white"
+                      initial={{ opacity: 0, y: 10, scale: 0.6 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ type: "spring", stiffness: 520, damping: 22 }}
+                      role="status"
+                    >
+                      +{eur(rose)}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="mt-1.5 text-[13px] text-ink2">
                 <AnimatedNumber value={securedAnnual * fx} format={(v) => inr(v)} countUp /> · {t("verdict.per_year")}
