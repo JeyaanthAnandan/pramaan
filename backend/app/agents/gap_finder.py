@@ -248,13 +248,16 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
                     "id": f"review.{x.id}",
                     "process": x.process,
                     "group": "review",
-                    "kind": "review",
+                    "kind": "review_corrected"
+                    if x.second_reading and x.second_reading.corrected_from and x.second_reading.agrees
+                    else "review",
                     "status": "amber",
                     "params": {
                         "label": x.label or x.field_key,
                         "first": x.value_text,
                         "second": x.second_reading.reading_value if x.second_reading else None,
                         "reason": x.second_reading.reason if x.second_reading else "",
+                        "crossed": x.second_reading.corrected_from if x.second_reading else None,
                         "doc_title": d.title if d else x.doc_id,
                         "period": x.period,
                         "unit": x.unit,

@@ -160,7 +160,7 @@ export interface Doc {
 export interface Evidence {
   id: string; doc_id: string; page: number; field_key: string; label: string; value_text: string; value_num: string | null; unit: string;
   box_2d: number[] | null; period: string | null; process: string | null; extractor_model: string; second_reader_model: string | null;
-  second_reading: { reading_value: string | null; reading_unit: string | null; agrees: boolean; delta: string | null; model: string; crop_box: number[] | null; reason: string } | null;
+  second_reading: { reading_value: string | null; reading_unit: string | null; agrees: boolean; delta: string | null; model: string; crop_box: number[] | null; reason: string; corrected_from?: string | null } | null;
   status: Status; approved_by: string | null; approved_at: string | null; notes: string | null; history: { at: string; by: string; action: string; before: Record<string, unknown> }[];
 }
 

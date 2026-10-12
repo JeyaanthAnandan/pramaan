@@ -26,6 +26,8 @@ COPY demo/ground_truth.json /srv/demo/ground_truth.json
 COPY demo/out /srv/demo/out
 COPY demo/cache /srv/demo/cache
 COPY docs/regulation/*.pdf /srv/regulation/
+# parse the EC guidance once here, so a new instance answers its first copilot question in seconds
+RUN PRAMAAN_DATA_DIR=/srv/regulation python -c "from app.copilot.service import corpus; print(len(corpus()), 'copilot chunks')"
 COPY --from=web /web/dist /srv/static
 RUN useradd --uid 10001 --create-home pramaan && mkdir -p /tmp/pramaan && chown -R pramaan /tmp/pramaan
 USER pramaan

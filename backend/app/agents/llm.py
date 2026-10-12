@@ -25,6 +25,14 @@ log = logging.getLogger("pramaan.llm")
 
 FORBIDDEN_PREFIXES = ("gemini-1", "gemini-2", "veo-", "deep-research")
 
+# Per-call time limits by thinking level. In the first live run on Cloud Run one extraction call
+# stalled for 254 s and held the whole run; a call that runs over is cancelled and json() retries it.
+TIMEOUT_S = {"minimal": 25.0, "low": 45.0, "medium": 75.0, "high": 120.0}
+
+
+def _timeout(thinking_level: str | None, transcription: bool = False) -> float:
+    return 90.0 if transcription else TIMEOUT_S.get(thinking_level or "", 60.0)
+
 
 @dataclass
 class LLMResult:
@@ -66,12 +74,17 @@ class Gemini:
         else:
             self.client = genai.Client(vertexai=True, project=cfg.gcp_project, location=cfg.gemini_location)
         self.mode = cfg.gemini_mode
-        self._sem = asyncio.Semaphore(int(os.environ.get("GEMINI_CONCURRENCY", "8")))
+        # separate lanes: 24 small Flash-Lite crop reads must not queue behind 12 page extractions
+        self._sem = asyncio.Semaphore(int(os.environ.get("GEMINI_CONCURRENCY", "12")))
+        self._sem_lite = asyncio.Semaphore(int(os.environ.get("GEMINI_CONCURRENCY_LITE", "24")))
 
     # Interactions API first; if this project's endpoint does not serve it (404 / unimplemented),
     # fall back once to models.generate_content with the same schema, thinking level and media
     # resolution, and remember the choice for the rest of the process.
     use_interactions: bool = True
+
+    def _slot(self, model: str) -> asyncio.Semaphore:
+        return getattr(self, "_sem_lite", self._sem) if "lite" in model else self._sem
 
     @staticmethod
     def _unavailable(exc: Exception) -> bool:
@@ -106,8 +119,10 @@ class Gemini:
             if tools:
                 body["tools"] = tools
             try:
-                async with self._sem:
-                    it: Any = await self.client.aio.interactions.create(**body)
+                async with self._slot(model):
+                    it: Any = await asyncio.wait_for(
+                        self.client.aio.interactions.create(**body), _timeout(thinking_level, bool(transcription_config))
+                    )
                 text = it.output_text or ""
                 if not text and getattr(it, "steps", None):
                     text = "".join(getattr(getattr(st, "content", None), "text", "") or "" for st in it.steps)
@@ -158,9 +173,12 @@ class Gemini:
             cfg["thinking_config"] = types.ThinkingConfig(thinking_level=types.ThinkingLevel(thinking_level.upper()))
         if hi_res:
             cfg["media_resolution"] = "MEDIA_RESOLUTION_HIGH"
-        async with self._sem:
-            r: Any = await self.client.aio.models.generate_content(
-                model=model, contents=types.Content(role="user", parts=gparts), config=types.GenerateContentConfig(**cfg)
+        async with self._slot(model):
+            r: Any = await asyncio.wait_for(
+                self.client.aio.models.generate_content(
+                    model=model, contents=types.Content(role="user", parts=gparts), config=types.GenerateContentConfig(**cfg)
+                ),
+                _timeout(thinking_level, bool(transcription_config)),
             )
         um = getattr(r, "usage_metadata", None)
         return (

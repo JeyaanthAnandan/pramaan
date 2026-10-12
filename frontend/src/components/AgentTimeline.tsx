@@ -58,7 +58,19 @@ export function AgentTimeline({ events, ended, mode, compact = false }: { events
   const totalTokens = events.reduce((a, e) => a + (e.tokens_in ?? 0) + (e.tokens_out ?? 0), 0);
   const started = events[0]?.ts;
   const last = events[events.length - 1]?.ts;
-  const span = started && last ? (new Date(last).getTime() - new Date(started).getTime()) : 0;
+  // while a run is going the duration ticks every second (server time at the last event + the local
+  // time since it arrived, so a skewed phone clock cannot make it jump)
+  const [now, setNow] = useState(() => Date.now());
+  const seen = useRef<{ ts?: string; at: number }>({ at: Date.now() });
+  useEffect(() => {
+    seen.current = { ts: last, at: Date.now() };
+  }, [last]);
+  useEffect(() => {
+    if (ended || !started) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [ended, started]);
+  const span = started && last ? new Date(last).getTime() - new Date(started).getTime() + (ended ? 0 : Math.max(0, now - seen.current.at)) : 0;
 
   if (!events.length) return <p className="px-1 py-6 text-center text-sm text-muted">{t("timeline.empty")}</p>;
 

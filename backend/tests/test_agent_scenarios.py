@@ -72,6 +72,8 @@ class FakeGemini:
                 for f in d["fields"]
             ]
             fields += self.sc.get("extra_fields", {}).get(d["doc_id"], [])
+            if "mutate" in self.sc:
+                fields = self.sc["mutate"](d["doc_id"], fields)
             return LLMResult({"fields": fields}, model, 2400, 900, 5)
         d, f = self.by_crop.get(_sha(img), (None, None))
         if f is None:  # crop of a field the fake added: read it as written
@@ -173,6 +175,70 @@ def test_mismatched_unit_needs_review(mem_store: Any) -> None:
     out = _run(mem_store, FakeGemini({"second": second}))
     e = next(x for x in out["evidence"] if x.field_key == "net_mass_kg" and x.period == "2026-Q2" and x.process == "P1")
     assert e.status == "NEEDS_REVIEW" and e.second_reading and "units differ" in e.second_reading.reason
+
+
+def test_slips_seen_in_the_first_live_run_are_cleaned_before_the_engine(mem_store: Any) -> None:
+    """The first live run on Cloud Run read the values right but left supplier-statement values
+    without a product line, appended a date to a reference, put a CN code inside a description,
+    appended model text to a number and wrote notes into the classifier's dates. After the clean-up
+    the engine gives the golden result again (carbon bolts SEE 2.040 on the supplier's verified data)."""
+
+    def slips(doc: str, fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        out = []
+        for f in (dict(x) for x in fields):
+            if doc == "stmt-NWRM-2026":
+                if f["field_key"] in {"see", "sefa", "scrap_per_t", "pre_consumer_pct"}:
+                    f.pop("process", None)
+                if f["field_key"] == "product_cn":
+                    f["value_text"] = "Wire rod, carbon steel — CN 7213 91 49"
+                if f["field_key"] == "verification_ref":
+                    f["value_text"] += " dated 2026-10-02"
+            if doc == "rod-ISR-2026-119" and f["field_key"] == "tonnes":
+                f["value_num"] = f["value_num"] + "ecd unit: t scope: process -> unit: t"
+                f.pop("unit", None)
+                f.pop("process", None)
+            out.append(f)
+        return out
+
+    classify = {
+        "stmt-NWRM-2026": {"period_start": "2026-01-01-00-00-00", "period_end": ""},
+        "gas-2026-05": {"period_start": "2026-05-01Bytes"},
+    }
+    out = _run(mem_store, FakeGemini({"mutate": slips, "classify": classify}))
+    p = {x["id"]: x for x in out["result"]["processes"]}
+    assert p["P1"]["see"].startswith("2.0398") and p["P1"]["precursor"]["data"] == "ACTUAL_VERIFIED"
+    assert p["P2"]["see"].startswith("8.889")
+    assert not [e for e in out["evidence"] if e.status == "NEEDS_REVIEW" and e.field_key != "scrap_t"]
+    docs = {Path(d.filename).stem: d for d in store().list_documents("demo-shivalik")}
+    assert docs["stmt-NWRM-2026"].period == ["2026-01-01", "2026-09-30"] and docs["gas-2026-05"].period == ["2026-05-01", "2026-05-31"]
+
+
+def test_figure_corrected_by_hand_waits_for_a_person_even_when_readers_agree(mem_store: Any) -> None:
+    """A live second reader reads the replacement figure (15.4) and reports the crossed-out one
+    (13.4): both readers agree, but a hand correction still goes to the owner, with the mass
+    balance showing that 15.4 closes. (The stand-in gives this reading for every stainless month on
+    that page, so the other months also show readers that disagree: those keep the usual wording.)"""
+    second = {("scrap-2026-06-to-09", "scrap_t", "P2"): {"value_text": "15.4", "value_num": "15.4", "crossed_out": "13.4"}}
+    out = _run(mem_store, FakeGemini({"second": second}))
+
+    def scrap(month: str) -> Any:
+        return next(x for x in out["evidence"] if x.field_key == "scrap_t" and x.period == month and x.process == "P2")
+
+    def gap_for(e: Any) -> dict[str, Any]:
+        return next(g for g in out["result"]["gaps"] if g["evidence_ids"] == [e.id])
+
+    june = scrap("2026-06")
+    assert (
+        june.status == "NEEDS_REVIEW"
+        and june.second_reading
+        and june.second_reading.agrees
+        and june.second_reading.corrected_from == "13.4"
+    )
+    g = gap_for(june)
+    assert g["kind"] == "review_corrected" and g["params"]["crossed"] == "13.4" and g["params"]["balance"]["supports"] == "first"
+    assert any("13.4 crossed out" in ev.output_summary for ev in out["run"].events if ev.agent == "HumanReview")
+    july = scrap("2026-07")
+    assert july.second_reading and not july.second_reading.agrees and gap_for(july)["kind"] == "review"
 
 
 @pytest.mark.parametrize("model", ["gemini-2.5-flash", "veo-3-preview", "deep-research-pro-preview-12-2025"])

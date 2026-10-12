@@ -3,7 +3,8 @@
 For each extracted value we crop its region (padded 15 %) and send ONLY the crop to a
 different, cheaper model (Gemini 3.5 Flash-Lite) that never sees the first reading. Numbers
 must agree within 0.5 %, units must match after normalisation; text must match after
-normalisation. Agreement -> VERIFIED_2R, otherwise NEEDS_REVIEW with both readings.
+normalisation. Agreement -> VERIFIED_2R, otherwise NEEDS_REVIEW with both readings. A figure
+corrected by hand on the page (crossed out and replaced) is NEEDS_REVIEW even when both agree.
 """
 
 from __future__ import annotations
@@ -118,7 +119,10 @@ def compare(first_text: str, first_num: str | None, first_unit: str, second: dic
         agrees, delta = False, None
         reason = "second reader found no number"
     else:
-        agrees = norm_text(first_text) == norm_text(r2_text)
+        # the crop is padded, so the second reader may also read a neighbouring line (an address
+        # under a name): one of its lines must match the first reading exactly
+        first = norm_text(first_text)
+        agrees = first == norm_text(r2_text) or (bool(first) and first in {norm_text(ln) for ln in r2_text.splitlines()})
         delta = None
         if not agrees:
             reason = "text differs"
@@ -129,6 +133,12 @@ def compare(first_text: str, first_num: str | None, first_unit: str, second: dic
     if not second.get("legible", True):
         agrees = False
         reason = reason or "second reader marked the crop illegible"
+    # a figure corrected by hand on the page goes to a person even when both readers agree: which
+    # value counts is the owner's call (and a verifier asks about every manual correction)
+    crossed = str(second.get("crossed_out") or "").strip()
+    corrected_from = crossed if crossed and norm_text(crossed) != norm_text(r2_text) else None
+    if corrected_from and agrees:
+        reason = f"corrected on the document: {corrected_from} crossed out"
     return SecondReading(
         reading_value=r2_text,
         reading_unit=r2_unit or None,
@@ -137,4 +147,5 @@ def compare(first_text: str, first_num: str | None, first_unit: str, second: dic
         model=model,
         crop_box=crop_box,
         reason=reason or ("agree" if agrees else ""),
+        corrected_from=corrected_from,
     )

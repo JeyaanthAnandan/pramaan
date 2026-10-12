@@ -11,6 +11,7 @@ Citations are validated: a cited page must be one of the retrieved/grounding pag
 from __future__ import annotations
 
 import json
+import logging
 import math
 import re
 from collections import Counter
@@ -19,6 +20,8 @@ from functools import lru_cache
 from typing import Any
 
 from app.config import settings
+
+log = logging.getLogger("pramaan.copilot")
 
 DOCS = {
     "guidance_1_introduction.pdf": "Guidance 1",
@@ -86,7 +89,10 @@ def _tok(s: str) -> list[str]:
 
 @lru_cache(maxsize=1)
 def corpus() -> list[Chunk]:
-    cache = settings().data_dir / "copilot_corpus.json"
+    # the container image ships the parsed pages next to the PDFs (built once in the Dockerfile), so a
+    # fresh Cloud Run instance answers its first question without parsing every PDF again
+    baked = settings().regulation_dir / "copilot_corpus.json"
+    cache = baked if baked.exists() else settings().data_dir / "copilot_corpus.json"
     pages: list[dict[str, Any]] = []
     if cache.exists():
         pages = json.loads(cache.read_text())
@@ -200,7 +206,17 @@ async def answer(question: str, lang: str = "en") -> dict[str, Any]:
         "Keep regulatory terms (SEE, SEFA, CBAM, CN, default value) in English. Max 120 words. " + lang_line
     )
     ctx = "\n\n".join(f'<page doc="{p["doc"]}" page="{p["page"]}">\n{p["text"]}\n</page>' for p in passages)
-    r = await gemini().text(cfg.model_flash, system, [text_part(f"{ctx}\n\nQuestion: {question}")], thinking_level="low")
+    try:
+        r = await gemini().text(cfg.model_flash, system, [text_part(f"{ctx}\n\nQuestion: {question}")], thinking_level="low")
+    except Exception as exc:  # timeout or quota: still show the cited pages rather than an error
+        log.warning("copilot: Gemini did not answer (%s)", str(exc)[:160] or exc.__class__.__name__)
+        return {
+            "mode": "retrieval",
+            "answer": None,
+            "note": "Gemini did not answer in time: showing the most relevant pages of the official guidance.",
+            "citations": [{"doc": p["doc"], "page": p["page"]} for p in passages[:4]],
+            "passages": passages[:4],
+        }
     text = str(r.data)
     cites, bad = _validate(text, {(p["doc"], p["page"]) for p in passages})
     return {

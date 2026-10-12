@@ -1,0 +1,175 @@
+"""Deterministic clean-up of the Extractor's output, before the blind second read.
+
+The first live run on Cloud Run (2026-10-12, 24 sample photos, 213 values) showed that Gemini
+read almost every figure correctly but sometimes put it in the wrong *place*: supplier-statement
+values with no product line, a monthly tag on an invoice number, a CN code inside a description, a
+reference number with its date appended, model text appended to a number. Those slips moved the
+carbon bolts from SEE 2.040 to 5.722. The rules below come from the field schema
+(``schemas.FIELDS``: unit and scope of every field) and the factory's product lines, not from the
+sample's values, and they are idempotent: correct values pass through unchanged.
+"""
+
+from __future__ import annotations
+
+import calendar
+import re
+from collections import Counter
+from decimal import Decimal
+
+from app.agents.schemas import FIELDS
+from app.agents.second_reader import norm_text, parse_num
+from app.evidence.models import ExtractedField, Project
+
+CN_FIELDS = {"cn_code", "product_cn"}
+REF_FIELDS = {"invoice_no", "doc_no", "verification_ref"}
+
+_CN = re.compile(r"(?<![\d.,])(\d{4})[ .]?(\d{2})[ .]?(\d{2})(?![\d.,])")
+_PLAIN_NUM = re.compile(r"[-+]?\d+(?:\.\d+)?")
+_LEAD_NUM = re.compile(r"\s*[-+]?\d[\d,]*(?:\.\d+)?")
+# "KA-VR-2026-0147 dated 2026-10-02", "INV/22 dt. 03.04.2026": the date is not part of the reference
+_ISO = re.compile(r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)")
+_DMY = re.compile(r"(?<!\d)(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})(?!\d)")
+_TRAILING_DATE = re.compile(r"\s*[,;]?\s+(?:dated|dt\.?|date)\s*[:.]?\s*\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}.*$", re.IGNORECASE)
+
+
+def canonical_cn(text: str | None) -> str | None:
+    """The one 8-digit CN/HSN code in a text, as 'dddd dd dd' (None if there is not exactly one)."""
+    codes = {"".join(m) for m in _CN.findall(text or "")}
+    if len(codes) != 1:
+        return None
+    c = codes.pop()
+    return f"{c[:4]} {c[4:6]} {c[6:]}"
+
+
+def canonical_text(field_key: str, text: str | None) -> str:
+    """Same canonical form for both readers: CN codes without their description, references
+    without a trailing date. Anything else is returned as read."""
+    t = (text or "").strip()
+    if field_key in CN_FIELDS:
+        return canonical_cn(t) or t
+    if field_key in REF_FIELDS:
+        return _TRAILING_DATE.sub("", t).strip() or t
+    return t
+
+
+def clean_number(value_num: str | None, value_text: str, numeric: bool) -> str | None:
+    """A plain decimal string for numeric fields: keeps a clean value_num, salvages the leading
+    number when the model appended text to it, else reads the printed text. Text fields keep
+    whatever the model returned (a date must not become the number 3)."""
+    v = (value_num or "").strip()
+    if not numeric:
+        return v or None
+    if _PLAIN_NUM.fullmatch(v):
+        return v
+    m = _LEAD_NUM.match(v) if v else None
+    d = parse_num(m.group(0)) if m else None
+    if d is None:
+        d = parse_num(value_text)
+    return _plain(d) if d is not None else None
+
+
+def _plain(d: Decimal) -> str:
+    return format(d, "f")
+
+
+def _cn_line(cn: str, project: Project) -> str | None:
+    """The product line whose steel input (else product) has this CN code: 8 digits, else the
+    6-digit HS heading (Indian HSN and EU CN differ in the last two digits)."""
+    c = cn.replace(" ", "")
+    for width in (8, 6):
+        for attr in ("precursor_cn", "cn"):
+            hits = {p.id for p in project.processes if getattr(p, attr)[:width] == c[:width]}
+            if len(hits) == 1:
+                return hits.pop()
+    return None
+
+
+def document_line(fields: list[ExtractedField], project: Project) -> str | None:
+    """One product line for a single-material document (steel-input invoice, supplier statement):
+    the CN code printed on it, else the line most of its values were tagged with, else the supplier
+    named on it, else the factory's only line."""
+    ids = {p.id for p in project.processes}
+    for f in fields:
+        if f.field_key in CN_FIELDS:
+            cn = canonical_cn(f.value_text)
+            line = _cn_line(cn, project) if cn else None
+            if line:
+                return line
+    tags = Counter(f.process for f in fields if f.process in ids).most_common(2)
+    if tags and (len(tags) == 1 or tags[0][1] > tags[1][1]):
+        return tags[0][0]
+    for f in fields:
+        if f.field_key == "supplier" and norm_text(f.value_text):
+            s = norm_text(f.value_text)
+            hits = {
+                p.id
+                for p in project.processes
+                if p.precursor_supplier and (norm_text(p.precursor_supplier) in s or s in norm_text(p.precursor_supplier))
+            }
+            if len(hits) == 1:
+                return hits.pop()
+    return project.processes[0].id if len(project.processes) == 1 else None
+
+
+def normalize_fields(fields: list[ExtractedField], doc_type: str, project: Project) -> list[ExtractedField]:
+    """Apply the schema's unit and scope to every extracted value (in place; also returned)."""
+    spec = FIELDS.get(doc_type, {})
+    line = document_line(fields, project) if any(spec.get(f.field_key, ("", "", ""))[2] == "process" for f in fields) else None
+    for f in fields:
+        _desc, unit, scope = spec.get(f.field_key, ("", "", ""))
+        f.value_text = canonical_text(f.field_key, f.value_text)
+        f.value_num = clean_number(f.value_num, f.value_text, numeric=bool(unit))
+        if unit and not f.unit:
+            f.unit = unit
+        if scope == "doc":
+            f.period, f.process = None, None
+        elif scope == "period":
+            f.process = None
+        elif scope == "process":
+            f.period = None
+            if line:
+                f.process = line
+        elif scope == "line" and not unit:
+            f.period = None  # a CN code describes the line; only its quantity belongs to a quarter
+    return fields
+
+
+def all_dates(text: str | None) -> list[str]:
+    """Every date in a text as YYYY-MM-DD, in order: ISO dates, then Indian DD-MM-YYYY ones."""
+    t = text or ""
+    found: list[tuple[int, str]] = []
+    for m in _ISO.finditer(t):
+        found.append((m.start(), _ymd(int(m[1]), int(m[2]), int(m[3]))))
+    for m in _DMY.finditer(t):
+        found.append((m.start(), _ymd(int(m[3]), int(m[2]), int(m[1]))))
+    return [d for _, d in sorted(found) if d]
+
+
+def iso_date(text: str | None) -> str:
+    """The first date in a model string ('' if none): models sometimes append notes to a date."""
+    ds = all_dates(text)
+    return ds[0] if ds else ""
+
+
+def _ymd(y: int, m: int, d: int) -> str:
+    if not (1 <= m <= 12 and 1 <= d <= calendar.monthrange(y, m)[1]):
+        return ""
+    return f"{y:04d}-{m:02d}-{d:02d}"
+
+
+def document_period(fields: list[ExtractedField], current: list[str] | None) -> list[str]:
+    """The period a document covers, from its own (verified) values when it states one: billing
+    period, statement period, invoice date, or the months of a register. Else the classifier's."""
+    start, end = ([iso_date(x) for x in (current or [])] + ["", ""])[:2]
+    vals = {f.field_key: f.value_text for f in fields}
+    months = sorted({f.period for f in fields if f.period and re.fullmatch(r"\d{4}-\d{2}", f.period)})
+    if "period_start" in vals or "period_end" in vals:
+        start, end = iso_date(vals.get("period_start")) or start, iso_date(vals.get("period_end")) or end
+    elif len(ds := all_dates(vals.get("period"))) >= 2:
+        start, end = ds[0], ds[-1]
+    elif d := iso_date(vals.get("invoice_date")):
+        start, end = d, d
+    elif months:
+        y, m = (int(x) for x in months[-1].split("-"))
+        start, end = f"{months[0]}-01", f"{months[-1]}-{calendar.monthrange(y, m)[1]:02d}"
+    return [start, end]

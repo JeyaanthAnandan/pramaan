@@ -33,6 +33,7 @@ from google.genai import types
 from app.agents import replay
 from app.agents.explainer import explain
 from app.agents.gap_finder import find_gaps
+from app.agents.normalize import canonical_text, document_period, iso_date, normalize_fields
 from app.agents.second_reader import compare, crop
 from app.cbam.checks import run_checks
 from app.cbam.project import compute
@@ -221,7 +222,7 @@ async def classifier(node_input: dict[str, Any]) -> dict[str, Any]:
         d.languages = data.get("languages") or []
         d.title = data.get("title") or d.filename
         d.doc_type_confidence = float(data.get("confidence") or 0)
-        d.period = [data.get("period_start") or "", data.get("period_end") or ""]
+        d.period = [iso_date(data.get("period_start")), iso_date(data.get("period_end"))]
         d.state = "classified"
         st.put_document(d)
         c.emit(
@@ -236,7 +237,7 @@ async def classifier(node_input: dict[str, Any]) -> dict[str, Any]:
             doc_id=d.id,
         )
 
-    res = await _gather_limited(8, [functools.partial(one, d) for d in docs])
+    res = await _gather_limited(12, [functools.partial(one, d) for d in docs])
     errors = [str(r) for r in res if isinstance(r, Exception)]
     for err in errors:
         c.emit("Classifier", "Failed", status="error", output_summary=err[:300])
@@ -315,6 +316,8 @@ async def extractor(node_input: dict[str, Any]) -> dict[str, Any]:
             r = await extract(blobs.load(d.uri), d.content_type, d.doc_type or "other", c.project)
             fields, model, tin, tout = parse_fields(r.data, d.id), r.model, r.tokens_in, r.tokens_out
             c.add_tokens("Extractor", tin, tout)
+        normalize_fields(fields, d.doc_type or "other", c.project)  # schema scope + canonical forms
+        d.period = document_period(fields, d.period)
         st.delete_evidence_for_doc(c.project.id, d.id)
         ev = [
             Evidence(
@@ -352,7 +355,7 @@ async def extractor(node_input: dict[str, Any]) -> dict[str, Any]:
         )
         return len(fields)
 
-    res = await _gather_limited(8, [functools.partial(one, d) for d in docs])
+    res = await _gather_limited(12, [functools.partial(one, d) for d in docs])
     for r in res:
         if isinstance(r, Exception):
             c.emit("Extractor", "Failed", status="error", output_summary=str(r)[:300])
@@ -394,15 +397,17 @@ async def second_reader(node_input: dict[str, Any]) -> Event:
             from app.agents.readers import second_read
 
             rr = await second_read(crop_bytes, x.field_key, x.unit)
-            r2, model = rr.data, rr.model
+            r2, model = dict(rr.data), rr.model
+            r2["value_text"] = canonical_text(x.field_key, str(r2.get("value_text") or ""))
             c.add_tokens("SecondReader", rr.tokens_in, rr.tokens_out)
         sr = compare(x.value_text, x.value_num, x.unit, r2, model, padded)
         x.second_reader_model = model
         x.second_reading = sr
-        x.status = "VERIFIED_2R" if sr.agrees else "NEEDS_REVIEW"
-        return sr.agrees
+        ok = sr.agrees and not sr.corrected_from
+        x.status = "VERIFIED_2R" if ok else "NEEDS_REVIEW"
+        return ok
 
-    res = await _gather_limited(16, [functools.partial(one, x) for x in todo])
+    res = await _gather_limited(24, [functools.partial(one, x) for x in todo])
     st.put_evidence(todo)
     agree = sum(1 for r in res if r is True)
     mismatched = [x for x, r in zip(todo, res, strict=True) if r is not True]
@@ -434,7 +439,8 @@ async def human_review(node_input: dict[str, Any]) -> dict[str, Any]:
                 "Needs a human tap",
                 status="review",
                 input_summary=f"{x.label or x.field_key} {x.period or ''}".strip(),
-                output_summary=f"reader 1: {x.value_text} · reader 2: {x.second_reading.reading_value if x.second_reading else '-'}",
+                output_summary=f"reader 1: {x.value_text} · reader 2: {x.second_reading.reading_value if x.second_reading else '-'}"
+                + (f" · {x.second_reading.corrected_from} crossed out" if x.second_reading and x.second_reading.corrected_from else ""),
                 doc_id=x.doc_id,
             )
     return {"run_id": c.run.id}

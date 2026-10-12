@@ -41,7 +41,8 @@ def _extract_system(project: Project) -> str:
         "box both. Monthly rows: set period=YYYY-MM. Export invoice line items: set period to the calendar quarter of the invoice date "
         f"(YYYY-Qn). Product lines of this factory: {procs}. Set process to the product line id (P1, P2, ...) when a value belongs "
         "to one line; decide from the material, grade, CN code or product name printed next to it. "
-        "Never invent values; skip fields that are not on the document. Do not compute anything."
+        "Identifiers (invoice, document, verification numbers) and CN/HSN codes: the identifier itself, without dates, labels or "
+        "descriptions. Never invent values; skip fields that are not on the document. Do not compute anything."
     )
 
 
@@ -75,7 +76,7 @@ async def second_read(crop_jpeg: bytes, field_key: str, unit_hint: str) -> LLMRe
     prompt = (
         f"This crop comes from a factory document. It should contain one value: {desc}"
         + (f" (usually in {unit_hint})" if unit_hint else "")
-        + ". Read it exactly. If a figure is crossed out and replaced, give the final value and mention the crossed-out one in note. "
+        + ". Read it exactly. If a figure is crossed out and replaced, give the final value in value_text and the crossed-out figure in crossed_out. "
         "Give the unit only if it is visible in the crop."
     )
     return await gemini().json(

@@ -329,6 +329,7 @@ function EvidenceView({ node }: { node: CalcNode }) {
             >
               <div className="text-[11px] text-ink2">{t("lens.reader2")}</div>
               <div className="font-mono text-lg">{ev.second_reading?.reading_value ?? "—"}</div>
+              {ev.second_reading?.corrected_from && <div className="text-[12px] font-medium text-warnink">{t("gaps.crossed_out", { value: ev.second_reading.corrected_from })}</div>}
               <div className="mt-1 truncate text-[11px] text-ink2">{ev.second_reading?.model} · {ev.second_reading?.agrees ? t("lens.agree") : t("lens.disagree")}</div>
             </motion.div>
             <AnimatePresence>

@@ -197,6 +197,8 @@ function ReviewCard({ g }: { g: Gap }) {
   const aspect = doc?.width && doc?.height ? doc.width / doc.height : 0.75;
   const { title, q } = gapText(t, g);
   const supports = g.params.balance?.supports as "first" | "second" | undefined;
+  const crossed = ev.second_reading?.corrected_from; // a crossed-out figure next to the value
+  const handFix = !!crossed && !!ev.second_reading?.agrees; // both read the same, but a person confirms a hand correction
   async function act(action: "approve" | "edit", value?: string) {
     setBusy(value ?? action);
     try {
@@ -242,6 +244,11 @@ function ReviewCard({ g }: { g: Gap }) {
             <motion.div className={`rounded-xl border border-warn/50 bg-warnbg p-3 transition-shadow duration-500 ${ring("second")}`} initial={false} animate={second ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }} transition={{ duration: 0.35, ease: EASE }}>
               <div className="text-[11px] text-ink2">{t("gaps.reader2")}</div>
               <div className="font-mono text-2xl">{ev.second_reading?.reading_value ?? "—"}</div>
+              {crossed && (
+                <div className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-warnink">
+                  <Pencil className="h-3 w-3 shrink-0" aria-hidden /> {t("gaps.crossed_out", { value: crossed })}
+                </div>
+              )}
               <div className="truncate text-[11px] text-ink2">{ev.second_reading?.model}</div>
             </motion.div>
             <AnimatePresence>
@@ -253,9 +260,9 @@ function ReviewCard({ g }: { g: Gap }) {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 520, damping: 20 }}
                   role="img"
-                  aria-label={t("lens.disagree")}
+                  aria-label={handFix ? t("gaps.corrected") : t("lens.disagree")}
                 >
-                  ≠
+                  {handFix ? <Pencil className="h-3.5 w-3.5" /> : "≠"}
                 </motion.span>
               )}
             </AnimatePresence>

@@ -57,6 +57,7 @@ class SecondReading(BaseModel):
     model: str = ""
     crop_box: list[int] | None = None
     reason: str = ""
+    corrected_from: str | None = None  # a crossed-out figure next to the value: a person confirms it
 
 
 class Evidence(BaseModel):
