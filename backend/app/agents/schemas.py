@@ -14,6 +14,7 @@ FIELDS: dict[str, dict[str, tuple[str, str, str]]] = {
         "scm": ("Gas consumption in standard cubic metres", "SCM", "period"),
         "gcv_kcal_per_scm": ("Gross calorific value", "kcal/SCM", "period"),
         "mmbtu": ("Gas energy billed in MMBtu (GCV basis)", "MMBtu", "period"),
+        "rate_inr_per_scm": ("Gas rate in rupees per SCM (the unit price on the gas charges line)", "INR/SCM", "period"),
     },
     "electricity_bill": {
         "invoice_no": ("Bill number", "", "doc"),
@@ -77,7 +78,7 @@ FIELDS: dict[str, dict[str, tuple[str, str, str]]] = {
 # Fields whose value enters the SEE calculation (used for readiness and two-reader priority)
 SEE_RELEVANT = {"mmbtu", "produced_t", "rod_consumed_t", "see", "sefa", "net_mass_kg", "scm", "gcv_kcal_per_scm", "verification_ref"}
 
-NUMERIC_UNITS = {"t", "kg", "SCM", "kcal/SCM", "MMBtu", "kWh", "kVA", "%", "t CO2e/t", "t/t"}
+NUMERIC_UNITS = {"t", "kg", "SCM", "kcal/SCM", "MMBtu", "kWh", "kVA", "%", "t CO2e/t", "t/t", "INR/SCM"}
 
 
 def extraction_schema() -> dict[str, Any]:

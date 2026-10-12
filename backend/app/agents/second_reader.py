@@ -49,6 +49,11 @@ UNIT_ALIASES = {
     "t co2/t": "t CO2e/t",
     "t co2e / t": "t CO2e/t",
     "t/t": "t/t",
+    "inr/scm": "INR/SCM",
+    "rs/scm": "INR/SCM",
+    "rs./scm": "INR/SCM",
+    "₹/scm": "INR/SCM",
+    "rupees/scm": "INR/SCM",
 }
 
 

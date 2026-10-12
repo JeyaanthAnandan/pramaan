@@ -103,13 +103,37 @@ GCV_KCAL_PER_SCM = [D(x) for x in ["9520", "9480", "9555", "9500", "9610", "9470
 GAS_RATE_INR_PER_SCM = [D(x) for x in ["51.80", "51.80", "52.40", "52.40", "52.40", "53.10", "53.10", "53.10", "53.60"]]
 
 
+# Heat-treatment gas per tonne moves month to month around EC Example 3's 3.5 GJ/t (June runs hot,
+# April is the best month), as a real furnace does. The period's gas stays exactly the same (the last
+# month absorbs the difference to the meter), so SEE 2.0399 and every golden number are unchanged.
+# January and March, the bills in the screenshots, keep their figures.
+GAS_INTENSITY = [D(x) for x in ["1.000", "0.975", "1.000", "0.930", "0.965", "1.165", "1.020", "0.960"]]  # + September: balancing
+
+
+def _scm_mmbtu(gj_ncv: Decimal, gcv: Decimal) -> tuple[Decimal, Decimal]:
+    scm = (gj_ncv / NCV_GCV * D(1_000_000) / (gcv * KJ_PER_KCAL)).quantize(D(1), rounding=ROUND_HALF_UP)
+    return scm, _mmbtu(scm, gcv)
+
+
+def _mmbtu(scm: Decimal, gcv: Decimal) -> Decimal:
+    return (scm * gcv * KJ_PER_KCAL / D(1_000_000) / GJ_PER_MMBTU).quantize(D("0.001"), rounding=ROUND_HALF_UP)
+
+
+def _tonnes(i: int) -> Decimal:
+    return PRODUCED["P1"][i] + PRODUCED["P2"][i]
+
+
 def gas_month(i: int) -> dict[str, Decimal]:
-    total_t = PRODUCED["P1"][i] + PRODUCED["P2"][i]
-    gj_ncv = GAS_SEC_GJ_NCV_PER_T * total_t
-    gj_gcv = gj_ncv / NCV_GCV
     gcv = GCV_KCAL_PER_SCM[i]
-    scm = (gj_gcv * D(1_000_000) / (gcv * KJ_PER_KCAL)).quantize(D(1), rounding=ROUND_HALF_UP)
-    mmbtu = (scm * gcv * KJ_PER_KCAL / D(1_000_000) / GJ_PER_MMBTU).quantize(D("0.001"), rounding=ROUND_HALF_UP)
+    last = len(GCV_KCAL_PER_SCM) - 1
+    if i < last:
+        scm, mmbtu = _scm_mmbtu(GAS_SEC_GJ_NCV_PER_T * GAS_INTENSITY[i] * _tonnes(i), gcv)
+    else:  # September: whatever keeps the period's gas (MMBtu) where EC Example 3's 3.5 GJ/t puts it
+        flat = sum(_scm_mmbtu(GAS_SEC_GJ_NCV_PER_T * _tonnes(k), GCV_KCAL_PER_SCM[k])[1] for k in range(last + 1))
+        target = flat - sum(gas_month(k)["mmbtu"] for k in range(last))
+        guess = target * GJ_PER_MMBTU * D(1_000_000) / (gcv * KJ_PER_KCAL)
+        scm = min((guess.to_integral_value(rounding="ROUND_FLOOR") + d for d in (0, 1)), key=lambda x: abs(_mmbtu(x, gcv) - target))
+        mmbtu = _mmbtu(scm, gcv)
     amount = (scm * GAS_RATE_INR_PER_SCM[i]).quantize(D("0.01"), rounding=ROUND_HALF_UP)
     return {"scm": scm, "gcv": gcv, "mmbtu": mmbtu, "rate": GAS_RATE_INR_PER_SCM[i], "amount": amount}
 

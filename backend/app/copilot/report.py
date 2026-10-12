@@ -160,6 +160,31 @@ def facts(project: Project, result: dict[str, Any]) -> list[dict[str, Any]]:
         calc("verdict.secured_inr", "Same in rupees", _inr0(secured * fx), "INR/year")
     if reach:
         calc("verdict.reach", "More within reach a year if rod suppliers send verified data", _eur0(reach), "EUR/year")
+    gp = (result.get("operations") or {}).get("gas_pulse")
+    if gp:  # plant pulse: the operations side of the same bills
+        node("ops.gas.median", "Median month: heat-treatment gas per tonne produced")
+        calc(
+            "ops.gas.best",
+            f"Best month for gas per tonne ({gp['best']['month']})",
+            f"{Decimal(gp['best']['gj_per_t']):.2f}",
+            "GJ/t",
+            gp["best"]["node"],
+        )
+        for m in gp["months"]:
+            if m["hot"]:
+                calc(
+                    f"ops.gas.{m['month']}.delta",
+                    f"Gas per tonne in {m['month']} against the median month",
+                    f"+{Decimal(m['delta_pct']):.1f}",
+                    "%",
+                    m["node"],
+                )
+                node(f"ops.gas.{m['month']}.gj_per_t", f"Gas per tonne in {m['month']}")
+                node(f"ops.gas.{m['month']}.excess_gj", f"Gas used in {m['month']} above the median month")
+                node(f"ops.gas.{m['month']}.excess_inr", f"Cost of that gas in {m['month']}, at the bill's rate")
+                node(f"ops.gas.{m['month']}.excess_tco2", f"CO2 from that gas in {m['month']}")
+        if not gp["hot_months"]:
+            calc("ops.gas.hot", "Months 10 % or more above the median month", "none")
     names = {p.id: p.name for p in project.processes}
     for g in result.get("gaps", []):
         if g["status"] in ("red", "amber"):
@@ -184,6 +209,7 @@ INTENTS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
     (("see", "emission", "emissions", "carbon", "co2", "intensity"), (".see", "direct", "rod.contrib", "rod.share")),
     (("ready", "declare", "declarable", "verified"), ("ready", "lines_ready", "basis")),
     (("rod", "supplier", "precursor", "wire"), ("rod.", "supplier", "basis")),
+    (("gas", "energy", "waste", "wasting", "efficiency", "efficient", "furnace", "fuel", "month", "hot", "operations"), ("ops.gas",)),
 ]
 
 

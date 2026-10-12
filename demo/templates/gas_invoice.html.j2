@@ -39,7 +39,7 @@
   <h3 style="margin:22px 0 8px">Charges</h3>
   <table class="grid">
     <tr><th>Description</th><th class="right">Qty</th><th class="right">Rate (₹)</th><th class="right">Amount (₹)</th></tr>
-    <tr><td>Gas charges (PNG industrial)</td><td class="right mono">{{ scm_s }} SCM</td><td class="right mono">{{ rate }}</td><td class="right mono">{{ amount }}</td></tr>
+    <tr><td>Gas charges (PNG industrial)</td><td class="right mono">{{ scm_s }} SCM</td><td class="right mono">{% call f("rate_inr_per_scm", rate, unit="INR/SCM", num=rate, period=month, label="Gas rate") %}{{ rate }}{% endcall %}</td><td class="right mono">{{ amount }}</td></tr>
     <tr><td>Meter rent</td><td></td><td></td><td class="right mono">1,500.00</td></tr>
     <tr><td>VAT on natural gas @ 14.3% (illustrative)</td><td></td><td></td><td class="right mono">{{ vat }}</td></tr>
     <tr><th colspan="3">Total payable</th><th class="right mono">{{ total }}</th></tr>

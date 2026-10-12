@@ -9,6 +9,23 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 3 — Plant pulse (theme: intelligent operations & industrial efficiency)
+* Judge: the theme is manufacturing operations; Pramaan read the operational data (gas bills, register)
+  only for compliance. And the sample's months were perfectly flat (3.500 GJ/t, 15.0 % scrap every
+  month), which looks synthetic.
+* Sample data: gas per tonne now moves month to month around EC Example 3's 3.5 GJ/t (June +16.5 %,
+  April −7 %); September balances to the meter so the period's gas (6,966.553 vs 6,966.542 MMBtu) and
+  every golden number are unchanged (SEE 2.0399, €409,545). January and March bills are unchanged
+  (screenshots, GIF, OG card). The gas rate (₹/SCM) is now a ground-truth field: 222 fields (was 213);
+  replay cache and eval report regenerated (replay self-check 100 %).
+* Engine: `_gas_pulse` — monthly GJ/t nodes, median month, hot months (≥ +10 %) with excess GJ, SCM (via
+  the bill's GCV), ₹ (the bill's rate) and t CO2, all calculation nodes (lens down to the June bill).
+* UI: Plant pulse section (nav "Plant pulse"): bars from zero, dashed median, hot month in warn with its
+  label, best month in green, readout line (no tooltip leaving the card on a phone), insight cards with
+  lens numbers. Ask about this report: gas facts + "Where is my plant wasting gas?" (4 languages).
+* Tests: `tests/test_plant_pulse.py` (3); all 158 + UI smoke; axe 0 on the full report (light/dark,
+  1440/360).
+
 ### Iteration 2 — "Ask about this report" (grounded in the engine's own figures)
 * Judge: the rules copilot answered method questions but not "why is *my* stainless line on the default?"
   or "which default applies to my bolts?", the first thing a judge types. Gen AI (40 %) rewards exactly

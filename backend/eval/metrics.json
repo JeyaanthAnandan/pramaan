@@ -2,22 +2,22 @@
  "runs": {
   "replay": {
    "mode": "replay",
-   "ran_at": "2026-10-12T09:46:32+00:00",
+   "ran_at": "2026-10-12T19:24:06+00:00",
    "models": {
     "extraction": "replay",
     "second_reader": "replay"
    },
    "documents": 24,
    "doc_type_accuracy": 1.0,
-   "fields_total": 213,
-   "fields_correct": 213,
+   "fields_total": 222,
+   "fields_correct": 222,
    "field_accuracy": 1.0,
    "box_hit_rate": 1.0,
-   "extracted_values": 213,
-   "two_reader_agreement": 0.9953051643192489,
-   "review_rate": 0.004694835680751174,
-   "total_seconds": 1.3174187920230906,
-   "seconds_per_doc": 0.054892449667628775,
+   "extracted_values": 222,
+   "two_reader_agreement": 0.9954954954954955,
+   "review_rate": 0.0045045045045045045,
+   "total_seconds": 1.1782968750048894,
+   "seconds_per_doc": 0.04909570312520373,
    "tokens_total": 0,
    "run_status": "done",
    "run_error": null,
@@ -28,7 +28,7 @@
    "misses": [],
    "per_doc_type": {
     "gas_invoice": {
-     "fields": 63,
+     "fields": 72,
      "accuracy": 1.0,
      "agreement": 1.0,
      "box": 1.0

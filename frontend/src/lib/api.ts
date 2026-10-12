@@ -75,6 +75,7 @@ export interface Operations {
   gas_gj_per_t: string | null;
   gas_node: string | null;
   gas_monthly: { month: string; gj_per_t: string }[];
+  gas_pulse?: GasPulse | null;
   processes: Record<string, { yield_pct: string; yield_node: string; scrap_pct: string; scrap_node: string; rod_t: string; scrap_t: string; al_t: string; monthly: { month: string; scrap_pct: string | null; yield_pct: string | null }[] }>;
 }
 
@@ -269,4 +270,20 @@ export interface ReportAnswer {
   cited?: string[];
   citations: { doc: string; page: number }[];
   model?: string;
+}
+
+/** Plant pulse: gas per tonne by month against the plant's own median month (every figure has a lens node). */
+export interface GasPulse {
+  median: string;
+  median_node: string;
+  threshold_pct: string;
+  months: { month: string; gj_per_t: string; node: string; delta_pct: string; hot: boolean; excess_gj?: string; excess_gj_node?: string; excess_inr?: string; excess_inr_node?: string; excess_tco2?: string; excess_tco2_node?: string }[];
+  best: { month: string; gj_per_t: string; node: string };
+  hot_months: string[];
+  excess_gj?: string;
+  excess_gj_node?: string;
+  excess_inr?: string;
+  excess_inr_node?: string;
+  excess_tco2?: string;
+  excess_tco2_node?: string;
 }

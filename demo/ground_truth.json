@@ -15,8 +15,8 @@
    "P1": "225.0",
    "P2": "135.0"
   },
-  "gas_mmbtu": "6966.542",
-  "gas_gj_ncv": "6615.0827427168",
+  "gas_mmbtu": "6966.553",
+  "gas_gj_ncv": "6615.0931877712",
   "exports_t": {
    "P1": "900",
    "P2": "400"
@@ -128,6 +128,21 @@
       772
      ],
      "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "51.80",
+     "unit": "INR/SCM",
+     "value_num": "51.80",
+     "period": "2026-01",
+     "label": "Gas rate",
+     "box_2d": [
+      422,
+      652,
+      437,
+      694
+     ],
+     "page": 0
     }
    ]
   },
@@ -194,9 +209,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,576",
+     "value_text": "20,061",
      "unit": "SCM",
-     "value_num": "20576",
+     "value_num": "20061",
      "period": "2026-02",
      "label": "Gas volume",
      "box_2d": [
@@ -224,9 +239,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "774.062",
+     "value_text": "754.688",
      "unit": "MMBtu",
-     "value_num": "774.062",
+     "value_num": "754.688",
      "period": "2026-02",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -234,6 +249,21 @@
       727,
       369,
       793
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "51.80",
+     "unit": "INR/SCM",
+     "value_num": "51.80",
+     "period": "2026-02",
+     "label": "Gas rate",
+     "box_2d": [
+      434,
+      657,
+      448,
+      698
      ],
      "page": 0
     }
@@ -344,6 +374,21 @@
       795
      ],
      "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "52.40",
+     "unit": "INR/SCM",
+     "value_num": "52.40",
+     "period": "2026-03",
+     "label": "Gas rate",
+     "box_2d": [
+      439,
+      663,
+      454,
+      704
+     ],
+     "page": 0
     }
    ]
   },
@@ -410,9 +455,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "19,946",
+     "value_text": "18,550",
      "unit": "SCM",
-     "value_num": "19946",
+     "value_num": "18550",
      "period": "2026-04",
      "label": "Gas volume",
      "box_2d": [
@@ -440,9 +485,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "751.945",
+     "value_text": "699.317",
      "unit": "MMBtu",
-     "value_num": "751.945",
+     "value_num": "699.317",
      "period": "2026-04",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -450,6 +495,21 @@
       733,
       380,
       798
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "52.40",
+     "unit": "INR/SCM",
+     "value_num": "52.40",
+     "period": "2026-04",
+     "label": "Gas rate",
+     "box_2d": [
+      448,
+      674,
+      462,
+      715
      ],
      "page": 0
     }
@@ -518,9 +578,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,974",
+     "value_text": "20,240",
      "unit": "SCM",
-     "value_num": "20974",
+     "value_num": "20240",
      "period": "2026-05",
      "label": "Gas volume",
      "box_2d": [
@@ -548,9 +608,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "799.855",
+     "value_text": "771.864",
      "unit": "MMBtu",
-     "value_num": "799.855",
+     "value_num": "771.864",
      "period": "2026-05",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -558,6 +618,21 @@
       727,
       376,
       792
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "52.40",
+     "unit": "INR/SCM",
+     "value_num": "52.40",
+     "period": "2026-05",
+     "label": "Gas rate",
+     "box_2d": [
+      444,
+      660,
+      458,
+      701
      ],
      "page": 0
     }
@@ -626,9 +701,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,794",
+     "value_text": "24,225",
      "unit": "SCM",
-     "value_num": "20794",
+     "value_num": "24225",
      "period": "2026-06",
      "label": "Gas volume",
      "box_2d": [
@@ -656,9 +731,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "781.438",
+     "value_text": "910.375",
      "unit": "MMBtu",
-     "value_num": "781.438",
+     "value_num": "910.375",
      "period": "2026-06",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -666,6 +741,21 @@
       717,
       364,
       782
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "53.10",
+     "unit": "INR/SCM",
+     "value_num": "53.10",
+     "period": "2026-06",
+     "label": "Gas rate",
+     "box_2d": [
+      437,
+      658,
+      450,
+      699
      ],
      "page": 0
     }
@@ -734,9 +824,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,273",
+     "value_text": "20,678",
      "unit": "SCM",
-     "value_num": "20273",
+     "value_num": "20678",
      "period": "2026-07",
      "label": "Gas volume",
      "box_2d": [
@@ -764,9 +854,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "766.686",
+     "value_text": "782.002",
      "unit": "MMBtu",
-     "value_num": "766.686",
+     "value_num": "782.002",
      "period": "2026-07",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -774,6 +864,21 @@
       714,
       351,
       780
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "53.10",
+     "unit": "INR/SCM",
+     "value_num": "53.10",
+     "period": "2026-07",
+     "label": "Gas rate",
+     "box_2d": [
+      425,
+      658,
+      439,
+      699
      ],
      "page": 0
     }
@@ -842,9 +947,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,641",
+     "value_text": "19,815",
      "unit": "SCM",
-     "value_num": "20641",
+     "value_num": "19815",
      "period": "2026-08",
      "label": "Gas volume",
      "box_2d": [
@@ -872,9 +977,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "777.736",
+     "value_text": "746.613",
      "unit": "MMBtu",
-     "value_num": "777.736",
+     "value_num": "746.613",
      "period": "2026-08",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -882,6 +987,21 @@
       717,
       353,
       781
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "53.10",
+     "unit": "INR/SCM",
+     "value_num": "53.10",
+     "period": "2026-08",
+     "label": "Gas rate",
+     "box_2d": [
+      424,
+      659,
+      437,
+      700
      ],
      "page": 0
     }
@@ -950,9 +1070,9 @@
     },
     {
      "field_key": "scm",
-     "value_text": "20,404",
+     "value_text": "20,058",
      "unit": "SCM",
-     "value_num": "20404",
+     "value_num": "20058",
      "period": "2026-09",
      "label": "Gas volume",
      "box_2d": [
@@ -980,9 +1100,9 @@
     },
     {
      "field_key": "mmbtu",
-     "value_text": "774.069",
+     "value_text": "760.943",
      "unit": "MMBtu",
-     "value_num": "774.069",
+     "value_num": "760.943",
      "period": "2026-09",
      "label": "Gas energy (GCV)",
      "box_2d": [
@@ -990,6 +1110,21 @@
       718,
       358,
       784
+     ],
+     "page": 0
+    },
+    {
+     "field_key": "rate_inr_per_scm",
+     "value_text": "53.60",
+     "unit": "INR/SCM",
+     "value_num": "53.60",
+     "period": "2026-09",
+     "label": "Gas rate",
+     "box_2d": [
+      430,
+      659,
+      444,
+      700
      ],
      "page": 0
     }

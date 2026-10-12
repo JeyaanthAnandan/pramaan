@@ -9,6 +9,7 @@ import { eur, inr, n } from "@/lib/format";
 import { AnimatedNumber, Collapse, SPRING, rise, stagger, useRise } from "@/lib/motion";
 import { LensNum } from "@/components/EvidenceLens";
 import { useAsk } from "@/components/ReportAsk";
+import { PlantPulse } from "@/components/PlantPulse";
 import { ContributionBar, CostBars, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
@@ -18,7 +19,7 @@ import { NextSteps } from "@/components/NextSteps";
 import { useToast } from "@/components/Toast";
 import { NoResult } from "./Gaps";
 
-const SECTIONS = ["next", "lines", "money", "levers", "share", "checks"] as const;
+const SECTIONS = ["next", "lines", "money", "pulse", "levers", "share", "checks"] as const;
 
 export default function Report() {
   const { result } = useProject();
@@ -51,6 +52,12 @@ export default function Report() {
       <div id="money">
         <MoneySection result={result} whatIf={whatIf} onWhatIf={setWhatIf} />
       </div>
+
+      {result.operations.gas_pulse && (
+        <div id="pulse">
+          <PlantPulse pulse={result.operations.gas_pulse} />
+        </div>
+      )}
 
       <div id="levers">
         <WhatIfPanel result={result} />
@@ -196,6 +203,8 @@ function Verdict() {
 /** Sticky "on this page" bar; the highlight follows the section in view. */
 function SectionNav() {
   const { t } = useTranslation();
+  const { result } = useProject();
+  const sections = SECTIONS.filter((s) => s !== "pulse" || !!result?.operations.gas_pulse); // a new factory may not have 3 months yet
   const [active, setActive] = useState<string>(SECTIONS[0]);
   const list = useRef<HTMLUListElement>(null);
   useEffect(() => {
@@ -231,7 +240,7 @@ function SectionNav() {
   return (
     <nav aria-label={t("report.on_page")} className="sticky top-[67px] z-20 -mx-4 border-b border-line/70 bg-page/90 px-4 py-2 backdrop-blur-md sm:-mx-6 sm:px-6">
       <ul ref={list} className="no-scrollbar relative -mx-1 flex gap-1 overflow-x-auto px-1">
-        {SECTIONS.map((s) => {
+        {sections.map((s) => {
           const on = active === s;
           return (
             <li key={s} className="shrink-0">

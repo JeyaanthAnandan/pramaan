@@ -175,6 +175,165 @@ def _price_2026(c: Ctx, process_exports: dict[str, dict[str, Decimal]]) -> tuple
     return "y2026.price", price
 
 
+HOT_MONTH = D("0.10")  # a month runs hot when its gas per tonne is 10 % or more above the median month
+
+
+def _median(xs: list[Decimal]) -> Decimal:
+    v = sorted(xs)
+    n = len(v)
+    return v[n // 2] if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2
+
+
+def _gas_pulse(c: Ctx) -> dict[str, Any] | None:
+    """Plant pulse: gas per tonne month by month against the plant's own median month, and what the
+    hot months cost in gas (rupees, at each bill's own rate), energy and CO2. Operations insight from
+    the same verified bills and register; it does not change SEE. Every figure is a calculation node,
+    so the Evidence Lens opens it down to the bill."""
+    t = c.tree
+    gj_per = refdata.assumption("mmbtu_to_gj")
+    ratio = refdata.assumption("ncv_gcv_ratio_natural_gas")
+    kj = refdata.assumption("kcal_to_kj")
+    c.ref_leaf("as.kcal_to_kj", "kJ per kcal", kj)
+    rows: list[dict[str, Any]] = []
+    for m in c.project.months:
+        bills = c.pick("mmbtu", None, m, doc_type="gas_invoice")
+        prods = [x[0] for p in c.project.processes if (x := c.pick("produced_t", p.id, m))]
+        prod = sum((_num(x) for x in prods), D(0))
+        if not bills or prod <= 0:
+            continue
+        gj = _num(bills[0]) * gj_per.value * ratio.value
+        t.calc(
+            f"ops.gas.{m}.gj",
+            f"Gas energy {m} (NCV)",
+            gj,
+            "GJ",
+            "MMBtu × GJ/MMBtu × NCV/GCV",
+            [c.ev_leaf(bills[0], f"Gas energy {m} (GCV)"), "as.mmbtu_to_gj", "as.ncv_gcv"],
+        )
+        t.calc(f"ops.prod.{m}", f"Tonnes produced {m}", prod, "t", "Σ production register, all lines", [c.ev_leaf(x) for x in prods])
+        t.calc(
+            f"ops.gas.{m}.gj_per_t",
+            f"Gas per tonne {m}",
+            gj / prod,
+            "GJ/t",
+            "GJ(NCV) ÷ tonnes produced",
+            [f"ops.gas.{m}.gj", f"ops.prod.{m}"],
+        )
+        rows.append({"month": m, "v": gj / prod, "prod": prod})
+    if len(rows) < 3:
+        return None
+    med = _median([r["v"] for r in rows])
+    t.calc(
+        "ops.gas.median",
+        "Median month, gas per tonne",
+        med,
+        "GJ/t",
+        f"median of {len(rows)} months",
+        [f"ops.gas.{r['month']}.gj_per_t" for r in rows],
+    )
+    best = min(rows, key=lambda r: r["v"])
+    months, tot = [], {"gj": D(0), "inr": D(0), "tco2": D(0)}
+    have_inr = True
+    for r in rows:
+        m = r["month"]
+        row: dict[str, Any] = {
+            "month": m,
+            "gj_per_t": str(r["v"]),
+            "node": f"ops.gas.{m}.gj_per_t",
+            "delta_pct": str((r["v"] / med - 1) * 100),
+            "hot": r["v"] >= med * (1 + HOT_MONTH),
+        }
+        if row["hot"]:
+            ex = (r["v"] - med) * r["prod"]
+            t.calc(
+                f"ops.gas.{m}.excess_gj",
+                f"Gas above the median month, {m}",
+                ex,
+                "GJ",
+                "(GJ/t − median) × tonnes produced",
+                [f"ops.gas.{m}.gj_per_t", "ops.gas.median", f"ops.prod.{m}"],
+            )
+            co2 = ex * c.tree.get("ref.ng.ef").value / D(1000)
+            t.calc(
+                f"ops.gas.{m}.excess_tco2",
+                f"CO2 from that gas, {m}",
+                co2,
+                "t CO2",
+                "GJ × EF ÷ 1000",
+                [f"ops.gas.{m}.excess_gj", "ref.ng.ef"],
+            )
+            row |= {
+                "excess_gj": str(ex),
+                "excess_gj_node": f"ops.gas.{m}.excess_gj",
+                "excess_tco2": str(co2),
+                "excess_tco2_node": f"ops.gas.{m}.excess_tco2",
+            }
+            tot["gj"] += ex
+            tot["tco2"] += co2
+            gcv = c.pick("gcv_kcal_per_scm", None, m, doc_type="gas_invoice")
+            rate = c.pick("rate_inr_per_scm", None, m, doc_type="gas_invoice")
+            if gcv and rate and _num(gcv[0]) > 0:
+                scm = ex / ratio.value * D(1_000_000) / (_num(gcv[0]) * kj.value)
+                t.calc(
+                    f"ops.gas.{m}.excess_scm",
+                    f"Gas volume above the median month, {m}",
+                    scm,
+                    "SCM",
+                    "GJ(NCV) ÷ NCV/GCV × 10⁶ ÷ (kcal/SCM × kJ/kcal)",
+                    [f"ops.gas.{m}.excess_gj", "as.ncv_gcv", c.ev_leaf(gcv[0], f"Gross calorific value {m}"), "as.kcal_to_kj"],
+                )
+                inr = scm * _num(rate[0])
+                t.calc(
+                    f"ops.gas.{m}.excess_inr",
+                    f"Cost of that gas, {m}",
+                    inr,
+                    "INR",
+                    "SCM × the bill's rate",
+                    [f"ops.gas.{m}.excess_scm", c.ev_leaf(rate[0], f"Gas rate {m}")],
+                )
+                row |= {"excess_inr": str(inr), "excess_inr_node": f"ops.gas.{m}.excess_inr"}
+                tot["inr"] += inr
+            else:
+                have_inr = False
+        months.append(row)
+    hot = [r for r in months if r["hot"]]
+    out: dict[str, Any] = {
+        "median": str(med),
+        "median_node": "ops.gas.median",
+        "threshold_pct": str(HOT_MONTH * 100),
+        "months": months,
+        "best": {"month": best["month"], "gj_per_t": str(best["v"]), "node": f"ops.gas.{best['month']}.gj_per_t"},
+        "hot_months": [r["month"] for r in hot],
+    }
+    if hot:
+        t.calc(
+            "ops.gas.excess_gj",
+            "Gas above the median month, all hot months",
+            tot["gj"],
+            "GJ",
+            "Σ hot months",
+            [r["excess_gj_node"] for r in hot],
+        )
+        t.calc("ops.gas.excess_tco2", "CO2 from that gas", tot["tco2"], "t CO2", "Σ hot months", [r["excess_tco2_node"] for r in hot])
+        out |= {
+            "excess_gj": str(tot["gj"]),
+            "excess_gj_node": "ops.gas.excess_gj",
+            "excess_tco2": str(tot["tco2"]),
+            "excess_tco2_node": "ops.gas.excess_tco2",
+        }
+        if have_inr:
+            t.calc(
+                "ops.gas.excess_inr",
+                "Cost of the gas above the median month",
+                tot["inr"],
+                "INR",
+                "Σ hot months",
+                [r["excess_inr_node"] for r in hot],
+            )
+            out |= {"excess_inr": str(tot["inr"]), "excess_inr_node": "ops.gas.excess_inr"}
+    return out
+
+
 def _operations(c: Ctx, al: dict[str, Decimal], gas: dict[str, Any]) -> dict[str, Any]:
     """Operational KPIs from the same evidence (yield, scrap share of rod, gas energy per tonne).
 
@@ -199,6 +358,7 @@ def _operations(c: Ctx, al: dict[str, Decimal], gas: dict[str, Any]) -> dict[str
             gj = gas["monthly_gj_ncv"].get(m)
             if gj is not None and prod > 0:
                 out["gas_monthly"].append({"month": m, "gj_per_t": str(gj / prod)})
+        out["gas_pulse"] = _gas_pulse(c)
     for p in c.project.processes:
         a = al.get(p.id, D(0))
         rod = t.get(f"{p.id}.rod.mass").value or D(0)

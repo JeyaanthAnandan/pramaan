@@ -13,7 +13,7 @@ const AskCtx = createContext<(q?: string) => void>(() => {});
 /** Open the "Ask about this report" panel, optionally with a question already asked. */
 export const useAsk = () => useContext(AskCtx);
 
-const SUGGEST = ["q_default", "q_pay", "q_first", "q_dv", "q_rod"] as const;
+const SUGGEST = ["q_default", "q_pay", "q_first", "q_gas", "q_dv", "q_rod"] as const;
 const TOKEN = /(\[F:[A-Za-z0-9_.-]+\]|\[Guidance [^\],]+, p\. ?\d+\])/g;
 
 /** Ask about this report: questions about the factory's own figures, answered from the engine's

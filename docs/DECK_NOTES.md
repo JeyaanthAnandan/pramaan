@@ -24,7 +24,7 @@ verifier, shop-floor supervisor.
 
 ## 4. Solution — 3 steps
 Capture → Close gaps → Report. 24 photos (gas bills, rod invoices, handwritten Hindi/Punjabi
-register and scrap log, export invoices) → 213 values, each with its region on the page.
+register and scrap log, export invoices) → 222 values, each with its region on the page.
 * Theme fit (Manufacturing: Intelligent Operations & Industrial Efficiency): operational data
   (bills, registers, scrap logs) → insights (SEE per product, where it comes from) →
   recommendations ("What to do next", with € attached) → actions (supplier letter EN/HI, buyer
@@ -57,7 +57,7 @@ register and scrap log, export invoices) → 213 values, each with its region on
 ## 6. USP 1–2: Evidence Lens + two readers
 * SEE 2.040 → formula → **38 values from 12 documents** → the highlighted region on the photo,
   both readings, approver and timestamp.
-* Replay of the sample: **212 / 213 values agree**; the 1 disagreement is a handwritten correction
+* Replay of the sample: **221 / 222 values agree**; the 1 disagreement is a handwritten correction
   (13.4 struck out, 15.4 written) — the monthly mass balance (rod 85.4 − produced 70.0 = 15.4)
   supports reader 1; the owner approves it.
 
@@ -91,6 +91,13 @@ register and scrap log, export invoices) → 213 values, each with its region on
 * **Myth-buster**: "2.5 % in 2026" is wrong — EC Example 1: 3,690 certificates on 15,670 t
   embedded = **23.5 %**, not 5 %.
 
+## 7b. Theme fit: intelligent operations from the same data
+* **Plant pulse**: the gas bills and register that prove CBAM also show how the furnace ran. Gas per
+  tonne by month against the plant's own median month; hot months priced at the bill's own rate. Sample:
+  **June +18.5 % → ₹2,00,905 of gas** above the median month (135 GJ, 7.6 t CO2); best month April
+  (3.26 GJ/t). Every figure opens in the Evidence Lens down to the June bill.
+* Operations levers (scrap, gas per tonne, electric heat treatment) show what the plant itself can change.
+
 ## 8. Proof
 * **Golden tests G1–G8 pass** (EC Guidance 5d, 14 Aug 2026): Example 3 SEE 2.039 / 2.371;
   Example 1 SEFA 1.261 → 1.198 (2027) and **3,690 certificates**; Example 2 **95.9
@@ -100,7 +107,7 @@ register and scrap log, export invoices) → 213 values, each with its region on
   1.803 (docs/EC_EXAMPLE_NOTES.md).
 * Official data, not hand-typed: 7 refdata files parsed from EC files with SHA-256 manifest;
   CSCF = 100 % for 2026–2030 is official (Decision (EU) 2026/1862).
-* **Extraction eval (24 docs, 213 fields)**: live Gemini numbers → fill from
+* **Extraction eval (24 docs, 222 fields)**: live Gemini numbers → fill from
   `backend/eval/report.md` after the live run (field accuracy target ≥ 95 %, < 2 min).
   Harness self-check (replay): 100 % / 1.3 s — not a model score.
 * 126 backend tests (golden, refdata manifest, engine, two-reader, API, agent scenarios, product-line set-up with a scripted ProductLines model, privacy, one buyer cost, levers) + Firestore-emulator test + logged-out UI smoke (desktop + 360 px phone, incl. own project + passcode unlock) in CI; ruff + mypy clean; gitleaks clean; axe: 0 WCAG A/AA violations (light + dark); translations hi/ta/vi complete (checked in CI).

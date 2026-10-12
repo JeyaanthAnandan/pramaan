@@ -72,6 +72,18 @@ bundled statement (`demo/supplier`).
 |---|---|
 | ![Supplier upload link](docs/screenshots/supplier-phone.jpg) | ![The money moves](docs/screenshots/supplier-money-moves.jpg) |
 
+### Plant pulse: the same bills, read for efficiency
+
+Manufacturing: intelligent operations. The gas bills and the production register that prove CBAM also
+show how the furnace ran. **Plant pulse** plots heat-treatment gas per tonne month by month against the
+plant's own median month and names the months that ran 10 % or more hot, with the excess in rupees at
+each bill's own rate, in GJ and in t CO2. On the sample, June ran **+18.5 %**: **₹2,00,905** of gas above
+the median month (135 GJ, 7.6 t CO2); April was the best month (3.26 GJ/t). Every figure is a node of the
+calculation tree, so the Evidence Lens opens it down to the June bill and its printed rate. *Ask about this
+report* knows these figures too ("Where is my plant wasting gas?").
+
+![Plant pulse](docs/screenshots/plant-pulse.jpg)
+
 ### Design: motion that explains
 
 The "Mill Certificate" look (IBM Plex, paper and navy ink, statuses drawn as stamps) moves only
@@ -173,14 +185,14 @@ an implied 2.820) are logged in [docs/EC_EXAMPLE_NOTES.md](docs/EC_EXAMPLE_NOTES
 ## Evaluation
 
 `backend/eval/run_extraction_eval.py` runs the real workflow on the 24-document photographed set
-(213 ground-truth fields with exact regions) and reports field accuracy, region hit rate (IoU ≥
+(222 ground-truth fields with exact regions) and reports field accuracy, region hit rate (IoU ≥
 0.5), two-reader agreement, human-review rate and time. The results appear on the **Metrics**
 page; the full report is in [backend/eval/report.md](backend/eval/report.md).
 
 | Run | Field accuracy | Two-reader agreement | Review rate | 24 docs → report |
 |---|---|---|---|---|
 | Live Gemini (3.8 Flash + 3.5 Flash-Lite), after the clean-up below | _pending — next live eval_ | _pending_ | _pending_ | _pending_ |
-| Live Gemini, first run on Cloud Run (2026-10-12, before the clean-up) | 83.6 % (178/213) | 98.6 % | 1.4 % | 392 s |
+| Live Gemini, first run on Cloud Run (2026-10-12, before the clean-up; that day's 213-field set) | 83.6 % (178/213) | 98.6 % | 1.4 % | 392 s |
 | Replay of ground truth (harness self-check, **not a model score**) | 100 % | 99.5 % | 0.5 % | 1.3 s |
 
 **What the first live run taught us.** Gemini read almost every figure right; the misses were about
