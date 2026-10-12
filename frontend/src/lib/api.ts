@@ -202,7 +202,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  health: () => req<any>("/healthz"),
+  health: () => req<any>("/api/health"),
   demoLoad: (replay = false) => req<{ project_id: string; run_id: string; source: string }>("/api/demo/load", { method: "POST", body: JSON.stringify({ replay }) }),
   project: (pid: string) => req<ProjectBundle>(`/api/projects/${pid}`),
   createProject: (body: { name: string; company: string; country?: string; city?: string; months_to?: number }) =>

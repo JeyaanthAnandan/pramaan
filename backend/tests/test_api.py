@@ -31,6 +31,7 @@ def test_healthz(client: TestClient) -> None:
     assert h["models"]["extraction"] == "gemini-3.8-flash"
     assert h["models"]["second_reader"] == "gemini-3.5-flash-lite"
     assert h["refdata"]["files"]
+    assert client.get("/api/health").json() == h  # alias used on Cloud Run, where /healthz is reserved
 
 
 def test_sample_factory_results_match_golden(client: TestClient) -> None:

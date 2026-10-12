@@ -31,7 +31,10 @@ async def security_headers(request: Request, call_next):  # type: ignore[no-unty
     return resp
 
 
+# Cloud Run's front end reserves some paths ending in "z" (/healthz returns 404 there), so the
+# SPA and the deploy smoke test use /api/health; /healthz stays for local runs and CI.
 @app.get("/healthz")
+@app.get("/api/health")
 def healthz() -> dict[str, Any]:
     cfg = settings()
     m = refdata.manifest()
