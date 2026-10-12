@@ -160,14 +160,28 @@ page; the full report is in [backend/eval/report.md](backend/eval/report.md).
 
 | Run | Field accuracy | Two-reader agreement | Review rate | 24 docs → report |
 |---|---|---|---|---|
-| Live Gemini (3.8 Flash + 3.5 Flash-Lite) | _pending — live run not yet captured_ | _pending_ | _pending_ | _pending_ |
+| Live Gemini (3.8 Flash + 3.5 Flash-Lite), after the clean-up below | _pending — next live eval_ | _pending_ | _pending_ | _pending_ |
+| Live Gemini, first run on Cloud Run (2026-10-12, before the clean-up) | 83.6 % (178/213) | 98.6 % | 1.4 % | 392 s |
 | Replay of ground truth (harness self-check, **not a model score**) | 100 % | 99.5 % | 0.5 % | 1.3 s |
+
+**What the first live run taught us.** Gemini read almost every figure right; the misses were about
+where a value was *filed*: supplier-statement values left without a product line (which moved the
+carbon bolts from SEE 2.040 to 5.722), a month tag on an invoice number, a CN code inside a
+description, a date appended to a reference, model notes written into a number and into the
+classifier's dates. A deterministic clean-up driven by the field schema
+([`normalize.py`](backend/app/agents/normalize.py)) now runs before the second reader: re-scoring the
+same live readings gives **98.1 %** (209/213; the four left are steel grades read without the bar
+size) and the engine reproduces the golden SEE 2.040. Speed: one extraction call stalled for 254 s,
+so every Gemini call now has a time limit and a retry, and the Flash-Lite crop reads run in their
+own lane. A figure corrected by hand on the page (crossed out, rewritten) always waits for a person,
+even when both readers agree on it.
 
 Every visitor who clicks **Load sample factory** gets a private copy of the sample (so judges never see each other's approvals); `scripts/ui_smoke.py` runs the whole flow in a logged-out browser on desktop and a 360 px phone in CI and after every deploy.
 
 Agent scenarios (`backend/tests/test_agent_scenarios.py`, CI): skewed handwritten scrap log → HumanReview branch; Hindi-headed
 register → activity levels; bill with two periods; missing supplier statement → default + Precursor Lever; mismatched unit →
-review. The same five cases exist as an `adk eval` set for live runs ([backend/adk_eval](backend/adk_eval)).
+review; the slips of the first live run → cleaned before the engine; a hand-corrected figure both readers agree on → still a
+human tap. The first five cases also exist as an `adk eval` set for live runs ([backend/adk_eval](backend/adk_eval)).
 
 ## Run locally
 

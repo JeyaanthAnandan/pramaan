@@ -1,6 +1,45 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-12 IST, night (deployed to Cloud Run: https://pramaan-646454690406.asia-southeast1.run.app; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public))._
+_Last updated: 2026-10-13 IST, early morning (third mock judging on the live deployment; fixes pushed, **not deployed yet**)._
+
+## 2026-10-13 (early morning) — third mock judging, on the live deployment
+
+Judged the live URL like a judge would (desktop + phone, logged out) and pressed **Re-run agents** on a
+private copy of the sample once: the **first real Gemini run of the workflow** (24 photos, ~407k tokens).
+
+* It works end to end (no errors) but took **392 s**: classifier 31 s, extractor 254 s (one call
+  stalled for ~200 s), second reader 83 s for 213 crops, explainer 21 s.
+* It changed the headline: **€78,613 instead of €409,545, "0 of 2 lines ready", 8 red gaps.**
+  Scored against the ground truth: 83.6 % field accuracy, but the readings were nearly all right:
+  supplier-statement values had no product line (→ default precursor, P1 SEE 5.722), a junk-suffixed
+  number dropped the stainless rod tonnes, documents had month/quarter tags on document-level fields,
+  CN code inside a description, reference with a date appended, and the classifier wrote model notes
+  into every period date ("2026-05-01Bytes"), which would have reached the verifier Excel.
+* Gemini read the hand-corrected scrap figure right (15.4, both readers), so the live run had **no**
+  value for a person to approve: the two-reader catch and the *Approved* stamp would vanish from a
+  live capture.
+* Cold start with min-instances 0: **9.1 s** to the first byte. First copilot answer on a new
+  instance: **17.6 s** (the EC PDFs were parsed on the first question). "What default value applies
+  to my stainless bolts from India?" → "the pages do not state it" (the copilot does not see refdata).
+
+Fixed (tests: 143 passed + 1 skipped; UI smoke desktop + 360 px; Docker image builds):
+* `app/agents/normalize.py`: schema-driven clean-up before the second read (scope of every field,
+  one product line per single-material document from its CN code / tags / supplier, salvaged
+  numbers, CN codes as `dddd dd dd`, references without dates, ISO dates, document period from its
+  own values). Offline re-score of the live readings: **98.1 %**, golden SEE 2.040 and €409,545 again.
+* Per-call time limits + retry; Flash and Flash-Lite in separate concurrency lanes (12 / 24).
+* Second reader reports a crossed-out figure; a hand correction is always a human tap ("Confirm this
+  corrected value", ✎ badge, "13.4 crossed out on the page"); text agrees if a line of the padded crop
+  matches.
+* Copilot pages parsed at image build time (first answer in a fresh container: 0.07 s); copilot falls
+  back to cited pages if Gemini times out; Gemini-backed endpoints capped per address/hour.
+* Link previews (`og:image` card, absolute URLs filled in by the server), HEAD on the SPA, hashed
+  assets cached for a year, run timer ticks during a run.
+
+**Team, next (in order):** pull → `MIN_INSTANCES=0 scripts/deploy.sh` → on the live URL load the
+sample, **Re-run agents** once and check: < 2 min, €409,545, 1 of 2 lines ready, a corrected-value card
+→ `backend/eval/run_extraction_eval.py --mode live --capture` → redeploy → before judging plain
+`scripts/deploy.sh` (min-instances 1: check the idle cost against the ₹2,000 budget).
 
 ## 2026-10-12 (night) — deployed to Cloud Run
 
