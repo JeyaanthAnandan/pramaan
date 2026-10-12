@@ -4,6 +4,7 @@ import { motion, useAnimate } from "motion/react";
 import { AlertTriangle, Check, KeyRound, Loader2 } from "lucide-react";
 import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
+import { AskProvider } from "@/components/ReportAsk";
 import { ReadinessRing } from "@/components/Charts";
 import { WorkspaceSkeleton } from "@/components/Skeleton";
 import { api, ApiError } from "@/lib/api";
@@ -21,7 +22,9 @@ export default function Workspace() {
   return (
     <ProjectProvider pid={pid}>
       <LensProvider>
-        <Inner step={step} />
+        <AskProvider>
+          <Inner step={step} />
+        </AskProvider>
       </LensProvider>
     </ProjectProvider>
   );

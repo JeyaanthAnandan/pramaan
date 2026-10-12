@@ -8,6 +8,7 @@ import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
 import { AnimatedNumber, Collapse, SPRING, rise, stagger, useRise } from "@/lib/motion";
 import { LensNum } from "@/components/EvidenceLens";
+import { useAsk } from "@/components/ReportAsk";
 import { ContributionBar, CostBars, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
@@ -82,6 +83,7 @@ function Verdict() {
   const allReady = rd.lines_total > 0 && rd.lines_ready === rd.lines_total;
   const cols = 1 + Number(securedAnnual > 0) + Number(reachAnnual > 0);
   const rose = useRise(securedAnnual); // a supplier's verified data just landed: show what it added
+  const ask = useAsk();
   return (
     <section className="card overflow-hidden" aria-labelledby="verdict-title">
       <div className="p-5 sm:p-6">
@@ -92,9 +94,14 @@ function Verdict() {
               {t("report.title")}
             </h2>
           </div>
-          <p className="flex items-center gap-1.5 text-[12px] text-muted">
-            <MousePointerClick className="h-3.5 w-3.5" aria-hidden /> {t("report.click_hint")}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="flex items-center gap-1.5 text-[12px] text-muted">
+              <MousePointerClick className="h-3.5 w-3.5" aria-hidden /> {t("report.click_hint")}
+            </p>
+            <button className="btn-ghost min-h-[36px] px-3 text-[13px]" onClick={() => ask()}>
+              <Sparkles className="h-4 w-4 text-accent" aria-hidden /> {t("ask.title")}
+            </button>
+          </div>
         </div>
         <motion.div className={`mt-5 grid gap-3 ${cols === 3 ? "md:grid-cols-3" : cols === 2 ? "md:grid-cols-2" : ""}`} variants={stagger(0.09)} initial="hidden" animate="show">
           {securedAnnual > 0 && (

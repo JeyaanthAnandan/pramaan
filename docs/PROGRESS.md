@@ -9,6 +9,20 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 2 — "Ask about this report" (grounded in the engine's own figures)
+* Judge: the rules copilot answered method questions but not "why is *my* stainless line on the default?"
+  or "which default applies to my bolts?", the first thing a judge types. Gen AI (40 %) rewards exactly
+  grounded, verifiable answers about the user's data.
+* Built: `app/copilot/report.py` + `POST /api/projects/{pid}/ask` (passcode-protected, rate-capped):
+  ~50 facts from the result (calc-tree ids, official default values, buyer costs, what-if, readiness,
+  open items) + 4 guidance pages → Gemini 3.8 Flash cites `[F:id]` / `[Guidance N, p. X]`; the Explainer's
+  numbers guard withholds answers with numbers not in the report; timeouts and no-Gemini fall back to
+  the relevant facts (keyword + intent ranking). UI: a non-modal "Ask about this report" panel (button on
+  the verdict + floating *Ask*), suggestion chips, answers with lens chips after each number, a "Figures
+  from your report" list; the Evidence Lens opens over it and the conversation stays. en/hi/ta/vi.
+* Tests: `tests/test_report_copilot.py` (5: no-Gemini facts, grounded with cited lens nodes, invented
+  number withheld, timeout, passcode). axe 0 (light/dark, 1440/360, grounded + facts modes).
+
 ### Iteration 1 — close the Precursor Lever's loop (supplier upload link)
 * Judge: the biggest lever (rod data ≈ 90 % of SEE) ended in a letter; nothing in the product showed the
   data coming back. Impact and innovation both hinge on that loop.

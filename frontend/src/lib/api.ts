@@ -224,6 +224,7 @@ export const api = {
   share: (pid: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/share`, { method: "POST" }),
   getShare: (token: string) => req<{ summary: BuyerSummary; created_at: string }>(`/api/share/${token}`),
   letter: (pid: string, process_id: string, lang: string) => req<{ text: string; lang: string; supplier: string; facts: Record<string, string>; link: { token: string; url: string } }>(`/api/projects/${pid}/supplier-letter`, { method: "POST", body: JSON.stringify({ process_id, lang }) }),
+  reportAsk: (pid: string, question: string, lang: string) => req<ReportAnswer>(`/api/projects/${pid}/ask`, { method: "POST", body: JSON.stringify({ question, lang }) }),
   supplierLink: (pid: string, process_id: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/supplier-link`, { method: "POST", body: JSON.stringify({ process_id }) }),
   supplier: (token: string) => req<SupplierView>(`/api/supplier/${token}`),
   supplierSample: (token: string) => req<{ run_id: string; mode: string; status: string }>(`/api/supplier/${token}/sample`, { method: "POST" }),
@@ -256,3 +257,16 @@ export interface SupplierView {
 }
 
 export const supplierImageUrl = (token: string, docId: string) => `/api/supplier/${token}/documents/${docId}/image`;
+
+/** One figure of the report, citable by an answer; ``node`` opens the Evidence Lens. */
+export interface ReportFact { id: string; label: string; value: string; unit: string; node: string | null }
+export interface ReportAnswer {
+  mode: "grounded" | "facts";
+  answer: string | null;
+  note?: "no_gemini" | "withheld" | "no_answer";
+  facts: ReportFact[];
+  relevant: string[];
+  cited?: string[];
+  citations: { doc: string; page: number }[];
+  model?: string;
+}

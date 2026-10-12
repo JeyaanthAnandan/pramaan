@@ -50,6 +50,9 @@ register and scrap log, export invoices) → 213 values, each with its region on
 * **The LLM never does arithmetic**: Decimal engine; Explainer guard rejects numbers that are not in
   the calculation tree.
 * Rules copilot answers with **page citations** from the EC guidance.
+* **Ask about this report**: "Why is my stainless line on the EU default?" → an answer from the engine's
+  own figures (cited by calculation-tree id, each opening the Evidence Lens) + guidance pages; the numbers
+  guard withholds any answer with a number that is not in the report.
 
 ## 6. USP 1–2: Evidence Lens + two readers
 * SEE 2.040 → formula → **38 values from 12 documents** → the highlighted region on the photo,

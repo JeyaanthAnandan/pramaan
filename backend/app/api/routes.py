@@ -748,6 +748,18 @@ async def copilot_ask(request: Request, body: Ask) -> dict[str, Any]:
     return await answer(q, body.lang)
 
 
+@router.post("/projects/{pid}/ask")
+async def report_ask(pid: str, request: Request, body: Ask) -> dict[str, Any]:
+    """Ask about this report: grounded in the engine's own figures (cited, numbers-guarded) and the guidance."""
+    from app.copilot.report import answer
+
+    _ai_limit(request, "copilot")
+    q = body.question.strip()
+    if not q or len(q) > 500:
+        raise HTTPException(422, "question must be 1-500 characters")
+    return await answer(_project(pid), _result(pid), q, body.lang)
+
+
 @router.get("/copilot/examples")
 def copilot_examples() -> list[str]:
     from app.copilot.service import EXAMPLES
