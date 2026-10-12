@@ -38,12 +38,12 @@ Industrial Efficiency) by team **Innovative Warriors**.
 
 | 1 · **Add your documents** | 2 · **What's missing?** (or answer by **voice** in Hindi / Punjabi / Tamil) | 3 · **Here's your proof** |
 |---|---|---|
-| Phone camera or upload. Live agent timeline. Your own factory: type your product lines (every CN code checked against the official files as you type) or let the **ProductLines agent** propose them from your export and rod invoices. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt (complete, checked in CI). | **What to do next** with the money attached, SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, operations levers, PDF / Excel / verifier pack, buyer link. |
+| Phone camera or upload. Live agent timeline. Your own factory: type your product lines (every CN code checked against the official files as you type) or let the **ProductLines agent** propose them from your export and rod invoices. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt (complete, checked in CI). | The answer first: **what your data saves your buyer a year, what more is within reach, how many product lines are ready**. Then **What to do next** with the money attached, SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, operations levers, PDF / Excel / verifier pack, buyer link. |
 
 | What to do next | Operations levers |
 |---|---|
 | ![What to do next](docs/screenshots/next-steps.jpg) | ![Operations levers](docs/screenshots/levers.jpg) |
-| The report opens with the decisions: ask Indus Stainless Rods for verified data (saves the buyer €306/t, about €163,000 a year), one value to approve, send the carbon-steel data to the buyer (€341/t). The buyer's cost is the same number everywhere: the cheaper of your data and the EU default. | Rod supplier's verified data, scrap rate and heat treatment (gas per tonne or electric), computed by the same Decimal engine, with the rod and gas saved per year. Less scrap lowers SEE, but SEFA falls with it, so the 2026 cost moves little: the panel says so. |
+| The report opens with the verdict (your data saves the buyer €409,545 a year; €163,002 more is within reach; 1 of 2 product lines ready to declare) and then the decisions: ask Indus Stainless Rods for verified data (€306/t), one value to approve, send the carbon-steel data to the buyer (€341/t). The buyer's cost is the same number everywhere: the cheaper of your data and the EU default. | Rod supplier's verified data, scrap rate and heat treatment (gas per tonne or electric), computed by the same Decimal engine, with the rod and gas saved per year. Less scrap lowers SEE, but SEFA falls with it, so the 2026 cost moves little: the panel says so. |
 
 | Evidence Lens | Blind two-reader check |
 |---|---|
@@ -53,6 +53,30 @@ Industrial Efficiency) by team **Innovative Warriors**.
 | Money on the table | Proof against the Commission's examples |
 |---|---|
 | ![Money on the table](docs/screenshots/money.jpg) | ![EC proof](docs/screenshots/proof.jpg) |
+
+### Design: motion that explains
+
+The "Mill Certificate" look (IBM Plex, paper and navy ink, statuses drawn as stamps) moves only
+where the movement says something:
+
+* **Computed numbers settle into place.** The verdict and SEE count up the first time you see them, and
+  every lever value tweens when you change an input, so you see what moved and by how much.
+* **Two readers, in order.** In the Evidence Lens and on the review card, reader 1's value appears,
+  then reader 2's (crop only), then the verdict: ✓ agree, or ≠ with the mass-balance check lighting up
+  the reading it supports.
+* **Read here.** The photo glides to the value, the rest of the page dims, and a reading beam sweeps
+  the box once.
+* **Approved is a stamp.** Approving a value presses an *Approved* stamp onto the card before it folds
+  away, a toast confirms the recalculation, and the readiness ring moves.
+* **Where you are.** Drilling into a number slides forward and *Back* slides back, with a trail of
+  the path; the steps and the report's section bar have a sliding highlight; the agent timeline fills
+  as each agent finishes and documents show a scanner line while they are read.
+* **Time flows left to right.** The money chart draws 2026 → 2034; lines morph when you switch
+  product or turn on the supplier what-if.
+
+Everything respects *reduced motion* (numbers appear final, nothing slides), works at 360 px, in
+light and dark, in all four languages, and passes axe (WCAG 2.1 A/AA: 0 violations on every page and
+dialog).
 
 ### The sample factory (fictional)
 

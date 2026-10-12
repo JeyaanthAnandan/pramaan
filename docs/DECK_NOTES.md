@@ -32,6 +32,11 @@ register and scrap log, export invoices) → 213 values, each with its region on
 * Own factory: product lines typed (CN codes checked live against the official files) or
   proposed by the ProductLines agent from export and rod invoices; private project with a
   passcode (hash only stored).
+* Design (UX 10 % and the Best UI/UX award): the report answers first (€409,545 a year saved for the
+  buyer, +€163,002 within reach, 1 of 2 lines ready); motion only where it explains — numbers settle
+  into place, reader 1 → reader 2 → verdict, a reading beam on the photo, an *Approved* stamp, the
+  agent timeline filling as agents finish; reduced-motion safe, 360 px, light/dark, 4 languages,
+  axe 0 WCAG A/AA violations.
 
 ## 5. Gen AI core (40 % of the score)
 * **ADK 2.11 Workflow** graph: Intake → Classifier → **ProductLines** → Extractor → SecondReader →

@@ -1,6 +1,39 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-12 IST (judge-review fixes; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public); not deployed yet)._
+_Last updated: 2026-10-12 IST, evening (UI and motion pass; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public); not deployed yet)._
+
+## 2026-10-12 (evening) — UI and motion pass (second mock judging, UX focus)
+
+* **Answer-first report**: a verdict panel opens the report (your data saves the buyer €409,545 a
+  year; +€163,002 within reach if Indus sends data; 1 of 2 product lines ready), with the provisional
+  notice as its footer; a sticky "on this page" bar follows the section in view; product cards draw
+  the buyer's two costs to scale and mark the one the buyer pays.
+* **Motion with meaning** (`motion` 12.43.0, `src/lib/motion.tsx`): numbers count up the first time
+  they are seen and tween when inputs change; reader 1 → reader 2 → verdict (✓ or ≠, the mass balance
+  lights up the reading it supports); the photo glides to the value, the page around it dims and a
+  reading beam sweeps the box; approving presses an *Approved* stamp, folds the card away and a toast
+  confirms; the lens slides forward and back with a path trail; steps and segmented controls have a
+  sliding highlight; the agent timeline fills as agents finish and documents show a scanner line while
+  they are read; the money chart draws 2026 → 2034 and morphs when the product or what-if changes; the
+  levers chart adds the scenario line only once something changed; landing hero tells the two-reader
+  story with pause / step controls, and a pipeline strip shows one photo's path; EC proof checks tick
+  in turn on every run; skeletons instead of spinners; theme switch cross-fades.
+* Reduced motion: numbers appear final, nothing slides (MotionConfig `reducedMotion="user"` + CSS).
+* Fixes found on the way: long supplier names pushed the phone layout sideways in Tamil and Vietnamese
+  (badges now wrap); buyer-page list markup, monitoring-plan contrast and the letter dialog's scroll
+  area (keyboard) — all axe findings on screens not scanned before.
+* Judging robustness: sample loads per address raised from 40 to 120 an hour (a room of judges can
+  share one office address); if the limit is ever hit, the landing page reopens the visitor's earlier
+  sample copy instead of showing an error.
+* Dependencies: `react-router-dom` 6.30.6, `vite` 5.4.21, `postcss` 8.5.28 (security fixes, patch
+  level). Remaining `npm audit` items are dev tooling that needs a major upgrade (Tailwind 4, Vite 8).
+  First-load JS is 175 KB gzip (+46 KB for `motion`).
+
+Checks: backend 127 passed + 1 opt-in skipped; ruff, mypy clean; frontend `npm ci`, `check:i18n` and
+build clean; `scripts/ui_smoke.py` passes (desktop + 360 px); axe: 0 WCAG 2.1 A/AA violations on every
+page, the Evidence Lens and the letter dialog, light and dark, and on the phone; no horizontal scroll
+at 360 px in EN/HI/TA/VI; README screenshots and the Evidence Lens GIF regenerated.
+
 
 ## 2026-10-12 — fixes from a mock judging against the official rubric
 
