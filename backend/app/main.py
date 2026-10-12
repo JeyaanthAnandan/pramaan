@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app import refdata
@@ -62,13 +62,29 @@ async def refdata_error(_: Request, exc: refdata.RefdataError) -> JSONResponse:
     return JSONResponse({"detail": f"reference data: {exc}"}, status_code=422)
 
 
+class HashedAssets(StaticFiles):
+    """Vite puts a content hash in every asset name, so browsers may keep them for a year."""
+
+    async def get_response(self, path: str, scope: Any) -> Response:
+        resp = await super().get_response(path, scope)
+        if resp.status_code == 200:
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return resp
+
+
 static: Path = settings().static_dir
 if static.exists():
-    app.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
+    app.mount("/assets", HashedAssets(directory=static / "assets"), name="assets")
+    _index: dict[str, Any] = {}  # index.html, re-read when a new build replaces it
 
-    @app.get("/{path:path}", include_in_schema=False)
-    def spa(path: str) -> FileResponse:
+    # GET and HEAD: link-preview crawlers and uptime checks often send HEAD first
+    @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
+    def spa(path: str, request: Request) -> Response:
         candidate = (static / path).resolve()
         if path and candidate.is_file() and str(candidate).startswith(str(static.resolve())):
             return FileResponse(candidate)
-        return FileResponse(static / "index.html", headers={"Cache-Control": "no-cache"})
+        idx = static / "index.html"
+        if _index.get("mtime") != (m := idx.stat().st_mtime):
+            _index.update(mtime=m, html=idx.read_text())
+        origin = settings().public_base_url or str(request.base_url).rstrip("/")
+        return HTMLResponse(_index["html"].replace("__ORIGIN__", origin), headers={"Cache-Control": "no-cache"})

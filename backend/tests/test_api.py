@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.agents.explainer import guard
+from app.config import settings
 from app.main import app
 
 
@@ -141,6 +142,25 @@ def test_copilot_retrieval_mode_cites_pages(client: TestClient) -> None:
     a = client.post("/api/copilot/ask", json={"question": "Is scrap counted?"}).json()
     assert a["mode"] == "retrieval" and a["citations"]
     assert any(c["doc"] in {"Guidance 3", "Guidance 5d"} for c in a["citations"])
+
+
+def test_gemini_backed_endpoints_are_capped_per_address(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.api import routes
+
+    monkeypatch.setitem(routes.AI_CALLS_PER_HOUR, "copilot", 2)
+    routes._ai_log.clear()
+    h = {"x-forwarded-for": "203.0.113.9"}
+    codes = [client.post("/api/copilot/ask", json={"question": "Is scrap counted?"}, headers=h).status_code for _ in range(3)]
+    other = client.post("/api/copilot/ask", json={"question": "Is scrap counted?"}, headers={"x-forwarded-for": "203.0.113.10"})
+    routes._ai_log.clear()
+    assert codes == [200, 200, 429] and other.status_code == 200
+
+
+@pytest.mark.skipif(not (settings().static_dir / "index.html").exists(), reason="frontend not built")
+def test_spa_answers_head_and_fills_link_preview_urls(client: TestClient) -> None:
+    assert client.head("/").status_code == 200  # link-preview crawlers and uptime checks
+    html = client.get("/p/demo-x/report").text
+    assert 'property="og:image" content="http://testserver/og.jpg"' in html and "__ORIGIN__" not in html
 
 
 def test_explainer_guard_rejects_invented_numbers(client: TestClient) -> None:

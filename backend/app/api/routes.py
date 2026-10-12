@@ -477,13 +477,14 @@ def put_product_lines(pid: str, body: LinesIn) -> dict[str, Any]:
 
 
 @router.post("/projects/{pid}/product-lines/suggest")
-async def suggest_product_lines(pid: str) -> dict[str, Any]:
+async def suggest_product_lines(request: Request, pid: str) -> dict[str, Any]:
     """ProductLines agent on demand: Gemini proposes lines from the uploaded export and steel-input
     invoices (classifying them first if needed). Nothing is saved until the owner confirms."""
     from app.agents.product_lines import propose
     from app.agents.readers import classify
 
     p = _project(pid)
+    _ai_limit(request, "suggest")
     if not settings().gemini_configured:
         raise HTTPException(503, "Proposing product lines needs live Gemini, which is not configured on this server.")
     docs = [d for d in store().list_documents(pid) if d.content_type.startswith("image/")]
@@ -575,6 +576,7 @@ VOICE_FIELDS = {"scrap_t", "produced_t", "rod_consumed_t"}
 
 @router.post("/projects/{pid}/voice")
 async def voice_note(
+    request: Request,
     pid: str,
     audio: UploadFile = File(...),  # noqa: B008
     field_key: str = Form(...),
@@ -586,6 +588,7 @@ async def voice_note(
     from app.agents.voice import read_value, transcribe
 
     p = _project(pid)
+    _ai_limit(request, "voice")
     if not settings().gemini_configured:
         raise HTTPException(503, "Voice notes need live Gemini (gemini-3.5-transcribe), which is not configured on this server.")
     if field_key not in VOICE_FIELDS or process not in {x.id for x in p.processes} or period not in p.months:
@@ -688,10 +691,26 @@ class Ask(BaseModel):
     lang: str = "en"
 
 
+_ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+# Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
+# cannot run up the demo's bill; the caps sit well above what a room of judges asks.
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30}
+
+
+def _ai_limit(request: Request, bucket: str) -> None:
+    window, t = _ai_log[(bucket, _client_ip(request))], time.time()
+    while window and t - window[0] > 3600:
+        window.popleft()
+    if len(window) >= AI_CALLS_PER_HOUR[bucket]:
+        raise HTTPException(429, "too many questions from this address in the last hour; try again later")
+    window.append(t)
+
+
 @router.post("/copilot/ask")
-async def copilot_ask(body: Ask) -> dict[str, Any]:
+async def copilot_ask(request: Request, body: Ask) -> dict[str, Any]:
     from app.copilot.service import answer
 
+    _ai_limit(request, "copilot")
     q = body.question.strip()
     if not q or len(q) > 500:
         raise HTTPException(422, "question must be 1-500 characters")
