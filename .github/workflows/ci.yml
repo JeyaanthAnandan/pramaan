@@ -43,6 +43,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - name: Translations cover every English key (hi, ta, vi)
+        run: npm run check:i18n
       - name: Type-check and build
         run: npm run build
   secrets:
