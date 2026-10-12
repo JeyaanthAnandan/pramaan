@@ -2,7 +2,7 @@
  "runs": {
   "replay": {
    "mode": "replay",
-   "ran_at": "2026-10-10T21:52:33+00:00",
+   "ran_at": "2026-10-12T09:46:32+00:00",
    "models": {
     "extraction": "replay",
     "second_reader": "replay"
@@ -16,8 +16,8 @@
    "extracted_values": 213,
    "two_reader_agreement": 0.9953051643192489,
    "review_rate": 0.004694835680751174,
-   "total_seconds": 1.3546688749920577,
-   "seconds_per_doc": 0.0564445364580024,
+   "total_seconds": 1.3174187920230906,
+   "seconds_per_doc": 0.054892449667628775,
    "tokens_total": 0,
    "run_status": "done",
    "run_error": null,

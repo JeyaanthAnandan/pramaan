@@ -15,7 +15,8 @@ flowchart LR
     API["FastAPI + SSE"]
     subgraph WF["ADK 2.x Workflow"]
       I[Intake] --> C["Classifier<br/>gemini-3.8-flash"]
-      C --> E["Extractor<br/>gemini-3.8-flash · box_2d"]
+      C --> PL["ProductLines<br/>owner's lines, or gemini-3.8-flash<br/>proposal + refdata CN check"]
+      PL --> E["Extractor<br/>gemini-3.8-flash · box_2d"]
       E --> S["SecondReader<br/>gemini-3.5-flash-lite · crop only"]
       S -- mismatch --> H["HumanReview<br/>(Task: tap to approve)"]
       S -- all agree --> K
@@ -34,7 +35,7 @@ flowchart LR
   LOG[["Cloud Logging + Trace"]]
   UI <--> API
   API --> WF
-  C & E & S & X & COP --> GEM
+  C & PL & E & S & X & COP --> GEM
   CALC --> REF
   API --> FS
   API --> GCS
@@ -51,12 +52,13 @@ duration, model, tokens) that stream over SSE and are saved as the run receipt.
 |---|---|---|
 | Intake | code | documents for the run |
 | Classifier | `gemini-3.8-flash`, medium media resolution, thinking low | `{doc_id, doc_type, languages[], period, title, confidence}` |
+| ProductLines | the owner's lines; or, when none are set (live mode), `gemini-3.8-flash` over up to 8 export / rod-invoice / supplier-statement images, thinking medium (`app/agents/product_lines.py`) | `ProcessDef{id, name, cn, precursor_name, precursor_cn, precursor_supplier, source: ai, rationale}`; every CN code must pass `app/cbam/products.cn_info` (8 digits, iron & steel benchmark row, default value for the country, column A/B benchmarks usable) or it is rejected; lines stay `processes_confirmed = false` until the owner confirms them (an amber set-up gap) |
 | Extractor | `gemini-3.8-flash`, **high** media resolution, thinking medium; per-doc-type field schema (`app/agents/schemas.py`) | `Field{field_key, value_text, value_num, unit, box_2d[ymin,xmin,ymax,xmax] 0-1000, page, label, period, process}` |
 | SecondReader | `gemini-3.5-flash-lite`, thinking minimal, **only the 15 %-padded crop**, never the first reading | `{reading_value, reading_unit, agrees, delta}`; numbers within 0.5 %, units exact after normalisation → `VERIFIED_2R`, else `NEEDS_REVIEW` and the graph routes to HumanReview |
 | HumanReview | UI task | amber values wait for a tap: `PATCH /api/projects/{pid}/evidence/{eid}` → `APPROVED` (user + timestamp) and deterministic recalculation |
 | ControlChecks | code | `Check{name, formula, inputs, result, tolerance, status}` — mass balance (total and monthly), purchases vs consumption vs stock, gas invoice internal consistency, invoice coverage, exports ≤ production, export CN = process CN, supplier verification, electricity excluded |
 | GapFinder | code (+ Calculator tool) | checklist per process and CN group, plain-language question per gap (i18n EN/HI/TA/VI), who to ask, suggested document; mass-balance hint for disagreements |
-| Calculator | `app/cbam` (Decimal), exposed as an ADK `FunctionTool` | result + calculation tree: every node → evidence id (with region), refdata entry (with document, page, SHA-256) or a stated assumption |
+| Calculator | `app/cbam` (Decimal), exposed as an ADK `FunctionTool` | result + calculation tree: every node → evidence id (with region), refdata entry (with document, page, SHA-256) or a stated assumption. Per product line it also costs the 2026 imports on EU default values and records which path is cheaper for the buyer (`buyer.basis_2026`), readiness per line, and operational KPIs (yield, scrap share of rod, gas GJ/t) |
 | Explainer | `gemini-3.8-flash` (live) or template | sections with page citations; a guard rejects any number not present in the calculation tree |
 | Reporter | code | PDF (WeasyPrint), Excel (openpyxl), verifier pack (zip), buyer summary |
 
@@ -65,6 +67,25 @@ duration, model, tokens) that stream over SSE and are saved as the run receipt.
 Numbers enter the engine only from evidence records or refdata. The model reads and boxes
 values; the Decimal engine computes SEE, SEFA, certificates and costs; the Explainer may only
 repeat numbers that exist in the calculation tree (`tests/test_api.py::test_explainer_guard…`).
+
+## One buyer cost
+
+The EU buyer pays the cheaper of the exporter's data and the EU default. While a precursor is on
+its marked-up default value, the good's own default can be cheaper (the sample's stainless bolts:
+€576/t on the exporter's data, €402/t on the default). The Calculator therefore keeps both paths
+(`{pid}.cost.total`, `{pid}.cost_default.total`) and a `{pid}.cost_buyer.total` node with the
+cheaper one; the report cards, the Precursor Lever, "What to do next", the levers panel, the PDF
+and the Excel workbook all read these fields, so the same number appears everywhere.
+
+## Privacy
+
+An exporter's own project is private: `POST /api/projects` returns a passcode once (12
+characters without look-alikes) and sets an HttpOnly, SameSite=Lax cookie scoped to
+`/api/projects/{pid}`; only `sha256(pid, passcode)` is stored. A router-level dependency
+(`app/access.py`) checks every `/api/projects/{pid}/…` call (cookie or `X-Pramaan-Key`), and
+`POST …/unlock` (rate-limited) opens the project on another device. Uploaded photos of private
+projects are served with `Cache-Control: private`. The fictional sample copies stay open, and
+`/api/share/{token}` serves only the buyer summary.
 
 ## Reference data
 
@@ -81,6 +102,8 @@ the UI.
 
 ```
 projects/{pid}
+  (project)            company, country, period, processes[] (source: sample | owner | ai),
+                       processes_confirmed, access_hash (never returned by the API)
   documents/{doc_id}   uri (gs://…), doc_type, languages, period, sha256, state
   evidence/{eid}       doc_id, page, field_key, value, unit, box_2d, extractor_model,
                        second_reading{…}, status, approved_by, approved_at, history[]

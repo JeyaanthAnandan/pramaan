@@ -4,7 +4,10 @@
 (fasteners, wire, pipes). It turns **phone photos of bills, invoices and production logs** into
 **verifier-ready EU CBAM embedded-emissions data**. Every number traces back to the exact region of
 the source document. It also shows, in € and ₹, **what staying on EU default values costs the EU
-buyer** — and which supplier's data would change that.
+buyer** — and which supplier's data would change that. In the theme's words, it turns a factory's
+operational data (bills, production registers, scrap logs) into insights (SEE per product and where
+it comes from), recommendations (**what to do next**, with the money attached) and actions (the
+supplier letter in English and Hindi, the buyer link, the operations levers).
 
 Built for the **Google Cloud AI Builder Cup 2026** (Manufacturing: Intelligent Operations &
 Industrial Efficiency) by team **Innovative Warriors**.
@@ -35,7 +38,12 @@ Industrial Efficiency) by team **Innovative Warriors**.
 
 | 1 · **Add your documents** | 2 · **What's missing?** (or answer by **voice** in Hindi / Punjabi / Tamil) | 3 · **Here's your proof** |
 |---|---|---|
-| Phone camera or upload. Live agent timeline. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt. | SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, PDF / Excel / verifier pack, buyer link. |
+| Phone camera or upload. Live agent timeline. Your own factory: type your product lines (every CN code checked against the official files as you type) or let the **ProductLines agent** propose them from your export and rod invoices. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt (complete, checked in CI). | **What to do next** with the money attached, SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, operations levers, PDF / Excel / verifier pack, buyer link. |
+
+| What to do next | Operations levers |
+|---|---|
+| ![What to do next](docs/screenshots/next-steps.jpg) | ![Operations levers](docs/screenshots/levers.jpg) |
+| The report opens with the decisions: ask Indus Stainless Rods for verified data (saves the buyer €306/t, about €163,000 a year), one value to approve, send the carbon-steel data to the buyer (€341/t). The buyer's cost is the same number everywhere: the cheaper of your data and the EU default. | Rod supplier's verified data, scrap rate and heat treatment (gas per tonne or electric), computed by the same Decimal engine, with the rod and gas saved per year. Less scrap lowers SEE, but SEFA falls with it, so the 2026 cost moves little: the panel says so. |
 
 | Evidence Lens | Blind two-reader check |
 |---|---|
@@ -58,10 +66,10 @@ Example 3, so judges can check the numbers:
 |---|---|---|
 | SEE | **2.040 t CO2/t** (full precision 2.0399 = EC Example 3) | **8.889** — rod on India default 6.480 + 10 % |
 | Rod share of SEE | 90 % | 98 % |
-| Buyer cost 2026, actual vs default | **€45 vs €386 /t → €341/t (₹36,994/t) on the table** | €576 vs €402 /t — actual is *worse* than default |
+| Buyer cost 2026, actual vs default | **€45 vs €386 /t → €341/t (₹36,994/t) on the table** | €576 vs €402 /t — actual is *worse* than default, so the buyer uses the default (€402/t) |
 | If the rod supplier sends verified data | — | SEE **2.371** (= EC G2), **€97/t** |
 
-**Decarbonisation what-if:** try another rod supplier's verified data or electric heat treatment (only direct emissions count for steel, so electric heating removes the own-process share). For the stainless bolts, EC-Example-2 supplier data plus electric heating gives SEE 8.889 → 2.174 and buyer cost €576 → €81 /t.
+**Operations levers:** try another rod supplier's verified data, a lower scrap rate, less gas per tonne or electric heat treatment (only direct emissions count for steel, so electric heating removes the own-process share). For the stainless bolts, EC-Example-2 supplier data plus electric heating gives SEE 8.889 → 2.174 and the buyer's cost €402 (EU default today) → €81 /t. For the carbon bolts, scrap 15 % → 10 % saves 111 t of rod a year and lowers SEE to 1.937, but the 2026 buyer cost moves only €45 → €43 /t, because the free allocation falls with the rod too.
 
 **Myth-buster:** the buyer does not pay "2.5 % of emissions" in 2026. The Commission's formula
 subtracts a benchmark-based free allocation, so everything above the benchmark is payable. In EC
@@ -72,15 +80,17 @@ Example 1, 3,690 certificates are due on 15,670 t embedded: 23.5 %, not 5 %.
 ```mermaid
 flowchart LR
   P["Phone / PWA"] --> API["Cloud Run · FastAPI + SSE + SPA"]
-  API --> I[Intake] --> C["Classifier<br/>gemini-3.8-flash"] --> E["Extractor<br/>box_2d per value"] --> S["SecondReader<br/>gemini-3.5-flash-lite · crop only"]
+  API --> I[Intake] --> C["Classifier<br/>gemini-3.8-flash"] --> PL["ProductLines<br/>owner's lines, or proposed from invoices<br/>(CN codes checked vs refdata)"] --> E["Extractor<br/>box_2d per value"] --> S["SecondReader<br/>gemini-3.5-flash-lite · crop only"]
   S -- mismatch --> H["HumanReview<br/>tap to approve"] --> K
   S -- agree --> K["ControlChecks (code)"] --> G["GapFinder"] --> X["Explainer<br/>numbers guard"] --> R["Reporter"]
   G -. ADK FunctionTool .-> CALC["Calculator<br/>Decimal CBAM engine"] --> REF[("Official refdata<br/>+ SHA-256 manifest")]
   API --> FS[("Firestore")] & GCS[("Cloud Storage")]
-  C & E & S & X --> GEM[["Gemini · Agent Platform (global)"]]
+  C & PL & E & S & X --> GEM[["Gemini · Agent Platform (global)"]]
 ```
 
 * **ADK 2.11 Workflow** graph with route-based branching (mismatch → HumanReview). The Calculator is an ADK `FunctionTool`. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+* **ProductLines agent** sets up an exporter's own project: when no product lines are set, Gemini 3.8 Flash reads the export invoices (CN codes of the goods) and the rod invoices / supplier statements and proposes one line per exported CN code, linked to its steel input. Code validates every code against the official benchmark and default-value files (an aluminium code, for example, is rejected), and the owner confirms the lines before they count.
+* **Private by default**: an exporter's own project gets a passcode (only a SHA-256 hash is stored) and an HttpOnly cookie scoped to that project; another device needs the passcode. The fictional sample copies stay open, and the buyer link shows the summary only.
 * **google-genai Interactions API** (`client.aio.interactions.create`): `response_format` JSON schema, `generation_config.thinking_level`, **high** media resolution for document images. `temperature`, `top_p` and `top_k` are never set, and only Gemini 3.x models are used (a test rejects 2.x / Veo / deep-research).
 * **The LLM never computes a compliance number.** The Decimal engine does. The Explainer may only repeat numbers that exist in the calculation tree (guard + test).
 * **No hand-typed regulatory values.** `backend/refdata/build_refdata.py` parses the Commission's default-values and benchmark Excel files, Guidance 3/4 tables, Implementing Decision 2026/1862 (CSCF) and the certificate-price page into JSON with a **SHA-256 manifest**. CI re-runs the parser and fails on drift. Anything else is an explicit, cited **assumption** shown as such in the UI (FX, MMBtu→GJ, NCV/GCV, projection price).
@@ -96,7 +106,7 @@ service account, no API keys).
 1. The Extractor returns every required field with `value`, `unit`, `box_2d = [ymin, xmin, ymax, xmax]` (0–1000), page and label.
 2. For each field the region is cropped with 15 % padding, and **only the crop** goes to Gemini 3.5 Flash-Lite with the kind of value expected — never the first reading.
 3. Readings are normalised (Indian digit grouping, decimal commas, unit aliases). Numbers must agree within **0.5 %**, and units must match after normalisation when visible. Agreement → `VERIFIED_2R` (green). Otherwise `NEEDS_REVIEW` (amber) with both readings and the crop. A human tap → `APPROVED` with user and timestamp, followed by a deterministic recalculation.
-4. Readiness = share of SEE-relevant inputs that are `VERIFIED_2R` or `APPROVED`.
+4. Readiness = share of SEE-relevant inputs that are `VERIFIED_2R` or `APPROVED`, shown next to how many product lines can be declared on actual data (the sample: 99 % of inputs, but 1 of 2 lines, because the stainless rod is still on its default).
 
 ## Proof: EC examples reproduced (golden tests)
 
@@ -174,7 +184,7 @@ docs/      BUILD_BRIEF · ARCHITECTURE · EC_EXAMPLE_NOTES · DEMO_SCRIPT · DEC
 * **Pramaan is not a substitute for an accredited verifier.** Outputs are provisional (year-to-date) until verified.
 * The sample factory and all its documents are fictional and watermarked "SAMPLE — FICTIONAL".
 * The live extraction metrics above are pending until the project's Gemini credentials are configured.
-* Scope: iron & steel goods; other CBAM sectors are not modelled. No CBAM Registry integration, no payments, no user accounts.
+* Scope: iron & steel goods; other CBAM sectors are not modelled. No CBAM Registry integration, no payments, no user accounts (own projects are protected by a passcode).
 * The Commission's Excel files are informational; the legally valid values are in the Official Journal.
 * Projections beyond 2026 use an editable certificate-price assumption; CSCF after 2030 and benchmark (2) after 2030 are preliminary.
 

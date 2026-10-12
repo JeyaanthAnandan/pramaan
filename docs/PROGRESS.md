@@ -1,6 +1,44 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-11 ~04:00 IST (end of the overnight autonomous build session; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public); not deployed)._
+_Last updated: 2026-10-12 IST (judge-review fixes; `main` pushed to https://github.com/JeyaanthAnandan/pramaan (public); not deployed yet)._
+
+## 2026-10-12 — fixes from a mock judging against the official rubric
+
+A mock judging against the official rubric (aibuildercup.com: Technical merit & Gen AI 40 %,
+Problem & impact 25 %, Innovation 25 %, UX 10 %) put the build at about 68/100 *if submitted
+as it was*, mainly because nothing is deployed and every screen said "Gemini not used". Done since,
+without credentials:
+
+* **One buyer cost everywhere.** The engine also costs the 2026 imports on EU default values and
+  records the cheaper path; report cards, Precursor Lever, "What to do next", levers, PDF and Excel
+  agree (stainless bolts: the buyer uses the EU default, €402/t, until the rod data arrives).
+* **"What to do next"** at the top of the report (deterministic, with € attached), in-page nav,
+  passed checks collapsed, plain-language text clamped.
+* **Readiness per product line**: "1 of 2 product lines can be declared on actual data" next to
+  the 99 % input score.
+* **Operations levers**: scrap rate and gas per tonne next to supplier data and electric heating,
+  with rod and gas saved per year and an honest note that SEFA falls with the rod too.
+* **Own factory set-up**: product lines typed with live CN checks, or proposed by the new
+  **ProductLines** ADK node / `POST /product-lines/suggest` (Gemini 3.8 Flash over export and
+  rod invoices; every code validated against refdata; owner confirms). Reporting period and
+  country editable. Tested with a scripted model (`tests/test_setup_and_access.py`).
+* **Private projects**: passcode (hash only), project-scoped HttpOnly cookie, unlock screen,
+  rate-limited unlock; samples stay open.
+* Translations complete for hi, ta and vi (`npm run check:i18n`, in CI); plural forms fixed.
+* Bug found by the extended smoke test and fixed: opening the supplier letter from "What to do
+  next" unmounted the dialog.
+* README / ARCHITECTURE / DEMO_SCRIPT / DECK_NOTES and screenshots + GIF refreshed for the
+  "Mill Certificate" theme.
+
+Checks: backend 126 passed + 1 opt-in skipped; ruff, ruff format, mypy clean; frontend build
+clean; `scripts/ui_smoke.py` passes (desktop + 360 px phone, incl. own project + passcode on a
+second device); axe: 0 WCAG A/AA violations on report, gaps, capture, own-project capture (light
+and dark).
+
+Still needs the team (in order): gcloud sign-in as sudarssan73@gmail.com + billing → setup,
+live eval (`--mode live --capture`), deploy; record the video and build the deck from the live
+run; one conversation with a real exporter, consultant or verifier for a quote; photograph ~10
+printed sample documents on a phone (crumpled, bad light) as a "hard" eval set.
 
 ## Status by phase
 
@@ -11,7 +49,7 @@ _Last updated: 2026-10-11 ~04:00 IST (end of the overnight autonomous build sess
 | 2 Agents + Evidence Lens | **Done (replay-verified)** | ADK 2.11 workflow (Classifier, Extractor, SecondReader, HumanReview branch, ControlChecks, GapFinder + Calculator tool, Explainer, Reporter), SSE timeline, review UI, Evidence Lens. Live Gemini path is exercised in CI with a scripted stand-in (`tests/test_agent_scenarios.py`) but **has not yet run against real Gemini** (no credentials). |
 | 3 Gaps, money, outputs | **Done** | GapFinder, Precursor Lever + EN/HI letter + status tracking, Money on the table 2026–2034 with what-if and myth-buster, PDF/Excel/verifier pack, buyer link, demo mode. |
 | 4 Copilot + eval | **Done; live numbers pending** | Copilot with page citations (retrieval works offline; grounded Gemini answer when configured). Eval harness + metrics page + 5 agent scenarios (CI) + 5 `adk eval` cases. **Live eval not run** (needs Gemini). |
-| 5 Polish | **Mostly done** | Hindi + Tamil + partial Vietnamese UI, light/dark, 360 px mobile without overflow, accessibility basics (labels, focus, aria-live, keyboard chart). |
+| 5 Polish | **Done** | Hindi, Tamil and Vietnamese UI (complete, CI-checked), light/dark, 360 px mobile without overflow, accessibility basics (labels, focus, aria-live, keyboard chart). |
 | 6 Story assets | **Done (drafts)** | README, ARCHITECTURE, DEMO_SCRIPT, DECK_NOTES, EC_EXAMPLE_NOTES, screenshots. Fill live eval numbers after the live run. |
 
 Tests: backend `pytest` 102 passed (golden, refdata manifest, engine, two-reader, API end-to-end, agent scenarios) + 1 opt-in Firestore-emulator test (passes against the local emulator); ruff + mypy clean; frontend `tsc` + Vite build clean; gitleaks clean. The Docker image (amd64) passes `scripts/ui_smoke.py` end to end in a logged-out browser on desktop and a 360 px phone: sample load 0.1-0.2 s, Evidence Lens to photo, approval, Hindi supplier letter, buyer link without plant data, EC proof 8/8, copilot citations.
@@ -40,7 +78,6 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
 
 * Run live Gemini once; inspect extraction misses in `backend/eval/report.md`; tune prompts if field accuracy < 95 %.
 * Firestore store implementation is written against the documented schema but only exercised once deployed (local runs use the in-memory store).
-* Vietnamese UI is partial (falls back to English); Tamil covers the main flow.
 * Stretch X1 (vernacular voice) is implemented: mic button on monthly gap rows → `gemini-3.5-transcribe` (Hindi/Punjabi/English; Tamil via Gemini 3.8 Flash audio) → Gemini reads the stated quantity → evidence with audio + transcript, amber until a person confirms. Tested with a scripted model in CI; **needs live Gemini to try for real**. Stretch X2 (decarbonisation what-if) is implemented: rod supplier SEE/SEFA (EC example presets) and gas vs electric heat treatment, computed by the engine (`POST /api/projects/{pid}/whatif`). X3 (Annex IV operator-report alignment) is **not done on purpose**: the official Annex IV text/template could not be retrieved (EUR-Lex blocks automated access) and the brief forbids claiming alignment without verifying it.
 * Freeze the deployed version from 18 Oct; tag `v1.0-submission`.
 
@@ -58,7 +95,7 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
 | Buyer link logged-out, no plant-level inputs | Done (API test + UI smoke) |
 | Rules copilot: 5 scripted questions with page citations | Retrieval answers cite correct pages; Gemini-written answers pending credentials |
 | Eval metrics page with real numbers | Harness + page done; **live Gemini numbers pending** (replay self-check shown, labelled) |
-| Hindi and Tamil UI on the main flow | Done |
+| Hindi and Tamil UI on the main flow | Done (hi, ta, vi complete; checked in CI) |
 | README, ARCHITECTURE, DEMO_SCRIPT, DECK_NOTES; repo public; gitleaks clean | Docs done, gitleaks clean; **repo not yet published** (your call) |
 | No Gemini 2.x / Veo preview; no deprecated sampling params | Done (tests/test_compliance.py) |
 

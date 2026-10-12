@@ -25,10 +25,21 @@ verifier, shop-floor supervisor.
 ## 4. Solution — 3 steps
 Capture → Close gaps → Report. 24 photos (gas bills, rod invoices, handwritten Hindi/Punjabi
 register and scrap log, export invoices) → 213 values, each with its region on the page.
+* Theme fit (Manufacturing: Intelligent Operations & Industrial Efficiency): operational data
+  (bills, registers, scrap logs) → insights (SEE per product, where it comes from) →
+  recommendations ("What to do next", with € attached) → actions (supplier letter EN/HI, buyer
+  link, operations levers).
+* Own factory: product lines typed (CN codes checked live against the official files) or
+  proposed by the ProductLines agent from export and rod invoices; private project with a
+  passcode (hash only stored).
 
 ## 5. Gen AI core (40 % of the score)
-* **ADK 2.11 Workflow** graph: Intake → Classifier → Extractor → SecondReader → (mismatch →
-  HumanReview) → ControlChecks → GapFinder (+ Calculator FunctionTool) → Explainer → Reporter.
+* **ADK 2.11 Workflow** graph: Intake → Classifier → **ProductLines** → Extractor → SecondReader →
+  (mismatch → HumanReview) → ControlChecks → GapFinder (+ Calculator FunctionTool) → Explainer →
+  Reporter.
+* **ProductLines agent**: Gemini 3.8 Flash reads export and steel-input invoices and proposes the
+  product lines (one per exported CN code, linked to its rod); code rejects any code that is not
+  an iron & steel good with a default value and benchmarks; the owner confirms.
 * **Gemini 3.8 Flash** (Interactions API, JSON schema, high media resolution) extracts every value
   with `box_2d`; **Gemini 3.5 Flash-Lite** re-reads **only the crop**, blind.
 * **The LLM never does arithmetic**: Decimal engine; Explainer guard rejects numbers that are not in
@@ -51,8 +62,17 @@ register and scrap log, export invoices) → 213 values, each with its region on
 | Certificates for Q1–Q3 2026 imports | 520.4 for 900 t | 2,958.2 for 400 t |
 | Buyer cost 2026 (€/t), actual data | **€45** | €576 |
 | Buyer cost 2026 (€/t), EU defaults | **€386** | **€402** |
-| Money on the table 2026 | **€341/t = ₹36,994/t** (≈ €409,545/yr at current volumes) | actual data worse than default → buyer declares defaults |
-| If the rod supplier sends verified data | — | SEE **2.371** (= EC G2), cost **€97/t** (−€306/t vs defaults) |
+| **What the buyer pays** (the cheaper path) | **€45** on your data | **€402** on the EU default |
+| Buyer's cost, Q1–Q3 2026 imports | €40,489 (vs €347,482 on defaults) | €161,090 on defaults (€230,572 on your data) |
+| Money on the table 2026 | **€341/t = ₹36,994/t** (≈ €409,545/yr at current volumes) | actual data worse than default → buyer uses the default |
+| If the rod supplier sends verified data | — | SEE **2.371** (= EC G2), cost **€97/t** (−€306/t, ≈ €163,000/yr) |
+* "What to do next" (top of the report): (1) ask Indus Stainless Rods for verified data, (2)
+  approve one value, (3) send the carbon-steel data to the buyer.
+* **Operations levers** (same engine): stainless with EC Example 2 rod data + electric heat
+  treatment → SEE 8.889 → 2.174, buyer €402 → **€81/t**, 2,870 GJ gas a year no longer burned.
+  Carbon bolts, scrap 15 % → 10 % of rod → SEE 2.040 → 1.937 and **111 t of rod saved a year**,
+  but the 2026 buyer cost moves only €45.0 → €43.2/t because SEFA falls with the rod too (2034:
+  €167.9 → €159.5/t). Gas 3.5 → 3.0 GJ/t → 850 GJ a year saved.
 * 2026 price = Q1 €75.36, Q2 €75.28, Q3 €82.32 weighted by export quarters = €77.85.
 * **Myth-buster**: "2.5 % in 2026" is wrong — EC Example 1: 3,690 certificates on 15,670 t
   embedded = **23.5 %**, not 5 %.
@@ -69,7 +89,7 @@ register and scrap log, export invoices) → 213 values, each with its region on
 * **Extraction eval (24 docs, 213 fields)**: live Gemini numbers → fill from
   `backend/eval/report.md` after the live run (field accuracy target ≥ 95 %, < 2 min).
   Harness self-check (replay): 100 % / 1.3 s — not a model score.
-* 102 backend tests (golden, refdata manifest, engine, two-reader, API, agent scenarios) + Firestore-emulator test + logged-out UI smoke (desktop + 360 px phone) in CI; ruff + mypy clean; gitleaks clean.
+* 126 backend tests (golden, refdata manifest, engine, two-reader, API, agent scenarios, product-line set-up with a scripted ProductLines model, privacy, one buyer cost, levers) + Firestore-emulator test + logged-out UI smoke (desktop + 360 px phone, incl. own project + passcode unlock) in CI; ruff + mypy clean; gitleaks clean; axe: 0 WCAG A/AA violations (light + dark); translations hi/ta/vi complete (checked in CI).
 
 ## 9. Architecture (Google Cloud)
 Cloud Run (asia-southeast1, one container, min-instances 1) · Gemini on Agent Platform (global)
