@@ -14,6 +14,7 @@ const STOPS: Stop[] = [
   { key: "letter", step: "report", target: '[data-tour="letter"]' },
   { key: "pulse", step: "report", target: "#pulse" },
   { key: "ask", step: "report", target: '[data-tour="ask"]' },
+  { key: "call", step: "report", target: '[data-testid="call-fab"]' },
   { key: "proof", step: "report" },
 ];
 

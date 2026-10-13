@@ -13,7 +13,7 @@ Built for the **Google Cloud AI Builder Cup 2026** (Manufacturing: Intelligent O
 Industrial Efficiency) by team **Innovative Warriors**.
 
 **Live demo:** [pramaan-646454690406.asia-southeast1.run.app](https://pramaan-646454690406.asia-southeast1.run.app) (Cloud Run, asia-southeast1) · **3-min video:** _to be recorded_ ·
-**Try it locally in 60 s:** see [Run locally](#run-locally) · **Two minutes?** On the live site press **Take the 90-second tour**: seven stops, from the verdict to the Commission's examples. **One photo?** Open [`/try`](https://pramaan-646454690406.asia-southeast1.run.app/try) and watch two Gemini models read one page, or your own bill, in seconds.
+**Try it locally in 60 s:** see [Run locally](#run-locally) · **Two minutes?** On the live site press **Take the 90-second tour**: eight stops, from the verdict through a voice call to the Commission's examples. **One photo?** Open [`/try`](https://pramaan-646454690406.asia-southeast1.run.app/try) and watch two Gemini models read one page, or your own bill, in seconds.
 
 ![Pramaan landing](docs/screenshots/landing.jpg)
 

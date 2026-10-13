@@ -251,7 +251,7 @@ export default function Landing() {
               </Link>
               <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-muted">
                 {t("landing.built")}:
-                {["Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite", "ADK 2.x", "Cloud Run"].map((c) => (
+                {["Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite", "Gemini 3.8 Live", "ADK 2.x", "Cloud Run"].map((c) => (
                   <span key={c} className="chip">{c}</span>
                 ))}
               </span>
