@@ -167,6 +167,7 @@ export default function Landing() {
   const [busy, setBusy] = useState<"load" | "live" | "own" | "tour" | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const golden = useQuery({ queryKey: ["golden"], queryFn: api.golden, staleTime: 60_000 });
+  const metrics = useQuery({ queryKey: ["metrics"], queryFn: api.metrics, staleTime: 300_000 });
   const toast = useToast();
 
   async function load(live: boolean, tour = false) {
@@ -205,6 +206,7 @@ export default function Landing() {
   }
 
   const nCases = golden.data?.cases?.length ?? 8;
+  const live = metrics.data?.runs?.live;
   return (
     <div>
       <section className="relative overflow-hidden">
@@ -249,6 +251,14 @@ export default function Landing() {
                 {golden.data?.all_pass ? `${nCases}/${nCases}` : "…"} {t("landing.proof_strip")}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
+              {live?.fields_total ? (
+                // the latest live Gemini evaluation, only when one exists on this deployment
+                <Link to="/metrics" className="nudge inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-3 py-1.5 text-[13px] font-semibold text-accent transition hover:brightness-95">
+                  <ScanEye className="h-4 w-4" aria-hidden />
+                  {t("landing.live_strip", { ok: live.fields_correct, n: live.fields_total, s: Math.round(live.total_seconds) })}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
+              ) : null}
               <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-muted">
                 {t("landing.built")}:
                 {["Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite", "Gemini 3.8 Live", "ADK 2.x", "Cloud Run"].map((c) => (
