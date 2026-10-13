@@ -16,10 +16,11 @@ and visuals · 10 final judging.
   and wrapped the chip row (+30 px); the footer showed inside the first screen while the page loaded and was
   then pushed away; /try's replay note and sample cards arrived late above the picker; /proof's notes were
   pushed down when the eight cases replaced two placeholders.
-* Fixed: the first render waits up to 400 ms for the preloaded faces; the header chips come from the project
-  bundle; `main` is at least a screen tall; /try draws its samples at once with the note below them; /proof
-  shows one placeholder per case. Every page's CLS is now 0–0.017; Lighthouse mobile **report 80, /try 84,
-  landing 95, proof 90** (accessibility and best practices 100; project pages are no-index on purpose).
+* Fixed: the header chips come from the project bundle; `main` is at least a screen tall; /try draws its
+  samples at once with the note below them; /proof shows one placeholder per case; a project page opened
+  directly starts its code and data together at boot. (A font wait tried first proved unnecessary and was
+  removed.) Every page's CLS is now 0–0.017; Lighthouse mobile **report 80–86, /try 80–84, landing 95, proof
+  90** (accessibility and best practices 100; project pages are no-index on purpose).
 
 ### Iterations 19–22 — trust, the live result up front, and speed
 * **Screens from the live run**: README screenshots/GIFs and the deck's images regenerated from the merged build
