@@ -177,6 +177,8 @@ def test_spa_answers_head_and_fills_link_preview_urls(client: TestClient) -> Non
     assert client.head("/").status_code == 200  # link-preview crawlers and uptime checks
     html = client.get("/p/demo-x/report").text
     assert 'property="og:image" content="http://testserver/og.jpg"' in html and "__ORIGIN__" not in html
+    r = client.get("/api/no-such-thing")  # an unknown API path is a 404, not the app's page with a 200
+    assert r.status_code == 404 and r.headers["content-type"].startswith("application/json")
 
 
 @pytest.mark.parametrize("lang", ["en", "hi", "ta", "vi"])

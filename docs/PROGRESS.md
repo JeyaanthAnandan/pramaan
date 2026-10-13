@@ -9,6 +9,31 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 14 — Gemini you can watch: try one photo
+* Judge: on the sample, the Gen AI is a recording; the only live path was a full 24-document run (a
+  minute or more and ~370k tokens). A judge with two minutes, or an exporter deciding whether to trust
+  Pramaan, had no quick way to see the models work on a page of their own.
+* Built: **`/try`** runs the Classifier, Extractor and blind SecondReader of a full run on one page and
+  streams each step (SSE over a POST, not gzipped): boxes appear on the photo as reader 1 returns them and
+  turn green or amber as the blind re-reads land; selecting a value unfolds **the exact crop reader 2 saw**
+  (the struck-out 13.4 next to 15.4). Three fictional samples or the visitor's own photo (camera on a
+  phone; HEIC/PDF shown as read); read in memory, never stored; 40 second reads per photo, 20 live tries
+  per address and hour; without live Gemini the samples replay, labelled. Entry points on the landing hero
+  and the "What happens to one photo" strip; in the in-app architecture page and the README. Also: a
+  live run's badge says when it ran ("Live Gemini run · 13 Oct, 02:13 pm"), and unknown `/api/` paths are a
+  JSON 404 instead of the app page.
+* Merged the team's **Call Pramaan** (voice agent on Gemini 3.8 Live, five languages) and the ten-live-run
+  reader fixes (**222/222 fields, 96.8 s** on the 13 Oct live run, now what the sample shows). Conflicts were
+  additive (routers, per-address caps, locale sections, the README diagram); one interaction fixed: the new
+  "untagged" re-read no longer fires for a page read without product lines (it would have cost /try an extra
+  extraction on every register or scrap log).
+* Deck: a slide for Call Pramaan and /try; slide 12 now carries the live result (222/222, 96.8 s, 98.6 % of
+  boxes on target) instead of the placeholder.
+* Tests: 7 for /try (replay stream, live path with the scripted Gemini, own photo without product lines, not
+  a CBAM document, a failed read, the per-address cap), the re-read rule, the API 404; UI smoke covers /try on
+  desktop and 360 px; axe 0 violations on /try (light/dark, desktop/phone).
+* Team: **redeploy main** so `/try` is live (the service runs 6c6df4e, which has Call Pramaan but not /try).
+
 ### Iteration 13 — the deck, and the demo's key photo
 * Judge: the deck is one of the four submission items and did not exist; the notes did. And the demo's key
   moment had a flaw: on the scrap log, the struck-out 13.4 read as **43.4** (a level line through a

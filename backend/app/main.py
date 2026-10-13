@@ -88,6 +88,8 @@ if static.exists():
     # GET and HEAD: link-preview crawlers and uptime checks often send HEAD first
     @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
     def spa(path: str, request: Request) -> Response:
+        if path == "api" or path.startswith("api/"):  # an unknown API path is a 404, not the app's page
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
         candidate = (static / path).resolve()
         if path and candidate.is_file() and str(candidate).startswith(str(static.resolve())):
             # public files without a content hash (hero photos, icon, og card): a day in the browser

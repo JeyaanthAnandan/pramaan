@@ -1,8 +1,8 @@
 # Deck notes — real numbers, ready to paste (10 slides)
 
-**A finished 14-slide deck built from these notes** (Claude artifact, private to Jeyaanth's account until
+**A finished 15-slide deck built from these notes** (Claude artifact, private to Jeyaanth's account until
 shared from its Share menu; downloads as PDF or PowerPoint): https://claude.ai/artifact/3oBUoBccWsFRNufcy6Qo6P.
-Before submitting, fill slide 11's final live-run line from `backend/eval/report.md`.
+It carries the 13 Oct live run (222/222, 96.8 s) and a slide for Call Pramaan and Try one photo.
 
 All numbers come from the running app on the fictional sample factory (Jan–Sep 2026,
 provisional) and from the golden tests. Re-check the eval slide after the live Gemini run.
