@@ -9,6 +9,20 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 24 — the verifier's spot-check
+* Judge: the problem statement's bottleneck is verification (importers fall back on defaults because verified
+  data is slow), and Pramaan's claim is "it makes verification fast" — but nothing in the product was built for
+  the verifier's own workflow, which is sampling, not re-reading every bill.
+* Built: `/p/{pid}/verify` (from Share & export) draws a risk-based sample of 12 values: every value a person
+  changed or approved, the supplier's own data, then production, rod consumed and bought, gas energy, scrap and
+  exports by weight; seeded per project so it holds still. Each value shows the crop of the photo it was read
+  from, why it was sampled and how it was read; the verifier marks it matching or not (with a note). Marks stay on
+  the evidence with an audit entry, print as a dated record, and go into the verifier pack (`spot_check.csv`).
+  Four languages, axe 0, 360 px. Wording kept honest: it speeds up the desk review; it does not replace the
+  verifier's procedure or site visits. Deck's verifier card updated.
+* Tests: strata and order, the stable sample, a person's approval sampled first, marks + audit + pack, passcode;
+  the UI smoke test opens it from the report and marks a value.
+
 ### Iteration 23 — no layout jumps (the report page was CLS 0.99 on a phone)
 * Judge: Lighthouse mobile on the pages judges actually land on, not just the landing: report **56** (CLS
   0.99), /try 63 (CLS 0.51). Found with a layout-shift observer on a 412 px phone: the company name wrapped onto
