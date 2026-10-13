@@ -1,6 +1,31 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-13 IST, night (10 judging/improvement iterations in progress; fixes pushed, **not deployed yet**)._
+_Last updated: 2026-10-14 IST, early morning (overnight QA pass: every feature tested on main and on live; fixes pushed, **not deployed yet**)._
+
+## 2026-10-14 (01:55–08:00) — overnight QA pass: every feature, as a tester
+
+Full report: **[docs/TEST_REPORT.md](TEST_REPORT.md)** (feature-by-feature status on main and on live, the
+problems found and fixed, limitations, load numbers, what the team does next).
+
+* Tested on main locally (in-memory and the Firestore emulator) and on the live service (6c6df4e, real Gemini):
+  * 224 black-box API checks (`scripts/qa/api_check.py`, also `--live`)
+  * UI sweeps: 19 pages × desktop/phone × light/dark × 4 languages, plus a text-clipping check at 360/390/768/1440 px
+  * flows by hand in Chromium, Firefox and WebKit
+  * Live Gemini: a full re-run **222/222 in 122 s**; an own project from 6 photos (product lines proposed with the
+    right CN codes); Hindi voice note; report Q&A EN/HI; copilot; voice calls in English and Hindi; supplier statement
+* Fixed (15 problems, each with a test or a sweep): 484ee51, 40752d8, 1d77f67, 6e51282, 9a64aba, e8f8cab,
+  3abda53, 66f43e0, d76f0c8
+  * a blank page when a page's code is gone after a redeploy
+  * per-address caps dodged with a made-up X-Forwarded-For (now `CLIENT_IP_HOPS`, verify after deploy)
+  * Tamil/Hindi/phone layouts clipped or squeezed
+  * silent failures and a decimal comma read as ×10
+  * Excel formula injection in the exports
+  * 500s on bad input, invalid Firestore ids and half-stored uploads
+  * "Start a run" shown when the report failed to load
+  * focus lost after closing panels; axe findings
+  * a dead source link
+* Not deployed: the live link still runs 6c6df4e. See the report's *Do next* (redeploy; run the API check
+  against live; check the caps once; delete five QA projects).
 
 ## 2026-10-13 (night) — 10 judging/improvement iterations
 
