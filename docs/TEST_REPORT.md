@@ -115,6 +115,23 @@ Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not 
 * The voice agent once said "across all product lines" about a saving that is one line's. The figure it
   showed was the verified one.
 
+## Load: several judges at once (live, no Gemini calls)
+
+Each simulated visitor opens the landing page, loads the sample, opens its report data and downloads the PDF.
+
+| Visitors at once | Load sample (p50) | PDF (p50) | Errors |
+|---|---|---|---|
+| 1 (warm) | 2.5 s | 1.9 s | 0 |
+| 5 | 9.8 s | 8.6 s | 0 |
+| 15 (instance was cold) | 22 s (max 32 s) | 37 s | 0 |
+
+Nothing fails, but CPU-heavy requests queue. The container runs one uvicorn worker (one Python process,
+so effectively one of the two vCPUs), and Cloud Run sends up to 60 requests to one instance before it starts
+another. The cold start added about 8 s to the first page, so keep min-instances at 1 while judges visit.
+If a group demo is likely, the team could try `--concurrency 10` in `scripts/deploy.sh` (bursts spread over
+the 3 instances) or `--workers 2` in the Dockerfile. The app already follows runs across instances through
+Firestore. Both change cost and behaviour on Cloud Run, so neither was changed blind.
+
 ## How it was tested
 
 * **Automated**, all green:
@@ -123,7 +140,7 @@ Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not 
   * ruff, mypy
   * i18n coverage, `check:format`, build
   * UI smoke test on desktop and 360 px, in Chromium, Firefox and WebKit
-* **API, black box** (`scripts/qa/api_check.py`, fixtures from `scripts/qa/make_fixtures.py`): 224 checks
+* **API, black box** (`scripts/qa/api_check.py`, fixtures from `scripts/qa/make_fixtures.py`; load: `scripts/qa/load_check.py`): 224 checks
   of every endpoint with valid, invalid, hostile and unauthorised input. Run on the in-memory store, the
   Firestore emulator and live.
 * **UI sweeps**:
