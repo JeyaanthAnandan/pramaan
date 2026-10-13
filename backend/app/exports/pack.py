@@ -3,7 +3,6 @@ reference-data manifest, run receipts and the draft monitoring plan."""
 
 from __future__ import annotations
 
-import csv
 import io
 import json
 import zipfile
@@ -13,6 +12,7 @@ from app import refdata
 from app.evidence import blobs
 from app.evidence.models import Document, Evidence, Project, Run
 from app.exports import monitoring_plan, pdf, xlsx
+from app.exports.cells import SafeWriter
 
 README = """PRAMAAN VERIFIER PACK — PROVISIONAL
 Operator: {company}
@@ -49,7 +49,7 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
         z.writestr("report.pdf", pdf.render(project, result))
         z.writestr("workbook.xlsx", xlsx.render(project, result, evidence, documents))
         s = io.StringIO()
-        w = csv.writer(s)
+        w = SafeWriter(s)
         w.writerow(
             [
                 "evidence_id",
@@ -103,7 +103,7 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
 
         spot = spot_items(project, evidence, documents)
         s = io.StringIO()
-        w = csv.writer(s)
+        w = SafeWriter(s)
         w.writerow(
             [
                 "evidence_id",
@@ -142,7 +142,7 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
             )
         z.writestr("spot_check.csv", s.getvalue())
         s = io.StringIO()
-        w = csv.writer(s)
+        w = SafeWriter(s)
         w.writerow(["id", "name", "formula", "inputs", "result", "tolerance", "status", "evidence_ids", "reference"])
         for c in result.get("checks", []):
             w.writerow(

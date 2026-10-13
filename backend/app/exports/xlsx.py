@@ -11,6 +11,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from app.evidence.models import Document, Evidence, Project
+from app.exports.cells import text_only
 
 HEAD = PatternFill("solid", fgColor="EDEAE0")
 STATUS_FILL = {
@@ -251,5 +252,6 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
             for c in row:
                 c.alignment = Alignment(wrap_text=True, vertical="top")
     buf = io.BytesIO()
+    text_only(wb)  # a value that starts with "=" is text, never a formula
     wb.save(buf)
     return buf.getvalue()
