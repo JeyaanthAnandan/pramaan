@@ -222,6 +222,8 @@ class FirestoreStore:
         for sub in ["documents", "evidence", "runs", "results"]:
             for s in self._p(pid).collection(sub).stream():
                 s.reference.delete()
+        for s in self.db.collection("share_links").where("project_id", "==", pid).stream():  # buyer + supplier links
+            s.reference.delete()
         self._p(pid).delete()
 
     def put_document(self, d: Document) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import shutil
 from functools import lru_cache
 from pathlib import Path
 
@@ -46,3 +47,25 @@ def load(uri: str) -> bytes:
         bucket, _, name = uri.removeprefix("gs://").partition("/")
         return storage.Client(project=cfg.gcp_project).bucket(bucket).blob(name).download_as_bytes()
     raise ValueError(f"unsupported uri {uri}")
+
+
+def delete_project(project_id: str) -> int:
+    """Remove every stored source document of a project (its Cloud Storage prefix or local folder);
+    returns how many files were removed. Demo photos (demo://) are bundled and never deleted."""
+    cfg = settings()
+    load.cache_clear()
+    if cfg.bucket:
+        from google.cloud import storage  # type: ignore[attr-defined]
+
+        n = 0
+        for blob in storage.Client(project=cfg.gcp_project).list_blobs(cfg.bucket, prefix=f"projects/{project_id}/"):
+            blob.delete()
+            n += 1
+        return n
+    root = (cfg.data_dir / "blobs").resolve()
+    path = (root / project_id).resolve()
+    if path.parent != root or not path.is_dir():
+        return 0
+    n = sum(1 for f in path.rglob("*") if f.is_file())
+    shutil.rmtree(path)
+    return n

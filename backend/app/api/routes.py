@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
@@ -133,6 +134,24 @@ def runs_settled(pid: str) -> list[Run]:
             r.error = "interrupted: the server restarted during this run; run it again"
             store().put_run(r)
     return runs
+
+
+@router.delete("/projects/{pid}")
+def delete_project(pid: str) -> dict[str, Any]:
+    """The owner deletes an own project for good: its photos (Cloud Storage or disk), readings, runs,
+    results, buyer link and supplier links. Behind the project's passcode like every project route.
+    The fictional sample cannot be deleted (each visitor's copy expires on its own)."""
+    p = _project(pid)
+    if p.is_demo:
+        raise HTTPException(403, "The sample factory cannot be deleted; your copy of it is removed automatically.")
+    if any(r.status == "running" for r in runs_settled(pid)):
+        raise HTTPException(409, "A run is in progress: delete the project when it has finished.")
+    documents = len(store().list_documents(pid))
+    photos = blobs.delete_project(pid)
+    store().delete_project(pid)
+    access.forget(pid)
+    logging.getLogger(__name__).info("project %s deleted by its owner: %d documents, %d stored files", pid, documents, photos)
+    return {"deleted": pid, "documents": documents, "files": photos}
 
 
 @router.get("/projects/{pid}")

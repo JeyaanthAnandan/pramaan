@@ -39,3 +39,15 @@ export function rememberPasscode(pid: string, code: string): void {
 export function passcodeFor(pid: string): string | null {
   return codes()[pid] ?? null;
 }
+
+/** After the owner deletes a project: this browser forgets it and its passcode. */
+export function forgetProject(pid: string): void {
+  try {
+    if (localStorage.getItem(KEY) === pid) localStorage.removeItem(KEY);
+    const c = codes();
+    delete c[pid];
+    localStorage.setItem(CODES, JSON.stringify(c));
+  } catch {
+    /* ignore */
+  }
+}

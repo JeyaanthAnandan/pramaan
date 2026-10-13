@@ -25,7 +25,7 @@ def test_full_flow_on_firestore() -> None:
         with TestClient(app) as c:
             assert c.post("/api/demo/load", json={"replay": True, "shared": True}).status_code == 200
             ev = c.get("/api/projects/demo-shivalik/evidence").json()
-            assert len(ev) == 213
+            assert len(ev) == 222
             amber = [e for e in ev if e["status"] == "NEEDS_REVIEW"]
             assert c.patch(f"/api/projects/demo-shivalik/evidence/{amber[0]['id']}", json={"action": "approve"}).status_code == 200
             res = c.get("/api/projects/demo-shivalik/results").json()
@@ -34,5 +34,13 @@ def test_full_flow_on_firestore() -> None:
             assert c.get(f"/api/projects/demo-shivalik/runs/{run_id}/events").text.count("event: timeline") > 100
             tok = c.post("/api/projects/demo-shivalik/share").json()["token"]
             assert c.get(f"/api/share/{tok}").status_code == 200
+            # the owner's delete removes an own project and its links from Firestore too
+            from app.evidence.models import ShareLink
+
+            own = c.post("/api/projects", json={"name": "x", "company": "Delete Me (SAMPLE)"}).json()["id"]
+            st.store().put_share(ShareLink(token=f"t-{own}", project_id=own, summary_snapshot={}))
+            assert c.delete(f"/api/projects/{own}").status_code == 200
+            assert st.store().get_project(own) is None and st.store().get_share(f"t-{own}") is None
+            assert st.store().get_share(tok) is not None  # another project's link stays
     finally:
         st.set_store(None)

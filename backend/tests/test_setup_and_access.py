@@ -66,6 +66,33 @@ def test_own_project_is_private(client: TestClient) -> None:
         assert other.get(f"/api/projects/{pid}").status_code == 200  # cookie set by unlock
 
 
+def test_the_owner_deletes_an_own_project_for_good(client: TestClient) -> None:
+    """Photos, readings and links all go, only with the passcode; the sample cannot be deleted."""
+    import io
+
+    from PIL import Image
+
+    from app.config import settings
+    from app.evidence.models import ShareLink
+
+    p = _own(client)
+    pid = p["id"]
+    png = io.BytesIO()
+    Image.new("RGB", (60, 80), (240, 240, 235)).save(png, format="PNG")
+    assert client.post(f"/api/projects/{pid}/documents", files={"files": ("bill.png", png.getvalue(), "image/png")}).status_code == 200
+    folder = settings().data_dir / "blobs" / pid
+    assert any(folder.rglob("*.jpg"))
+    store().put_share(ShareLink(token=f"t-{pid}", project_id=pid, summary_snapshot={}))
+    with TestClient(app) as other:  # no passcode
+        assert other.delete(f"/api/projects/{pid}").status_code == 401
+    r = client.delete(f"/api/projects/{pid}")
+    assert r.status_code == 200 and r.json() == {"deleted": pid, "documents": 1, "files": 1}
+    assert client.get(f"/api/projects/{pid}").status_code == 404
+    assert not folder.exists() and store().get_share(f"t-{pid}") is None
+    sample = client.post("/api/demo/load", json={"replay": True}).json()["project_id"]
+    assert client.delete(f"/api/projects/{sample}").status_code == 403
+
+
 def test_sample_copies_stay_open(client: TestClient) -> None:
     pid = client.post("/api/demo/load", json={"replay": True}).json()["project_id"]
     with TestClient(app) as other:

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, CheckCircle2, Copy, KeyRound, Loader2, PackagePlus, Pencil, Plus, Sparkles, Trash2, XCircle } from "lucide-react";
 import { api, ApiError, type CnInfo, type ProcessDef } from "@/lib/api";
 import { useProject } from "@/lib/project";
-import { passcodeFor } from "@/lib/session";
+import { forgetProject, passcodeFor } from "@/lib/session";
 import { EASE } from "@/lib/motion";
 import { StatusBadge } from "./Status";
 import { useToast } from "./Toast";
@@ -38,8 +39,61 @@ export function SetupCard() {
         {code && <Passcode code={code} />}
         <Details />
         <ProductLines />
+        <DeleteProject />
       </div>
     </section>
+  );
+}
+
+/** The owner can delete the project for good: photos, readings, reports, buyer and supplier links. */
+function DeleteProject() {
+  const { t } = useTranslation();
+  const { pid, bundle } = useProject();
+  const nav = useNavigate();
+  const toast = useToast();
+  const [ask, setAsk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  if (!bundle) return null;
+  async function remove() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await api.deleteProject(pid);
+      forgetProject(pid);
+      toast(t("toast.deleted"));
+      nav("/");
+    } catch (e) {
+      setErr(String((e as Error).message));
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="border-t border-line pt-4">
+      <AnimatePresence mode="wait" initial={false}>
+        {!ask ? (
+          <motion.div key="ask" className="flex flex-wrap items-center gap-x-3 gap-y-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <button className="btn-quiet text-badink hover:bg-badbg hover:text-badink" onClick={() => setAsk(true)}>
+              <Trash2 className="h-4 w-4" aria-hidden /> {t("setup.delete")}
+            </button>
+            <span className="text-[12px] text-muted">{t("setup.delete_d")}</span>
+          </motion.div>
+        ) : (
+          <motion.div key="confirm" role="alertdialog" aria-labelledby="delete-q" className="rounded-xl border border-bad/40 bg-badbg/60 p-3" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, ease: EASE }}>
+            <p id="delete-q" className="text-[13px] font-medium text-badink">{t(bundle.documents.length === 0 ? "setup.delete_confirm_empty" : bundle.documents.length === 1 ? "setup.delete_confirm_one" : "setup.delete_confirm", { company: bundle.project.company, n: bundle.documents.length })}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button className="btn min-h-[40px] border border-bad/60 bg-surface text-badink hover:bg-badbg" onClick={remove} disabled={busy}>
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />} {t("setup.delete_go")}
+              </button>
+              <button className="btn-ghost min-h-[40px]" onClick={() => setAsk(false)} disabled={busy} autoFocus>
+                {t("setup.delete_keep")}
+              </button>
+            </div>
+            {err && <p className="mt-2 text-[12px] text-badink" role="alert">{err}</p>}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

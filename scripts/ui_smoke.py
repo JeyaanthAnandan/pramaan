@@ -123,6 +123,13 @@ def main() -> int:
                 expect(other.get_by_text("Stainless hexagon bolts").first).to_be_visible(timeout=10_000)
                 other.context.close()
                 print(f"[{name}] own project: product lines confirmed; passcode opens it on another device")
+                # the owner deletes it for good: the project and its links are gone, the browser forgets it
+                page.get_by_role("button", name="Delete this project").click()
+                expect(page.get_by_role("alertdialog")).to_contain_text("for good")
+                page.get_by_role("button", name="Delete for good").click()
+                page.wait_for_url(base + "/", timeout=15_000)
+                assert page.request.get(f"{base}/api/projects/{own}").status == 404
+                print(f"[{name}] own project deleted by its owner")
                 # the 90-second tour from the landing page: eight stops across report and gaps (the call button too), ends on the proof
                 page.goto(base + "/", wait_until="networkidle")
                 page.get_by_role("button", name="Take the 90-second tour").click()

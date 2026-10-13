@@ -206,6 +206,7 @@ export const api = {
   health: () => req<any>("/api/health"),
   demoLoad: (replay = false) => req<{ project_id: string; run_id: string; source: string }>("/api/demo/load", { method: "POST", body: JSON.stringify({ replay }) }),
   project: (pid: string) => req<ProjectBundle>(`/api/projects/${pid}`),
+  deleteProject: (pid: string) => req<{ deleted: string; documents: number; files: number }>(`/api/projects/${pid}`, { method: "DELETE" }),
   createProject: (body: { name: string; company: string; country?: string; city?: string; months_to?: number }) =>
     req<ProjectBundle["project"] & { access_key: string }>("/api/projects", { method: "POST", body: JSON.stringify(body) }),
   unlock: (pid: string, passcode: string) => req<{ ok: boolean }>(`/api/projects/${pid}/unlock`, { method: "POST", body: JSON.stringify({ passcode }) }),

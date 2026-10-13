@@ -88,6 +88,10 @@ characters without look-alikes) and sets an HttpOnly, SameSite=Lax cookie scoped
 `POST …/unlock` (rate-limited) opens the project on another device. Uploaded photos of private
 projects are served with `Cache-Control: private`. The fictional sample copies stay open, and
 `/api/share/{token}` serves only the buyer summary.
+The owner deletes a project for good with `DELETE /api/projects/{pid}` (behind the same passcode):
+its photos (the Cloud Storage prefix `projects/{pid}/`), its Firestore documents, evidence, runs and
+results, and its buyer and supplier links. Not the fictional sample, whose visitor copies expire; not
+while a run is in progress.
 
 **Try one photo** (`POST /api/try`, `POST /api/try/sample/{name}`) reads a visitor's page with the
 same reader calls as a full run and streams each step as a server-sent event. The photo is read in
