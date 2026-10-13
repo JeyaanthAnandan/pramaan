@@ -86,7 +86,7 @@ export default function Copilot() {
         }}
       >
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("copilot.placeholder")} className="min-h-[44px] min-w-0 flex-1 bg-transparent px-3 text-[15px] focus-visible:outline-none" aria-label={t("copilot.placeholder")} maxLength={500} />
-        <button className="btn-primary" disabled={busy || !q.trim()}>
+        <button className="btn-primary" disabled={busy || !q.trim()} aria-label={t("copilot.ask")}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizonal className="h-4 w-4" />} <span className="hidden sm:inline">{t("copilot.ask")}</span>
         </button>
       </form>

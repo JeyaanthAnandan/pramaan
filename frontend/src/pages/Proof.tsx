@@ -4,9 +4,10 @@ import { motion } from "motion/react";
 import { BadgeCheck, CheckCircle2, FileWarning, Loader2, RotateCw, XCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { Reveal } from "@/lib/motion";
+import { dateTime } from "@/lib/format";
 
 export default function Proof() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const q = useQuery({ queryKey: ["golden-live"], queryFn: api.golden, staleTime: 0 });
   const d = q.data;
   return (
@@ -29,7 +30,7 @@ export default function Proof() {
             <div>
               <div className="text-lg font-semibold">{d.all_pass ? t("proof.all", { n: d.cases.length }) : t("proof.fail")}</div>
               <div className="text-[12px]">
-                {t("proof.ran")} {d.duration_ms} ms · {new Date(d.ran_at).toLocaleString()}
+                {t("proof.ran")} {d.duration_ms} ms · {dateTime(d.ran_at, i18n.language)}
               </div>
             </div>
             <button className="btn-quiet" onClick={() => q.refetch()} aria-label="Run again">
@@ -67,7 +68,7 @@ export default function Proof() {
                   </div>
                 ))}
               </dl>
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto" tabIndex={0} role="region" aria-label={c.title}>
                 <table className="num w-full min-w-[420px] text-[13px]">
                   <thead className="text-left text-[11px] text-muted">
                     <tr>
@@ -75,7 +76,11 @@ export default function Proof() {
                       <th className="pb-1.5 text-right font-medium">{t("proof.expected")}</th>
                       <th className="pb-1.5 text-right font-medium">{t("proof.computed")}</th>
                       <th className="pb-1.5 text-right font-medium">{t("proof.tol")}</th>
-                      <th className="pb-1.5" />
+                      <th className="pb-1.5">
+                        <span className="sr-only">
+                          {t("proof.pass")} / {t("proof.fail")}
+                        </span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">

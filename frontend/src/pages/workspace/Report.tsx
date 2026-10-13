@@ -318,8 +318,8 @@ function ProcessCard({ p }: { p: ProcessResult }) {
   );
   return (
     <motion.article variants={rise} className="card min-w-0 p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="min-w-0 flex-[1_1_12rem]">
           <div className="eyebrow">
             {t("report.cn_group")} · CN {p.cn_display}
           </div>
@@ -427,6 +427,8 @@ export function Exports() {
       const r = await api.share(pid);
       setLink(new URL(r.url, window.location.origin).toString());
       toast(t("toast.link_ready"));
+    } catch (e) {
+      toast(t("common.failed", { msg: (e as Error).message }), "warn");
     } finally {
       setBusy(false);
     }

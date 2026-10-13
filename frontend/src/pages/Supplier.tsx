@@ -65,7 +65,7 @@ export default function Supplier() {
             <div className="skeleton h-56" />
           </div>
         )}
-        {q.isError && <p className="mt-20 text-center text-muted">{t("buyer.none")}</p>}
+        {q.isError && <h1 className="mt-20 text-center text-base font-normal text-muted">{t("buyer.none")}</h1>}
         {v && <Request v={v} token={token} busy={busy} err={err} onSample={() => send(() => api.supplierSample(token), "sample")} onPick={() => fileRef.current?.click()} onCamera={() => camRef.current?.click()} />}
         <input ref={fileRef} type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={(e) => upload(e.target.files)} />
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => upload(e.target.files)} />

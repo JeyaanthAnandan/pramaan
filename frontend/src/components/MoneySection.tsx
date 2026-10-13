@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 import { Lightbulb, Loader2, Table2, LineChart, Info } from "lucide-react";
 import { api, type Result } from "@/lib/api";
 import { useProject } from "@/lib/project";
-import { eur, inr, n } from "@/lib/format";
+import { eur, inr, n, parseQuantity } from "@/lib/format";
 import { AnimatedNumber, Segmented } from "@/lib/motion";
 import { MoneyChart, type Series } from "./Charts";
 import { LensNum } from "./EvidenceLens";
 import { useToast } from "./Toast";
 
 export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; whatIf: boolean; onWhatIf: (v: boolean) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pid, refresh, bundle } = useProject();
   const toast = useToast();
   const procs = result.processes.filter((p) => p.see);
@@ -19,6 +19,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
   const [fx, setFx] = useState(result.money.fx.value);
   const [price, setPrice] = useState(result.money.projection_price.value);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
     setFx(result.money.fx.value);
   }, [result.money.fx.value]);
@@ -44,11 +45,23 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
   }, [series, wi, whatIf, t]);
 
   async function saveAssumptions() {
+    // empty puts the official value back; anything else must be a positive number
+    const clean = (v: string) => (v.trim() === "" ? "" : parseQuantity(v, i18n.language));
+    const f = clean(fx);
+    const pr = clean(price);
+    const bad = (v: string | null) => v === null || (v !== "" && !(Number(v) > 0 && Number(v) <= 100000));
+    if (bad(f) || bad(pr)) {
+      setErr(t("money.bad_number"));
+      return;
+    }
+    setErr(null);
     setSaving(true);
     try {
-      await api.patchProject(pid, { fx_inr_per_eur: fx, projection_price_eur: price });
+      await api.patchProject(pid, { fx_inr_per_eur: f!, projection_price_eur: pr! });
       await refresh();
       toast(t("toast.saved"));
+    } catch (e) {
+      setErr(t("common.failed", { msg: (e as Error).message }));
     } finally {
       setSaving(false);
     }
@@ -58,7 +71,7 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
   return (
     <section className="card p-4 sm:p-6">
       <div className="flex flex-wrap items-start gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-[1_1_16rem]">
           <h2 className="text-xl font-semibold tracking-tight">{t("money.title")}</h2>
           <p className="mt-1 text-sm text-ink2">{t("money.lead")}</p>
         </div>
@@ -120,17 +133,22 @@ export function MoneySection({ result, whatIf, onWhatIf }: { result: Result; wha
             </div>
             <label className="flex items-center justify-between gap-2">
               <span className="text-ink2">{t("money.fx")}</span>
-              <input value={fx} onChange={(e) => setFx(e.target.value)} inputMode="decimal" className="num w-24 rounded-lg border border-line2 bg-page px-2 py-1 text-right" />
+              <input value={fx} onChange={(e) => (setFx(e.target.value), setErr(null))} inputMode="decimal" aria-invalid={!!err} className="num w-24 rounded-lg border border-line2 bg-page px-2 py-1 text-right" />
             </label>
             <div className="text-[11px] text-muted">ECB {result.money.fx.as_of ?? ""}</div>
             <label className="flex items-center justify-between gap-2">
               <span className="text-ink2">{t("money.price")}</span>
-              <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" className="num w-24 rounded-lg border border-line2 bg-page px-2 py-1 text-right" />
+              <input value={price} onChange={(e) => (setPrice(e.target.value), setErr(null))} inputMode="decimal" aria-invalid={!!err} className="num w-24 rounded-lg border border-line2 bg-page px-2 py-1 text-right" />
             </label>
             {dirty && (
               <button className="btn-primary h-9 min-h-0 w-full" onClick={saveAssumptions} disabled={saving}>
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />} OK
               </button>
+            )}
+            {err && (
+              <p role="alert" className="text-[12px] text-badink">
+                {err}
+              </p>
             )}
             {bundle?.project.is_demo && <div className="text-[11px] text-muted">2026: Q1 €75.36 · Q2 €75.28 · Q3 €82.32 (EC)</div>}
           </div>

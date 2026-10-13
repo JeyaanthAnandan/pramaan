@@ -61,6 +61,12 @@ def main() -> int:
                 page.keyboard.press("Escape")
                 page.get_by_role("link", name="Close gaps").first.click()
                 expect(page.get_by_text("Mass-balance check", exact=True)).to_be_visible()
+                # a typo in an edit is refused with a message and the form stays open (it used to close silently)
+                page.get_by_role("button", name="Edit", exact=True).first.click()
+                page.get_by_role("textbox", name="Edit").fill("abc")
+                page.get_by_role("button", name="Save").click()
+                expect(page.get_by_role("alert").filter(has_text="Enter the number")).to_be_visible()
+                page.get_by_role("button", name="Cancel").click()
                 page.get_by_role("button", name="Approve 15.4").click()
                 # a captured live run may hold a few more values for a person (the readers disagreed)
                 for _ in range(10):

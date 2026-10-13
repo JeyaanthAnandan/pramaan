@@ -140,6 +140,8 @@ function RequestStatus({ processId, inline = false }: { processId: string; inlin
       await api.patchProject(pid, { supplier_status: { [processId]: st } });
       await refresh();
       toast(`${t("lever.track")}: ${t(`lever.st_${st}`)}`, "info");
+    } catch (e) {
+      toast(t("common.failed", { msg: (e as Error).message }), "warn");
     } finally {
       setBusy(null);
     }
@@ -196,6 +198,8 @@ export function LetterDialog({ processId, supplier, onSent, compact = false, att
       setText(r.text);
       setLink(r.link);
       await onSent();
+    } catch (e) {
+      toast(t("common.failed", { msg: (e as Error).message }), "warn");
     } finally {
       setBusy(false);
     }

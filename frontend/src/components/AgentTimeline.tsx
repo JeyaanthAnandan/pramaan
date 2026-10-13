@@ -71,6 +71,11 @@ export function useRunEvents(pid: string, runId: string | null | undefined, onEn
 /** Classifier and Extractor work per document: once they are done, say what all the documents gave,
  *  not what the last one did ("24 documents, 7 kinds"; "222 values from 24 documents, 222 with regions"). */
 function totals(key: string, done: TimelineEvent[], t: (k: string, o?: Record<string, unknown>) => string): string | null {
+  if (key === "SecondReader") {
+    // "221 agree (VERIFIED_2R), 1 needs review", in the reader's language (recorded runs said "1 need review")
+    const m = /^(\d+) agree \(VERIFIED_2R\), (\d+) needs? review$/.exec(done[done.length - 1]?.output_summary ?? "");
+    return m ? t("timeline.second_all", { agree: Number(m[1]), count: Number(m[2]) }) : null;
+  }
   if (done.length < 2) return null;
   if (key === "Classifier") {
     const kinds = new Set(done.map((e) => (e.output_summary ?? "").split(" · ")[0]).filter(Boolean));

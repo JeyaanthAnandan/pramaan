@@ -6,6 +6,7 @@ import { ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
 import { AnimatedNumber, rise, stagger } from "@/lib/motion";
 import { Logo, LangSwitch } from "@/components/Layout";
+import { dateTime } from "@/lib/format";
 
 const EXTRA_LABELS: Record<string, string> = {
   main_reducing_agent_of_precursor: "Main reducing agent (precursor)",
@@ -20,7 +21,7 @@ const EXTRA_LABELS: Record<string, string> = {
 /** M11: read-only buyer link. No login, summary only, no plant-level inputs. */
 export default function Share() {
   const { token = "" } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const q = useQuery({ queryKey: ["share", token], queryFn: () => api.getShare(token) });
   const s = q.data?.summary;
   return (
@@ -39,7 +40,7 @@ export default function Share() {
             <div className="skeleton h-64" />
           </div>
         )}
-        {q.isError && <p className="mt-20 text-center text-muted">{t("buyer.none")}</p>}
+        {q.isError && <h1 className="mt-20 text-center text-base font-normal text-muted">{t("buyer.none")}</h1>}
         {s && (
           <>
             <div className="flex items-start gap-3 rounded-2xl border border-warn/40 bg-warnbg px-4 py-3 text-[14px] text-warnink">
@@ -52,7 +53,7 @@ export default function Share() {
               <dl className="mt-3 grid gap-x-6 gap-y-1 text-[14px] sm:grid-cols-2">
                 <div><dt className="inline text-muted">{t("buyer.operator")}: </dt><dd className="inline font-medium">{s.operator}, {s.country}</dd></div>
                 <div><dt className="inline text-muted">{t("buyer.period")}: </dt><dd className="inline font-medium">{s.period}</dd></div>
-                <div><dt className="inline text-muted">{t("buyer.generated")}: </dt><dd className="inline">{new Date(s.generated_at).toLocaleString()}</dd></div>
+                <div><dt className="inline text-muted">{t("buyer.generated")}: </dt><dd className="inline">{dateTime(s.generated_at, i18n.language)}</dd></div>
               </dl>
               <p className="mt-1 text-[12px] text-muted">{s.method}</p>
             </div>

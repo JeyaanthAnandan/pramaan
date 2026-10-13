@@ -92,7 +92,7 @@ export function WhatIfPanel({ result }: { result: Result }) {
   return (
     <section className="card p-4 sm:p-6">
       <div className="flex flex-wrap items-start gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-[1_1_16rem]">
           <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
             <Factory className="h-5 w-5 text-s3" aria-hidden /> {t("whatif.title")}
           </h2>

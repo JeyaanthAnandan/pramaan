@@ -211,25 +211,25 @@ export default function Landing() {
     <div>
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60rem_30rem_at_80%_-10%,rgb(var(--accent)/0.10),transparent),radial-gradient(40rem_24rem_at_-10%_10%,rgb(var(--s3)/0.08),transparent)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-16">
-          <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:pt-16">
+          <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="min-w-0">
             <motion.span variants={rise} className="chip border-accent/25 bg-accent/5 text-accent">
               {t("landing.eyebrow")}
             </motion.span>
             {/* the headline and lead are the page's first read and its largest paint: shown at once, not faded in */}
-            <h1 className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">{t("landing.title")}</h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">{t("landing.lead")}</p>
+            <h1 className="mt-5 break-words text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">{t("landing.title")}</h1>
+            <p className="mt-5 max-w-xl break-words text-[17px] leading-relaxed text-ink2">{t("landing.lead")}</p>
             <motion.div variants={rise} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button className="btn-primary glint nudge h-12 px-6 text-[15px]" onClick={() => load(false)} disabled={!!busy}>
+              <button className="btn-primary glint nudge min-h-12 px-6 py-2 text-[15px]" onClick={() => load(false)} disabled={!!busy}>
                 {busy === "load" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Factory className="h-4 w-4" />}
                 {busy === "load" ? t("landing.loading") : t("landing.load")}
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <button className="btn-ghost h-12 px-5" onClick={() => load(false, true)} disabled={!!busy}>
+              <button className="btn-ghost min-h-12 px-5 py-2" onClick={() => load(false, true)} disabled={!!busy}>
                 {busy === "tour" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Compass className="h-4 w-4 text-accent" />}
                 {t("tour.landing")}
               </button>
-              <button className="btn-quiet h-12 px-4" onClick={() => load(true)} disabled={!!busy} title={t("landing.live_hint")}>
+              <button className="btn-quiet min-h-12 px-4 py-2" onClick={() => load(true)} disabled={!!busy} title={t("landing.live_hint")}>
                 {busy === "live" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {t("landing.live")}
               </button>

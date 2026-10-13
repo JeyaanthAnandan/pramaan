@@ -208,7 +208,7 @@ function Leaves({ node, push }: { node: CalcNode; push: (id: string) => void }) 
     <section>
       <div className="eyebrow mb-1.5">{t("lens.sources_title", { defaultValue: "Everything behind this number" })}</div>
       <p className="mb-2 text-[12px] text-ink2">
-        {ev.length} {t("lens.values_from", { defaultValue: "values read from" })} {docCount} {t("lens.documents", { defaultValue: "documents" })} · {refs.length} {t("lens.official_values", { defaultValue: "official values" })} · {asm.length} {t("lens.assumptions", { defaultValue: "stated assumptions" })}
+        {ev.length} {t("lens.values_from", { count: ev.length })} {docCount} {t("lens.documents", { count: docCount })} · {refs.length} {t("lens.official_values", { count: refs.length })} · {asm.length} {t("lens.assumptions", { count: asm.length })}
       </p>
       {ev.length > 0 && (
         <motion.ul className="grid grid-cols-2 gap-2" variants={stagger(0.04, 0.1)} initial="hidden" animate="show">

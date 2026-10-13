@@ -1,4 +1,4 @@
-import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
+import { Link, Navigate, NavLink, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, useAnimate } from "motion/react";
 import { AlertTriangle, Check, Compass, KeyRound, Loader2 } from "lucide-react";
@@ -22,6 +22,7 @@ const ORDER: Record<string, number> = { capture: 0, gaps: 1, report: 2 };
 
 export default function Workspace() {
   const { pid = "", step = "report" } = useParams();
+  if (!(step in ORDER)) return <Navigate to={`/p/${encodeURIComponent(pid)}/report`} replace />; // a mistyped step
   return (
     <ProjectProvider pid={pid}>
       <LensProvider>
@@ -83,6 +84,8 @@ function Inner({ step }: { step: string }) {
               const r = await api.demoLoad();
               rememberProject(r.project_id);
               nav(`/p/${r.project_id}/report`);
+            } catch {
+              nav("/"); // the landing page explains a busy server and reopens an earlier copy
             } finally {
               setBusy(false);
             }
@@ -99,7 +102,9 @@ function Inner({ step }: { step: string }) {
   // the header chips come from the project bundle, so they are in place on the first render: added when the
   // results arrive, they wrapped the row onto a second line on a phone and the page below jumped
   const mode = result?.mode ?? (bundle.has_result ? lr?.mode : undefined);
-  const ranAt = lr?.mode === "live" && lr.started_at ? new Date(lr.started_at).toLocaleString(i18n.language === "en" ? "en-IN" : i18n.language, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
+  // when it finished, as the Metrics page dates the same run
+  const ranWhen = lr?.finished_at ?? lr?.started_at;
+  const ranAt = lr?.mode === "live" && ranWhen ? new Date(ranWhen).toLocaleString(i18n.language === "en" ? "en-IN" : i18n.language, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
   const gaps = result?.gaps ?? [];
   const red = gaps.filter((g) => g.status === "red").length;
   const amber = gaps.filter((g) => g.status === "amber").length;

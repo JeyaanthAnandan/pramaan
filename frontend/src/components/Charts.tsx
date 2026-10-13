@@ -54,13 +54,12 @@ export function ContributionBar({ segments }: { segments: { key: string; label: 
   const [hover, setHover] = useState<string | null>(null);
   return (
     <div>
-      <div ref={ref} className="flex h-[22px] w-full gap-[2px]" role="list">
+      <div ref={ref} className="flex h-[22px] w-full gap-[2px]">
         {segments.map((s, i) => {
           const pct = Math.max((s.value / total) * 100, 1.2);
           return (
             <motion.button
               key={s.key}
-              role="listitem"
               className={`relative h-full transition-opacity ${i === 0 ? "rounded-l-[4px]" : ""} ${i === segments.length - 1 ? "rounded-r-[4px]" : ""} ${hover && hover !== s.key ? "opacity-60" : ""}`}
               style={{ background: `rgb(${color[s.key] ?? "var(--line2)"})` }}
               initial={{ width: reduce ? `${pct}%` : "0%" }}

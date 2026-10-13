@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, ChevronDown, Loader2, PackagePlus, Pencil, Scale, ScanSearch, UserRound } from "lucide-react";
 import { api, imageUrl, type Gap } from "@/lib/api";
+import { parseQuantity } from "@/lib/format";
 import { useProject } from "@/lib/project";
 import { AnimatedNumber, Collapse, EASE, Stamp, rise, stagger, useAfter } from "@/lib/motion";
 import { useToast } from "@/components/Toast";
@@ -51,7 +52,7 @@ export default function Gaps() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-4">
-        <div className="flex-1">
+        <div className="min-w-0 flex-[1_1_18rem]">
           <h2 className="text-2xl font-semibold tracking-tight">{t("gaps.title")}</h2>
           <p className="mt-1 max-w-2xl text-sm text-ink2">{t("gaps.lead")}</p>
         </div>
@@ -195,7 +196,7 @@ function GapRow({ g }: { g: Gap }) {
 }
 
 function ReviewCard({ g }: { g: Gap }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const gtext = useGapText();
   const { pid, evById, docs, refresh } = useProject();
   const toast = useToast();
@@ -205,6 +206,7 @@ function ReviewCard({ g }: { g: Gap }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(ev?.value_text ?? "");
   const [stamped, setStamped] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   // the story in order: reader 1 read the page, then reader 2 read only the crop, then they disagree
   const second = useAfter(420, [ev?.id]);
   const verdict = useAfter(900, [ev?.id]);
@@ -216,17 +218,26 @@ function ReviewCard({ g }: { g: Gap }) {
   const crossed = ev.second_reading?.corrected_from; // a crossed-out figure next to the value
   const handFix = !!crossed && !!ev.second_reading?.agrees; // both read the same, but a person confirms a hand correction
   async function act(action: "approve" | "edit", value?: string) {
+    // an edit must be a number the engine can use: "15,4" is 15.4 (a decimal comma), never 154
+    const num = action === "edit" ? parseQuantity(value ?? "", i18n.language) : null;
+    if (action === "edit" && num === null) {
+      setErr(t("gaps.not_a_number"));
+      return;
+    }
+    setErr(null);
     setBusy(value ?? action);
     try {
-      await api.patchEvidence(pid, ev.id, action === "edit" ? { action, value_text: value!, value_num: value!.replace(/[^\d.]/g, ""), user: "Owner (demo)" } : { action, user: "Owner (demo)" });
-      const v = action === "edit" ? value! : ev.value_text;
+      await api.patchEvidence(pid, ev.id, action === "edit" ? { action, value_text: value!.trim(), value_num: num!, user: "Owner (demo)" } : { action, user: "Owner (demo)" });
+      const v = action === "edit" ? value!.trim() : ev.value_text;
       setStamped(v);
       toast(t("toast.approved", { value: v }));
       if (!reduce) await new Promise((r) => window.setTimeout(r, 750)); // let the stamp land before the card folds away
+      setEditing(false);
       await refresh();
+    } catch (e) {
+      setErr(t("common.failed", { msg: (e as Error).message })); // the form stays open with what was typed
     } finally {
       setBusy(null);
-      setEditing(false);
     }
   }
   const ring = (which: "first" | "second") => (verdict && supports === which ? "ring-2 ring-good/60 ring-offset-2 ring-offset-surface" : "");
@@ -321,10 +332,15 @@ function ReviewCard({ g }: { g: Gap }) {
                   void act("edit", val);
                 }}
               >
-                <input value={val} onChange={(e) => setVal(e.target.value)} inputMode="decimal" className="min-h-[44px] flex-1 rounded-xl border border-line2 bg-surface px-3 font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label={t("gaps.edit")} />
+                <input value={val} onChange={(e) => (setVal(e.target.value), setErr(null))} inputMode="decimal" className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-line2 bg-surface px-3 font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label={t("gaps.edit")} aria-invalid={!!err} aria-describedby={err ? `err-${ev.id}` : undefined} />
                 <button className="btn-primary" disabled={!!busy}>{t("gaps.save")}</button>
-                <button type="button" className="btn-quiet" onClick={() => setEditing(false)}>{t("gaps.cancel")}</button>
+                <button type="button" className="btn-quiet" onClick={() => (setEditing(false), setErr(null))}>{t("gaps.cancel")}</button>
               </form>
+            )}
+            {err && (
+              <p id={`err-${ev.id}`} role="alert" className="w-full text-[13px] text-badink">
+                {err}
+              </p>
             )}
           </div>
         </div>

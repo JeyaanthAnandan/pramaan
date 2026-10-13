@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { rememberProject } from "@/lib/session";
+import { lastProject, rememberProject } from "@/lib/session";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig, motion } from "motion/react";
 import { Layout } from "@/components/Layout";
@@ -24,10 +24,17 @@ const Verify = lazy(() => import("@/pages/Verify"));
 function Start() {
   const nav = useNavigate();
   useEffect(() => {
-    api.demoLoad().then((r) => {
-      rememberProject(r.project_id);
-      nav(`/p/${r.project_id}/capture`, { replace: true });
-    });
+    api
+      .demoLoad()
+      .then((r) => {
+        rememberProject(r.project_id);
+        nav(`/p/${r.project_id}/capture`, { replace: true });
+      })
+      .catch(() => {
+        // too many sample loads from this address, or offline: the visitor's earlier copy, else the landing page
+        const prev = lastProject();
+        nav(prev?.startsWith("demo-") ? `/p/${prev}/capture` : "/", { replace: true });
+      });
   }, [nav]);
   return <Fallback />;
 }

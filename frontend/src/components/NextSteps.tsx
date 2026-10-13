@@ -119,8 +119,8 @@ export function NextSteps() {
       </h3>
       <motion.ol className="mt-3 space-y-2.5" variants={stagger(0.09, 0.15)} initial="hidden" animate="show">
         {steps.map((s, i) => (
-          <motion.li key={s.key} variants={rise} className={`flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center ${TONE[s.tone]}`}>
-            <div className="flex min-w-0 flex-1 gap-3">
+          <motion.li key={s.key} variants={rise} className={`flex flex-wrap items-center gap-3 rounded-xl border p-3 ${TONE[s.tone]}`}>
+            <div className="flex min-w-0 flex-[1_1_20rem] gap-3">
               <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface font-mono text-[12px] font-semibold shadow-card ${ICON_TONE[s.tone]}`} aria-hidden>
                 {i + 1}
               </span>
@@ -129,7 +129,7 @@ export function NextSteps() {
                 <p className="mt-0.5 text-[13px] leading-relaxed text-ink2">{s.body}</p>
               </div>
             </div>
-            {s.action && <div className="shrink-0 sm:pl-2">{s.action}</div>}
+            {s.action && <div className="max-w-full shrink-0 sm:pl-2">{s.action}</div>}
           </motion.li>
         ))}
       </motion.ol>

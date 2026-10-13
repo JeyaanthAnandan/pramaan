@@ -139,7 +139,7 @@ function Item({ pid, it, n, by, when, onMarked }: { pid: string; it: SpotItem; n
             <span className={`chip ${it.why === "manual" ? "border-warn/40 bg-warnbg text-warnink" : ""}`}>{t(`verify.why_${it.why}`)}</span>
             {it.period && <span className="text-[12px] text-muted">{it.period}</span>}
           </div>
-          <h3 className="mt-2 text-[15px] font-semibold">{[name, it.line].filter(Boolean).join(" · ")}</h3>
+          <h2 className="mt-2 text-[15px] font-semibold">{[name, it.line].filter(Boolean).join(" · ")}</h2>
           <div className="mt-1 font-mono text-[22px] font-semibold tracking-tight">
             {it.value_text}
             {it.unit && <span className="ml-1 text-[14px] font-normal text-muted">{it.unit}</span>}

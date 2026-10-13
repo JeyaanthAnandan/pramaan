@@ -45,6 +45,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Translations cover every English key (hi, ta, vi)
         run: npm run check:i18n
+      - name: Typed numbers read as intended (decimal comma, grouping, minus)
+        run: npm run check:format
       - name: Type-check and build
         run: npm run build
   secrets:

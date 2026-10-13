@@ -71,3 +71,21 @@ export function periodLabel(months: string[] | undefined, serverLabel: string, l
   const span = months.length > 1 ? `${mon(months[0])}–${mon(months[months.length - 1])}` : mon(months[0]);
   return `${span} ${year}${/provisional/i.test(serverLabel) ? ` (${ytd})` : ""}`;
 }
+
+/** A quantity as a person types it on a phone, as the plain decimal the API stores, or null when it is not
+ *  a usable number. Grouping commas go ("1,234.5", Indian "1,23,456"); a lone decimal comma counts as a
+ *  point ("15,4" is 15.4, never 154); a unit or currency sign around it is ignored ("15.4 t", "₹ 21,192").
+ *  In Vietnamese the dot groups and the comma is the decimal ("1.234,5"). */
+export function parseQuantity(input: string, lang = "en"): string | null {
+  if (/^\s*[-\u2212\u2013]/.test(input)) return null; // a minus sign: no bill, register or rate here is below zero
+  let s = input.replace(/[\s\u00a0\u202f]/g, "").replace(/^[^\d]+|[^\d]+$/g, "");
+  if (lang === "vi" && /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(,\d{2,3})+(\.\d+)?$/.test(s) && /,\d{3}(\.\d+)?$/.test(s)) s = s.replace(/,/g, "");
+  else if (/^\d+,\d+$/.test(s)) s = s.replace(",", ".");
+  return /^\d+(\.\d+)?$/.test(s) ? s : null;
+}
+
+/** A date and time nobody can misread ("14 Oct 2026, 02:10 am"), in the reader's language. */
+export function dateTime(iso: string, lang = "en"): string {
+  return new Date(iso).toLocaleString(locales[lang] || "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}

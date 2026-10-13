@@ -86,10 +86,11 @@ export default function Metrics() {
             </section>
           )}
           {(live ?? replay)?.per_doc_type && (
-            <Reveal className="mt-8 card overflow-x-auto">
+            <Reveal className="mt-8 card overflow-hidden">
+              <div className="relative overflow-x-auto" tabIndex={0} role="region" aria-label={t("metrics.h_doctype")}>
               <table className="num w-full min-w-[520px] text-[13px]">
                 <thead className="bg-sunk text-left text-[11px] text-muted">
-                  <tr><th className="px-4 py-2">Document type</th><th className="px-4 py-2 text-right">Fields</th><th className="px-4 py-2 text-right">Accuracy</th><th className="px-4 py-2 text-right">Agreement</th></tr>
+                  <tr><th className="px-4 py-2">{t("metrics.h_doctype")}</th><th className="px-4 py-2 text-right">{t("metrics.h_fields")}</th><th className="px-4 py-2 text-right">{t("metrics.field_acc")}</th><th className="px-4 py-2 text-right">{t("metrics.agreement")}</th></tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {Object.entries((live ?? replay).per_doc_type as Record<string, any>).map(([k, v]) => (
@@ -97,12 +98,13 @@ export default function Metrics() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </Reveal>
           )}
           {m.history?.length > 0 && (
             <Reveal className="mt-8">
               <h2 className="eyebrow mb-3">{t("metrics.history_t")}</h2>
-              <div className="card overflow-x-auto">
+              <div className="card relative overflow-x-auto" tabIndex={0} role="region" aria-label={t("metrics.history_t")}>
                 <table className="num w-full min-w-[640px] text-[13px]">
                   <thead className="bg-sunk text-left text-[11px] text-muted">
                     <tr>
