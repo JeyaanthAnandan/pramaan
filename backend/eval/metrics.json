@@ -74,7 +74,7 @@
  },
  "per_doc_type": {
   "gas_invoice": {
-   "fields": 63,
+   "fields": 72,
    "accuracy": 1.0,
    "agreement": 1.0,
    "box": 1.0
@@ -116,5 +116,39 @@
    "box": 1.0
   }
  },
- "status": "ok"
+ "status": "ok",
+ "history": [
+  {
+   "mode": "live",
+   "ran_at": "2026-10-12T18:05:24+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 213,
+   "field_accuracy": 0.8356807511737089,
+   "two_reader_agreement": 0.9859154929577465,
+   "review_rate": 0.014084507042253521,
+   "total_seconds": 392.1,
+   "tokens_total": 406875,
+   "note": "First live run on Cloud Run, before the clean-up step: Gemini read the values but filed some under the wrong product line or month. Re-scored with the clean-up: 98.1 % (209/213)."
+  },
+  {
+   "mode": "replay",
+   "ran_at": "2026-10-12T19:24:06+00:00",
+   "models": {
+    "extraction": "replay",
+    "second_reader": "replay"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 1.0,
+   "two_reader_agreement": 0.9954954954954955,
+   "review_rate": 0.0045045045045045045,
+   "total_seconds": 1.1782968750048894,
+   "tokens_total": 0,
+   "note": "Replay of the ground truth: checks the harness, not a model."
+  }
+ ]
 }

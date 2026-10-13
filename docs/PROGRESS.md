@@ -9,6 +9,24 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 10 — judging pass after nine iterations
+* Sweep of every page (desktop light/dark, 390 px phone; landing, report, gaps, capture, plan, proof,
+  metrics, architecture, copilot, buyer link, supplier link): no page errors, no failed API calls, no
+  sideways scroll. Fixed: the Metrics page showed a stale per-type table (63 gas fields, from before the
+  rate field) and "25 uploads"; the eval now writes the table of the run it shows and keeps **every
+  evaluation** (`history`), seeded with the first live run on Cloud Run (83.6 % before the clean-up →
+  98.1 % re-scored) — the page lists them with a note.
+* Scorecard (if the team redeploys main, captures the live run, records the video and makes the deck):
+  Technical & Gen AI 9 (grounded report Q&A with a numbers guard, supplier loop on the same agents,
+  clean-up proven on real Gemini output, runs that survive Cloud Run, eval history, ~170 tests + e2e incl.
+  the tour) · Problem & impact 9 (three parties in one data chain, phone first, WhatsApp, four languages
+  end to end, Plant pulse for the operations theme) · Innovation 9.5 · UX 9.5 (tour, folds, handoff QR,
+  Lighthouse 91/100/100/100 mobile) → **about 92/100**. The live link as deployed today is the old build.
+* Team, in order: pull → `MIN_INSTANCES=0 scripts/deploy.sh` → one live re-run (< 2 min, €409,545, 1 of 2
+  lines), the supplier link on a phone, one "Ask about this report" question → `run_extraction_eval.py
+  --mode live --capture` → redeploy → `scripts/readme_shots.py <URL>` → before 19 Oct plain
+  `scripts/deploy.sh` (min-instances 1; check the idle cost against the budget) → video + deck → tag.
+
 ### Iteration 9 — the story in pictures (README, architecture, GIFs)
 * Judge: the README is the first thing many judges read; its pictures predated iterations 1–8 and the
   strongest moment (the supplier's upload moving the money) had no picture at all.

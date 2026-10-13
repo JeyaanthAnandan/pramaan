@@ -51,7 +51,11 @@ export default function Metrics() {
       )}
       {m && (
         <>
-          {!live && <p className="mt-6 rounded-2xl border border-warn/40 bg-warnbg px-4 py-3 text-[14px] text-warnink">{t("metrics.pending")} {m.note ?? ""}</p>}
+          {!live && (
+            <p className="mt-6 rounded-2xl border border-warn/40 bg-warnbg px-4 py-3 text-[14px] text-warnink">
+              {t((m.history as any[] | undefined)?.some((h) => h.mode === "live") ? "metrics.pending_history" : "metrics.pending")} {m.note ?? ""}
+            </p>
+          )}
           {live && (
             <section className="mt-8">
               <h2 className="eyebrow mb-3">Live · {live.models?.extraction} + {live.models?.second_reader} · {live.ran_at}</h2>
@@ -59,7 +63,7 @@ export default function Metrics() {
                 <Tile icon={Gauge} label={t("metrics.field_acc")} value={<Pct v={live.field_accuracy} />} target="≥ 95%" ok={live.field_accuracy >= 0.95} note={`${live.fields_correct}/${live.fields_total} fields`} />
                 <Tile icon={ScanEye} label={t("metrics.agreement")} value={<Pct v={live.two_reader_agreement} />} note={`box IoU ≥ 0.5: ${pct(live.box_hit_rate)}`} />
                 <Tile icon={UserCheck} label={t("metrics.review_rate")} value={<Pct v={live.review_rate} />} />
-                <Tile icon={Clock} label={t("metrics.total")} value={`${live.total_seconds?.toFixed?.(0) ?? "—"} s`} target="< 120 s" ok={live.total_seconds < 120} note={`${live.seconds_per_doc?.toFixed?.(1)} s / document`} />
+                <Tile icon={Clock} label={t("metrics.total", { n: live.documents ?? 24 })} value={`${live.total_seconds?.toFixed?.(0) ?? "—"} s`} target="< 120 s" ok={live.total_seconds < 120} note={`${live.seconds_per_doc?.toFixed?.(1)} s / document`} />
               </motion.div>
             </section>
           )}
@@ -70,22 +74,54 @@ export default function Metrics() {
                 <Tile icon={Gauge} label={t("metrics.field_acc")} value={<Pct v={replay.field_accuracy} />} note="sanity check of the eval harness, not a model score" />
                 <Tile icon={ScanEye} label={t("metrics.agreement")} value={<Pct v={replay.two_reader_agreement} />} />
                 <Tile icon={UserCheck} label={t("metrics.review_rate")} value={<Pct v={replay.review_rate} />} />
-                <Tile icon={Clock} label={t("metrics.total")} value={`${replay.total_seconds?.toFixed?.(1) ?? "—"} s`} />
+                <Tile icon={Clock} label={t("metrics.total", { n: replay.documents ?? 24 })} value={`${replay.total_seconds?.toFixed?.(1) ?? "—"} s`} />
               </motion.div>
             </section>
           )}
-          {m.per_doc_type && (
+          {(live ?? replay)?.per_doc_type && (
             <Reveal className="mt-8 card overflow-x-auto">
               <table className="num w-full min-w-[520px] text-[13px]">
                 <thead className="bg-sunk text-left text-[11px] text-muted">
                   <tr><th className="px-4 py-2">Document type</th><th className="px-4 py-2 text-right">Fields</th><th className="px-4 py-2 text-right">Accuracy</th><th className="px-4 py-2 text-right">Agreement</th></tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {Object.entries(m.per_doc_type as Record<string, any>).map(([k, v]) => (
+                  {Object.entries((live ?? replay).per_doc_type as Record<string, any>).map(([k, v]) => (
                     <tr key={k}><td className="px-4 py-2">{t(`doctype.${k}`, { defaultValue: k })}</td><td className="px-4 py-2 text-right">{v.fields}</td><td className="px-4 py-2 text-right">{pct(v.accuracy)}</td><td className="px-4 py-2 text-right">{pct(v.agreement)}</td></tr>
                   ))}
                 </tbody>
               </table>
+            </Reveal>
+          )}
+          {m.history?.length > 0 && (
+            <Reveal className="mt-8">
+              <h2 className="eyebrow mb-3">{t("metrics.history_t")}</h2>
+              <div className="card overflow-x-auto">
+                <table className="num w-full min-w-[640px] text-[13px]">
+                  <thead className="bg-sunk text-left text-[11px] text-muted">
+                    <tr>
+                      <th className="px-4 py-2">{t("metrics.h_when")}</th>
+                      <th className="px-4 py-2">{t("metrics.h_mode")}</th>
+                      <th className="px-4 py-2 text-right">{t("metrics.field_acc")}</th>
+                      <th className="px-4 py-2 text-right">{t("metrics.agreement")}</th>
+                      <th className="px-4 py-2 text-right">{t("metrics.h_time")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {[...(m.history as any[])].reverse().map((h, i) => (
+                      <tr key={`${h.ran_at}${i}`} className="align-top">
+                        <td className="whitespace-nowrap px-4 py-2">{new Date(h.ran_at).toLocaleDateString()}</td>
+                        <td className="px-4 py-2">
+                          <div className="font-medium">{h.mode === "live" ? t("metrics.mode_live") : t("metrics.mode_replay")}</div>
+                          {h.note && <div className="mt-0.5 max-w-md text-[12px] leading-snug text-muted">{h.note}</div>}
+                        </td>
+                        <td className="px-4 py-2 text-right">{pct(h.field_accuracy)} <span className="text-[11px] text-muted">/ {h.fields_total}</span></td>
+                        <td className="px-4 py-2 text-right">{pct(h.two_reader_agreement)}</td>
+                        <td className="px-4 py-2 text-right">{h.total_seconds != null ? `${Number(h.total_seconds).toFixed(h.total_seconds < 10 ? 1 : 0)} s` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Reveal>
           )}
         </>

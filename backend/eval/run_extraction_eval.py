@@ -214,7 +214,23 @@ def main() -> int:
     path = HERE / "metrics.json"
     metrics = json.loads(path.read_text()) if path.exists() else {"runs": {}}
     metrics.setdefault("runs", {})[args.mode] = result
-    metrics["per_doc_type"] = result["per_doc_type"] if args.mode == "live" or "per_doc_type" not in metrics else metrics["per_doc_type"]
+    # the per-type table belongs to the run the Metrics page shows: the live one when there is one
+    metrics["per_doc_type"] = (metrics["runs"].get("live") or result)["per_doc_type"]
+    # every evaluation stays on record (the page lists them), newest last
+    keep = (
+        "mode",
+        "ran_at",
+        "models",
+        "documents",
+        "fields_total",
+        "field_accuracy",
+        "two_reader_agreement",
+        "review_rate",
+        "total_seconds",
+        "tokens_total",
+    )
+    metrics.setdefault("history", []).append({k: result.get(k) for k in keep} | {"note": ""})
+    metrics["history"] = metrics["history"][-20:]
     metrics["status"] = "ok"
     path.write_text(json.dumps(metrics, indent=1) + "\n")
     write_report(metrics)
