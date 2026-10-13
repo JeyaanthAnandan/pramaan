@@ -417,7 +417,7 @@ async def second_reader(node_input: dict[str, Any]) -> Event:
         "SecondReader",
         "Compared readings",
         input_summary=f"{len(todo)} crops",
-        output_summary=f"{agree} agree (VERIFIED_2R), {len(mismatched)} need review",
+        output_summary=f"{agree} agree (VERIFIED_2R), {len(mismatched)} {'needs' if len(mismatched) == 1 else 'need'} review",
         duration_ms=int((time.perf_counter() - t0) * 1000),
         model=model_name,
         tokens_in=tok.get("in"),

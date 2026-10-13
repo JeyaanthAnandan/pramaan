@@ -8,7 +8,7 @@ import logging
 import time
 from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response, StreamingResponse
@@ -26,6 +26,7 @@ from app.evidence.store import store
 router = APIRouter(prefix="/api", dependencies=[Depends(access.require)])
 _run_log: dict[str, deque[float]] = defaultdict(deque)
 MAX_UPLOAD = 15 * 1024 * 1024
+MAX_QUANTITY = Decimal("1e12")  # no bill, register or invoice value comes near this
 ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "application/pdf"}
 
 
@@ -237,7 +238,7 @@ def patch_project(pid: str, body: ProjectPatch) -> dict[str, Any]:
                     d = Decimal(v)
                 except InvalidOperation as exc:
                     raise HTTPException(422, f"{name} must be a number") from exc
-                if d <= 0 or d > 100000:
+                if not d.is_finite() or d <= 0 or d > 100000:
                     raise HTTPException(422, f"{name} out of range")
                 setattr(p, name, str(d))
     if body.supplier_status:
@@ -265,7 +266,9 @@ async def upload(pid: str, files: list[UploadFile] = File(...)) -> dict[str, Any
 async def save_uploads(pid: str, files: list[UploadFile], uploaded_by: str = "owner", limit: int = 40) -> list[Document]:
     from app.evidence.normalize import to_pages
 
-    out: list[Document] = []
+    # every file is read and checked first: one unreadable file stops the upload before anything is
+    # stored, so a retry without it does not leave half the batch in twice
+    ready: list[tuple[str, list[tuple[bytes, int, int]]]] = []
     for f in files[:limit]:
         data = await f.read()
         if len(data) > MAX_UPLOAD:
@@ -277,9 +280,11 @@ async def save_uploads(pid: str, files: list[UploadFile], uploaded_by: str = "ow
         if ctype not in ALLOWED:
             raise HTTPException(415, f"{name}: unsupported type {ctype}")
         try:
-            pages = to_pages(data, ctype)
+            ready.append((name, to_pages(data, ctype)))
         except Exception as exc:
             raise HTTPException(422, f"{name}: could not read the file ({exc.__class__.__name__})") from exc
+    out: list[Document] = []
+    for name, pages in ready:
         stem = name.rsplit(".", 1)[0]
         for i, (jpeg, w, h) in enumerate(pages):
             fname = f"{stem}.jpg" if len(pages) == 1 else f"{stem}-p{i + 1}.jpg"
@@ -314,7 +319,7 @@ def document_image(pid: str, doc_id: str) -> Response:
 
 class RunRequest(BaseModel):
     lang: str = "en"
-    mode: str | None = None  # "live" | "replay" | None (auto)
+    mode: Literal["live", "replay"] | None = None  # None: live when Gemini is configured, else replay
 
 
 @router.post("/projects/{pid}/runs")
@@ -434,19 +439,23 @@ def patch_evidence(pid: str, eid: str, body: EvidencePatch) -> dict[str, Any]:
     x = st.get_evidence(pid, eid)
     if x is None:
         raise HTTPException(404, "evidence not found")
-    before = {"value_text": x.value_text, "value_num": x.value_num, "status": x.status}
-    if body.action == "edit":
-        if body.value_text is None:
+    if body.action not in {"approve", "edit"}:
+        raise HTTPException(422, "action must be approve or edit")
+    if body.action == "edit":  # check the whole edit before the stored value is touched
+        if body.value_text is None or not body.value_text.strip():
             raise HTTPException(422, "value_text required for edit")
-        x.value_text = body.value_text
         if body.value_num is not None:
             try:
-                Decimal(body.value_num)
+                d = Decimal(body.value_num)
             except InvalidOperation as exc:
                 raise HTTPException(422, "value_num must be a number") from exc
+            if not d.is_finite() or d < 0 or d > MAX_QUANTITY:  # every input is a quantity, a factor or a share
+                raise HTTPException(422, "value_num out of range")
+    before = {"value_text": x.value_text, "value_num": x.value_num, "status": x.status}
+    if body.action == "edit":
+        x.value_text = (body.value_text or "").strip()[:120]
+        if body.value_num is not None:
             x.value_num = body.value_num
-    elif body.action != "approve":
-        raise HTTPException(422, "action must be approve or edit")
     x.status = "APPROVED"
     x.approved_by = (body.user or "owner")[:60]
     x.approved_at = now()
@@ -877,9 +886,15 @@ _demo_log: dict[str, deque[float]] = defaultdict(deque)
 DEMO_LOADS_PER_HOUR = 120  # per address; a room of judges can share one office address
 
 
+def client_ip(forwarded_for: str, peer: str | None) -> str:
+    """The caller's address for the per-address caps. Cloud Run's front end appends the address it saw
+    to X-Forwarded-For, so the last entry is the real caller; anything before it is whatever the caller
+    sent, and trusting the first entry let a script dodge every cap with a made-up header."""
+    return forwarded_for.split(",")[-1].strip() or peer or "unknown"
+
+
 def _client_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for", "")
-    return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+    return client_ip(request.headers.get("x-forwarded-for", ""), request.client.host if request.client else None)
 
 
 @router.post("/demo/load")

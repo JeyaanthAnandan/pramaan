@@ -168,6 +168,8 @@ class MemoryStore:
         return self.runs.get(pid, {}).get(run_id)
 
     def list_runs(self, pid: str) -> list[Run]:
+        if not valid_id(pid):
+            return []
         return sorted(self.runs.get(pid, {}).values(), key=lambda r: r.started_at)
 
     def append_event(self, pid: str, run_id: str, ev: TimelineEvent) -> None:
@@ -197,6 +199,16 @@ class MemoryStore:
         return self.shares.get(token)
 
 
+def valid_id(*ids: str) -> bool:
+    """False for an id Firestore rejects outright (empty, "." or "..", a "/", a reserved __name__, more than
+    1,500 bytes): such an id comes from a mistyped or hostile URL and cannot exist, so it is not found
+    instead of turning into a server error."""
+    return all(
+        x and x not in {".", ".."} and "/" not in x and not (x.startswith("__") and x.endswith("__")) and len(x.encode()) <= 1500
+        for x in ids
+    )
+
+
 class FirestoreStore:
     """Firestore (Native mode) implementation used on Cloud Run."""
 
@@ -212,6 +224,8 @@ class FirestoreStore:
         self._p(p.id).set(p.model_dump())
 
     def get_project(self, pid: str) -> Project | None:
+        if not valid_id(pid):
+            return None
         s = self._p(pid).get()
         return Project(**(s.to_dict() or {})) if s.exists else None
 
@@ -236,10 +250,14 @@ class FirestoreStore:
         batch.commit()
 
     def get_document(self, pid: str, doc_id: str) -> Document | None:
+        if not valid_id(pid, doc_id):
+            return None
         s = self._p(pid).collection("documents").document(doc_id).get()
         return Document(**(s.to_dict() or {})) if s.exists else None
 
     def list_documents(self, pid: str) -> list[Document]:
+        if not valid_id(pid):
+            return []
         return [Document(**s.to_dict()) for s in self._p(pid).collection("documents").stream()]
 
     def put_evidence(self, items: list[Evidence]) -> None:
@@ -252,10 +270,14 @@ class FirestoreStore:
         batch.commit()
 
     def get_evidence(self, pid: str, eid: str) -> Evidence | None:
+        if not valid_id(pid, eid):
+            return None
         s = self._p(pid).collection("evidence").document(eid).get()
         return Evidence(**(s.to_dict() or {})) if s.exists else None
 
     def list_evidence(self, pid: str) -> list[Evidence]:
+        if not valid_id(pid):
+            return []
         return [Evidence(**s.to_dict()) for s in self._p(pid).collection("evidence").stream()]
 
     def delete_evidence_for_doc(self, pid: str, doc_id: str) -> None:
@@ -266,10 +288,14 @@ class FirestoreStore:
         self._p(r.project_id).collection("runs").document(r.id).set(r.model_dump())
 
     def get_run(self, pid: str, run_id: str) -> Run | None:
+        if not valid_id(pid, run_id):
+            return None
         s = self._p(pid).collection("runs").document(run_id).get()
         return Run(**(s.to_dict() or {})) if s.exists else None
 
     def list_runs(self, pid: str) -> list[Run]:
+        if not valid_id(pid):
+            return []
         return sorted((Run(**s.to_dict()) for s in self._p(pid).collection("runs").stream()), key=lambda r: r.started_at)
 
     def append_event(self, pid: str, run_id: str, ev: TimelineEvent) -> None:
@@ -284,6 +310,8 @@ class FirestoreStore:
         )
 
     def get_latest_result(self, pid: str) -> dict[str, Any] | None:
+        if not valid_id(pid):
+            return None
         docs = list(self._p(pid).collection("results").order_by("created", direction="DESCENDING").limit(1).stream())
         return json.loads(docs[0].to_dict()["result_json"]) if docs else None
 
@@ -291,6 +319,8 @@ class FirestoreStore:
         self.db.collection("share_links").document(s.token).set(s.model_dump())
 
     def get_share(self, token: str) -> ShareLink | None:
+        if not valid_id(token):
+            return None
         s = self.db.collection("share_links").document(token).get()
         return ShareLink(**(s.to_dict() or {})) if s.exists else None
 

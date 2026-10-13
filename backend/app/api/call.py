@@ -14,7 +14,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app import access
 from app.agents.call import LANGS, CallContext, bridge
-from app.api.routes import ai_allow
+from app.api.routes import ai_allow, client_ip
 from app.config import settings
 from app.evidence.store import store
 
@@ -55,8 +55,7 @@ async def call(ws: WebSocket, pid: str, lang: str = "en") -> None:
         from app.agents.workflow import recalculate
 
         result = recalculate(pid)
-    fwd = ws.headers.get("x-forwarded-for", "")
-    if not ai_allow(fwd.split(",")[0].strip() or (ws.client.host if ws.client else "unknown"), "call"):
+    if not ai_allow(client_ip(ws.headers.get("x-forwarded-for", ""), ws.client.host if ws.client else None), "call"):
         return await _refuse(ws, "rate_limited", 4429)
     try:
         await bridge(ws, CallContext.build(p, result), lang if lang in LANGS else "en")

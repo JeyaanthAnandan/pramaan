@@ -327,7 +327,7 @@ def build(download: bool) -> dict[str, Any]:
         if not p.exists():
             if not download:
                 raise FileNotFoundError(f"{sid}: {p} missing (run with --download)")
-            req = urllib.request.Request(s["url"], headers={"User-Agent": "Mozilla/5.0 pramaan-refdata"})
+            req = urllib.request.Request(s["url"], headers={"User-Agent": "Mozilla/5.0 pramaan-refdata"})  # noqa: S310 - fixed official URLs
             p.parent.mkdir(parents=True, exist_ok=True)
             with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310 - fixed official URLs
                 p.write_bytes(r.read())

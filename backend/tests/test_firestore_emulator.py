@@ -42,5 +42,13 @@ def test_full_flow_on_firestore() -> None:
             assert c.delete(f"/api/projects/{own}").status_code == 200
             assert st.store().get_project(own) is None and st.store().get_share(f"t-{own}") is None
             assert st.store().get_share(tok) is not None  # another project's link stays
+            # ids Firestore cannot hold (reserved __names__, over 1,500 bytes) are not found, never a 500
+            for bad in ("__x__", "a" * 1600):
+                assert c.get(f"/api/projects/{bad}").status_code == 404
+                assert c.get(f"/api/share/{bad}").status_code == 404
+                assert c.get(f"/api/supplier/{bad}").status_code == 404
+                assert c.get(f"/api/projects/demo-shivalik/runs/{bad}").status_code == 404
+                assert c.get(f"/api/projects/demo-shivalik/documents/{bad}/image").status_code == 404
+                assert c.patch(f"/api/projects/demo-shivalik/evidence/{bad}", json={"action": "approve"}).status_code == 404
     finally:
         st.set_store(None)
