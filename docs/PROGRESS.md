@@ -9,6 +9,21 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iterations 19–22 — trust, the live result up front, and speed
+* **Screens from the live run**: README screenshots/GIFs and the deck's images regenerated from the merged build
+  (they showed "Replay of bundled sample (Gemini not used)" and `replay:ground-truth` under the readers); they
+  now show "Live Gemini run · 13 Oct", the field-named review card and both Gemini models.
+* **Delete my project** (privacy): `DELETE /api/projects/{pid}` behind the passcode removes the photos (Cloud
+  Storage prefix), Firestore documents, evidence, runs, results and the buyer and supplier links (Firestore kept
+  those before); not the sample, not mid-run. "Delete this project" ends the set-up card (four languages). Tests:
+  API (owner-only, photos and links gone), the Firestore emulator test run locally (its stale 213 fixed to 222),
+  the UI smoke test deletes the project it creates; axe 0.
+* **Landing**: a chip beside "8/8 EC worked examples" shows the latest live evaluation on the deployment
+  ("222/222 fields read live by Gemini, 97 s", links to Metrics; hidden when there is none).
+* **Speed**: Lighthouse mobile measured side by side with the iteration-8 build (same machine, alternating):
+  91/92/90 then; preloading the first paint's three latin fonts gives 95/92/93, FCP 2.3 → 2.0 s, no duplicate
+  downloads.
+
 ### Iterations 15–18 — the merged product, judged with the live run as the sample
 * **Tour**: an eighth stop lights up **Call** after Ask (judges explore through the tour, and it skipped the
   voice agent); the landing's "Built with" names Gemini 3.8 Live; DEMO_SCRIPT's proof line carries the live
