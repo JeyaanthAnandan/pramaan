@@ -165,3 +165,50 @@ def test_live_tries_are_capped_per_address(client: TestClient, monkeypatch: pyte
     finally:
         llm.set_gemini(None)
     assert client.post("/api/try", files={"file": ("x.txt", b"hello", "text/plain")}).status_code == 429
+
+
+def test_leaving_mid_reading_cancels_the_paid_reads(mem_store: Any) -> None:  # noqa: ARG001
+    """A visitor who leaves while the blind second reads run (the stream is closed) leaves no paid calls
+    behind: the reads not yet answered are cancelled."""
+    import asyncio
+
+    from app.demo.loader import demo_project
+
+    class Slow(FakeGemini):
+        def __init__(self) -> None:
+            super().__init__()
+            self.finished = 0
+
+        async def json(
+            self,
+            model: str,
+            system: str,
+            parts: list[dict[str, Any]],
+            schema: dict[str, Any],
+            thinking_level: str = "low",
+            retries: int = 2,
+        ) -> LLMResult:
+            if "doc_type" not in schema.get("properties", {}) and "fields" not in schema.get("properties", {}):
+                await asyncio.sleep(0.4 if self.calls else 0)  # second reads take a while
+            r = await super().json(model, system, parts, schema, thinking_level, retries)
+            self.finished += 1
+            return r
+
+    async def leave_after_first_check() -> Slow:
+        fake = Slow()
+        llm.set_gemini(fake)
+        image = (settings().demo_dir / "out" / "scrap-2026-06-to-09.jpg").read_bytes()
+        gen = try_one.read_one(image, "scrap-2026-06-to-09.jpg", True, demo_project())
+        async for ev in gen:
+            if ev["stage"] == "checked":
+                break
+        await gen.aclose()  # what the server does when the visitor goes away
+        await asyncio.sleep(0.8)  # long enough for every read to finish if it had not been cancelled
+        return fake
+
+    try:
+        fake = asyncio.run(leave_after_first_check())
+    finally:
+        llm.set_gemini(None)
+    second_reads = fake.finished - 2  # classify + extract
+    assert 1 <= second_reads < 8, second_reads

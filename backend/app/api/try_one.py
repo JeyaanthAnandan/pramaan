@@ -171,11 +171,18 @@ async def read_one(
                 }
 
     agree = review = 0
-    for fut in asyncio.as_completed([check(i, f) for i, f in checkable]):
-        ev = await fut
-        tokens += ev.pop("tokens")
-        agree, review = (agree + 1, review) if ev["agrees"] else (agree, review + 1)
-        yield ev
+    # the second reads run as tasks: if the visitor leaves (the stream is cancelled or closed), the reads
+    # nobody will see are cancelled too instead of finishing their paid calls
+    tasks = [asyncio.ensure_future(check(i, f)) for i, f in checkable]
+    try:
+        for fut in asyncio.as_completed(tasks):
+            ev = await fut
+            tokens += ev.pop("tokens")
+            agree, review = (agree + 1, review) if ev["agrees"] else (agree, review + 1)
+            yield ev
+    finally:
+        for task in tasks:
+            task.cancel()
     yield {
         "stage": "done",
         "ms": int((time.perf_counter() - t_start) * 1000),
