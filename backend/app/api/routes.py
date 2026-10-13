@@ -748,6 +748,20 @@ async def copilot_ask(request: Request, body: Ask) -> dict[str, Any]:
     return await answer(q, body.lang)
 
 
+@router.get("/projects/{pid}/explanations")
+def explanations(pid: str, lang: str = "en") -> dict[str, Any]:
+    """The deterministic explanations in the reader's language (numbers guarded, no model call)."""
+    from app.agents.explainer import TEMPLATES, guard, template_sections
+
+    secs = template_sections(_result(pid), lang if lang in TEMPLATES else "en")
+    tree = _result(pid)["calc_tree"]
+    for x in secs:
+        ok, bad = guard(x["text"], tree, [c["page"] for c in x["citations"]])
+        if not ok:  # a template bug must never ship a number that is not in the tree
+            raise HTTPException(500, f"explanation template introduced numbers: {bad}")
+    return {"lang": lang, "sections": secs}
+
+
 @router.post("/projects/{pid}/ask")
 async def report_ask(pid: str, request: Request, body: Ask) -> dict[str, Any]:
     """Ask about this report: grounded in the engine's own figures (cited, numbers-guarded) and the guidance."""

@@ -163,6 +163,19 @@ def test_spa_answers_head_and_fills_link_preview_urls(client: TestClient) -> Non
     assert 'property="og:image" content="http://testserver/og.jpg"' in html and "__ORIGIN__" not in html
 
 
+@pytest.mark.parametrize("lang", ["en", "hi", "ta", "vi"])
+def test_explanations_in_every_ui_language_carry_the_same_guarded_numbers(client: TestClient, lang: str) -> None:
+    from app.agents.explainer import numbers_in
+
+    en = client.get(f"/api/projects/{PID}/explanations?lang=en").json()["sections"]
+    other = client.get(f"/api/projects/{PID}/explanations?lang={lang}").json()["sections"]
+    assert [x["process"] for x in other] == [x["process"] for x in en]
+    for a, b in zip(en, other, strict=True):
+        assert sorted(numbers_in(a["text"])) == sorted(numbers_in(b["text"]))  # translation never changes a figure
+        if lang != "en":
+            assert a["text"] != b["text"]
+
+
 def test_explainer_guard_rejects_invented_numbers(client: TestClient) -> None:
     r = client.get(f"/api/projects/{PID}/results").json()
     ok, _ = guard(r["explanations"][0]["text"], r["calc_tree"], [53, 115])

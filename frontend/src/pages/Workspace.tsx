@@ -11,6 +11,7 @@ import { WorkspaceSkeleton } from "@/components/Skeleton";
 import { api, ApiError } from "@/lib/api";
 import { rememberPasscode, rememberProject } from "@/lib/session";
 import { EASE, SPRING } from "@/lib/motion";
+import { periodLabel } from "@/lib/format";
 import Capture from "./workspace/Capture";
 import Gaps from "./workspace/Gaps";
 import Report from "./workspace/Report";
@@ -34,7 +35,7 @@ export default function Workspace() {
 }
 
 function Inner({ step }: { step: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pid, bundle, result, loading, error, refresh } = useProject();
   const tour = useTour();
   // a handoff link from the owner's laptop carries the passcode in its #fragment: unlock, then forget it
@@ -112,7 +113,7 @@ function Inner({ step }: { step: string }) {
             )}
           </div>
           <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:truncate sm:text-[28px]">{p.company}</h1>
-          <p className="text-sm text-muted">{[p.city, p.country, p.period_label].filter(Boolean).join(" · ")}</p>
+          <p className="text-sm text-muted">{[p.city, p.country, periodLabel(p.months, p.period_label, i18n.language, t("app.provisional_ytd"))].filter(Boolean).join(" · ")}</p>
         </div>
         {result && step !== "report" && (
           <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, ease: EASE }} className="hidden sm:block">

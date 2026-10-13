@@ -60,3 +60,14 @@ export function cnFmt(cn: string): string {
   const d = cn.replace(/\D/g, "");
   return [d.slice(0, 4), ...(d.slice(4).match(/.{1,2}/g) || [])].join(" ");
 }
+
+/** "Jan–Sep 2026 (provisional, year-to-date)" in the reader's language, from the project's months.
+ *  English keeps the server's own label. */
+export function periodLabel(months: string[] | undefined, serverLabel: string, lang: string, ytd: string): string {
+  if (lang === "en" || !months?.length) return serverLabel;
+  const loc = locales[lang] || lang;
+  const mon = (m: string) => new Date(`${m}-15T00:00:00`).toLocaleDateString(loc, { month: "short" });
+  const year = months[months.length - 1].slice(0, 4);
+  const span = months.length > 1 ? `${mon(months[0])}–${mon(months[months.length - 1])}` : mon(months[0]);
+  return `${span} ${year}${/provisional/i.test(serverLabel) ? ` (${ytd})` : ""}`;
+}

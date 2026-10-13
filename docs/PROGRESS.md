@@ -9,6 +9,19 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 6 — the report in the reader's language, all of it
+* Judge: in Hindi/Tamil/Vietnamese the checks, the explanations and the period label were still English
+  (server text); a Ludhiana owner reading Hindi hit English paragraphs.
+* Built: checks are localized in the browser by their stable ids and phrases (`lib/checks.ts`; numbers,
+  units and names stay as computed; unknown text falls back to the stored English). Explanations:
+  deterministic templates in en/hi/ta/vi (`explainer.TEMPLATES`) served by `GET /explanations?lang=` with
+  the numbers guard applied to every language (English keeps the run's own, Gemini-written text). The
+  period label is formatted from the project's months in the reader's locale. Scan of the Hindi report:
+  only company and place names remain in Latin script.
+* Cost receipt per run: not built — needs verified Gemini prices for these models; tokens per agent are
+  already on the run receipt.
+* Tests: explanations in 4 languages carry exactly the same figures (`test_api.py`); UI smoke.
+
 ### Iteration 5 — phone first (handoff QR, folds, WhatsApp)
 * Judge: owners live on their phones and the documents are on the shop floor; the report was 9,614 px on a
   390 px phone and there was no way from the laptop to the phone camera.

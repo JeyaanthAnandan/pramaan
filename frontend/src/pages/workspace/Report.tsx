@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MessageCircle, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { api, exportUrl, type ProcessResult } from "@/lib/api";
 import { useProject } from "@/lib/project";
-import { eur, inr, n } from "@/lib/format";
+import { eur, inr, n, periodLabel } from "@/lib/format";
 import { AnimatedNumber, Collapse, SPRING, rise, stagger, useRise } from "@/lib/motion";
 import { LensNum } from "@/components/EvidenceLens";
 import { useAsk } from "@/components/ReportAsk";
 import { PlantPulse } from "@/components/PlantPulse";
 import { PhoneFold, useIsPhone } from "@/components/PhoneFold";
+import { localizeCheck } from "@/lib/checks";
 import { ContributionBar, CostBars, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
@@ -83,8 +85,8 @@ export default function Report() {
 /** The answer first: what the exporter's data is worth to the buyer, what more is within reach,
  *  and how much is ready to declare. Every figure is the engine's; nothing is computed here. */
 function Verdict() {
-  const { t } = useTranslation();
-  const { result } = useProject();
+  const { t, i18n } = useTranslation();
+  const { result, bundle } = useProject();
   const r = result!;
   const fx = Number(r.money.fx.value);
   const rd = r.readiness;
@@ -102,7 +104,7 @@ function Verdict() {
       <div className="p-5 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div className="min-w-0">
-            <div className="eyebrow">{r.period_label}</div>
+            <div className="eyebrow">{periodLabel(bundle?.project.months, r.period_label, i18n.language, t("app.provisional_ytd"))}</div>
             <h2 id="verdict-title" className="mt-1 text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">
               {t("report.title")}
             </h2>
@@ -263,7 +265,7 @@ function SectionNav() {
 }
 
 function ProcessCard({ p }: { p: ProcessResult }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { result, bundle } = useProject();
   const tree = result!.calc_tree;
   const fx = Number(result!.money.fx.value);
@@ -336,7 +338,7 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         </div>
       </div>
       <div className="mt-1 text-[12px] text-muted">
-        {t("report.see")} · {result!.period_label}
+        {t("report.see")} · {periodLabel(bundle?.project.months, result!.period_label, i18n.language, t("app.provisional_ytd"))}
         {rp && <> · {t("report.inputs_verified", { good: rp.good, total: rp.total })}</>}
       </div>
       {bundle?.project.is_demo && p.id === "P1" && (
@@ -375,16 +377,21 @@ function ProcessCard({ p }: { p: ProcessResult }) {
 }
 
 function Explanations() {
-  const { t } = useTranslation();
-  const { result } = useProject();
+  const { t, i18n } = useTranslation();
+  const { pid, result } = useProject();
   const [more, setMore] = useState(false);
+  const lang = i18n.language;
+  // English shows the run's own explanations (Gemini-written on a live run); other languages get the
+  // deterministic templates in that language, with the same guarded numbers
+  const local = useQuery({ queryKey: ["explanations", pid, lang, result?.computed_at], queryFn: () => api.explanations(pid, lang), enabled: lang !== "en", staleTime: 60_000 });
+  const items = lang === "en" ? result!.explanations : local.data?.sections ?? result!.explanations;
   return (
     <section className="card p-5">
       <h3 className="flex items-center gap-2 font-semibold">
         <BookOpenCheck className="h-4 w-4 text-muted" /> {t("report.explain")}
       </h3>
       <div className="mt-3 space-y-4">
-        {result!.explanations.map((e) => (
+        {items.map((e) => (
           <div key={e.process}>
             <div className="text-[13px] font-semibold">{e.title}</div>
             <p className={`mt-1 text-[14px] leading-relaxed text-ink2 ${more ? "" : "line-clamp-3"}`}>{e.text}</p>
@@ -398,7 +405,7 @@ function Explanations() {
           </div>
         ))}
       </div>
-      {result!.explanations.length > 0 && (
+      {items.length > 0 && (
         <button className="link mt-3 text-[13px]" onClick={() => setMore((m) => !m)} aria-expanded={more}>
           {more ? t("report.read_less") : t("report.read_more")}
         </button>
@@ -489,7 +496,7 @@ function Checks() {
   const { t } = useTranslation();
   const { result } = useProject();
   const [open, setOpen] = useState(false);
-  const checks = result!.checks;
+  const checks = result!.checks.map((c) => localizeCheck(c, t));
   const attention = checks.filter((c) => c.status === "fail" || c.status === "warn");
   const passed = checks.filter((c) => c.status !== "fail" && c.status !== "warn");
   const nPass = checks.filter((c) => c.status === "pass").length;
