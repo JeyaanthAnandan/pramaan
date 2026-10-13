@@ -83,21 +83,28 @@ def test_the_run_receipt_says_needs_for_one_value(client: TestClient) -> None:
 
 
 def test_a_made_up_forwarded_for_header_does_not_reset_the_caps(mem_store: Any) -> None:  # noqa: ARG001
-    """Cloud Run appends the caller's real address last; a client-sent first entry must not count."""
+    """Google's front end appends the caller's real address (and a proxy's): a caller-sent first entry
+    must not count, and ordinary visitors (a single entry) must never share one bucket."""
     from app.api import routes
 
     routes._unlock_log.clear()
     with TestClient(app) as c:
         own = c.post("/api/projects", json={"name": "x", "company": "Caps (SAMPLE)"}).json()["id"]
+        sent = [f"10.0.0.{i}, 198.51.100.7, 35.191.0.1" for i in range(21)]  # made up, the caller, the proxy
         codes = [
-            c.post(
-                f"/api/projects/{own}/unlock", json={"passcode": "WRONG"}, headers={"X-Forwarded-For": f"10.0.0.{i}, 198.51.100.7"}
-            ).status_code
-            for i in range(21)
+            c.post(f"/api/projects/{own}/unlock", json={"passcode": "WRONG"}, headers={"X-Forwarded-For": h}).status_code for h in sent
         ]
         assert codes[:20] == [401] * 20 and codes[20] == 429
-        assert routes.client_ip("203.0.113.5, 198.51.100.7", "10.1.1.1") == "198.51.100.7"
-        assert routes.client_ip("", "10.1.1.1") == "10.1.1.1"
+        assert (
+            c.post(
+                f"/api/projects/{own}/unlock", json={"passcode": "WRONG"}, headers={"X-Forwarded-For": "203.0.113.9, 35.191.0.1"}
+            ).status_code
+            == 401
+        )
+    assert routes.client_ip("203.0.113.5, 198.51.100.7, 35.191.0.1", "10.1.1.1", hops=1) == "198.51.100.7"
+    assert routes.client_ip("203.0.113.5, 198.51.100.7", "10.1.1.1", hops=0) == "198.51.100.7"
+    assert routes.client_ip("198.51.100.7", "10.1.1.1", hops=1) == "198.51.100.7"  # one entry: that one
+    assert routes.client_ip("", "10.1.1.1") == "10.1.1.1"
     routes._unlock_log.clear()
 
 

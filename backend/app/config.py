@@ -54,6 +54,9 @@ class Settings:
     )
 
     live_runs_enabled: bool = field(default_factory=lambda: _bool("LIVE_RUNS_ENABLED", True))
+    # How many X-Forwarded-For entries Google's front end appends after the caller's own address (1: the
+    # caller, then a proxy, as Google's load balancers do; 0: the caller last). See routes.client_ip.
+    client_ip_hops: int = field(default_factory=lambda: int(_env("CLIENT_IP_HOPS", "1")))
     max_runs_per_hour: int = field(default_factory=lambda: int(_env("MAX_RUNS_PER_HOUR", "12")))
     public_base_url: str = field(default_factory=lambda: _env("PUBLIC_BASE_URL", ""))
 

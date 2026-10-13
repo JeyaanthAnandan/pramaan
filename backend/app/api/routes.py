@@ -886,11 +886,17 @@ _demo_log: dict[str, deque[float]] = defaultdict(deque)
 DEMO_LOADS_PER_HOUR = 120  # per address; a room of judges can share one office address
 
 
-def client_ip(forwarded_for: str, peer: str | None) -> str:
-    """The caller's address for the per-address caps. Cloud Run's front end appends the address it saw
-    to X-Forwarded-For, so the last entry is the real caller; anything before it is whatever the caller
-    sent, and trusting the first entry let a script dodge every cap with a made-up header."""
-    return forwarded_for.split(",")[-1].strip() or peer or "unknown"
+def client_ip(forwarded_for: str, peer: str | None, hops: int | None = None) -> str:
+    """The caller's address for the per-address caps. Google's front end appends the address it saw to
+    X-Forwarded-For (its load balancers then add their own: "<sent by the caller>, <caller>, <proxy>"),
+    so the caller is counted from the right, `hops` entries before the end. The first entry is whatever
+    the caller sent: trusting it let a script dodge every cap with a made-up header. With a single entry
+    that entry is used, so ordinary visitors never share one bucket whatever the front end appends."""
+    parts = [x.strip() for x in forwarded_for.split(",") if x.strip()]
+    if not parts:
+        return peer or "unknown"
+    n = settings().client_ip_hops if hops is None else hops
+    return parts[max(0, len(parts) - 1 - n)]
 
 
 def _client_ip(request: Request) -> str:
