@@ -28,7 +28,11 @@ FIELDS: dict[str, dict[str, tuple[str, str, str]]] = {
         "invoice_no": ("Invoice number", "", "doc"),
         "invoice_date": ("Invoice date", "", "doc"),
         "cn_code": ("HSN / CN code of the goods", "", "process"),
-        "grade": ("Steel grade and size exactly as printed (e.g. 'IS 2062 E250, 5.5 mm')", "", "doc"),
+        "grade": (
+            "Steel grade and size only, as printed (e.g. 'IS 2062 E250, 5.5 mm'): no 'Grade:' label, no product form such as coils",
+            "",
+            "doc",
+        ),
         "tonnes": ("Quantity purchased in metric tonnes", "t", "process"),
         "mn_pct": ("Manganese mass %", "%", "process"),
         "cr_pct": ("Chromium mass %", "%", "process"),

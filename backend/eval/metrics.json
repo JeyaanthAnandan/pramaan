@@ -70,6 +70,77 @@
      "box": 1.0
     }
    }
+  },
+  "live": {
+   "mode": "live",
+   "ran_at": "2026-10-13T08:45:20+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "doc_type_accuracy": 1.0,
+   "fields_total": 222,
+   "fields_correct": 222,
+   "field_accuracy": 1.0,
+   "box_hit_rate": 0.9864864864864865,
+   "extracted_values": 222,
+   "two_reader_agreement": 0.9954954954954955,
+   "review_rate": 0.0045045045045045045,
+   "total_seconds": 96.83775000000605,
+   "seconds_per_doc": 4.034906250000252,
+   "tokens_total": 371670,
+   "run_status": "done",
+   "run_error": null,
+   "targets": {
+    "field_accuracy": 0.95,
+    "total_seconds": 120
+   },
+   "misses": [],
+   "per_doc_type": {
+    "gas_invoice": {
+     "fields": 72,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "electricity_bill": {
+     "fields": 15,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 0.9333333333333333
+    },
+    "precursor_invoice": {
+     "fields": 40,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "supplier_emissions_statement": {
+     "fields": 13,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "production_register": {
+     "fields": 40,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    },
+    "scrap_log": {
+     "fields": 18,
+     "accuracy": 1.0,
+     "agreement": 0.9444444444444444,
+     "box": 0.8888888888888888
+    },
+    "export_invoice": {
+     "fields": 24,
+     "accuracy": 1.0,
+     "agreement": 1.0,
+     "box": 1.0
+    }
+   }
   }
  },
  "per_doc_type": {
@@ -83,7 +154,7 @@
    "fields": 15,
    "accuracy": 1.0,
    "agreement": 1.0,
-   "box": 1.0
+   "box": 0.9333333333333333
   },
   "precursor_invoice": {
    "fields": 40,
@@ -107,7 +178,7 @@
    "fields": 18,
    "accuracy": 1.0,
    "agreement": 0.9444444444444444,
-   "box": 1.0
+   "box": 0.8888888888888888
   },
   "export_invoice": {
    "fields": 24,
@@ -149,6 +220,166 @@
    "total_seconds": 1.1782968750048894,
    "tokens_total": 0,
    "note": "Replay of the ground truth: checks the harness, not a model."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:11:58+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.9459459459459459,
+   "two_reader_agreement": 0.9862385321100917,
+   "review_rate": 0.013761467889908258,
+   "total_seconds": 166.5099683330045,
+   "tokens_total": 366795,
+   "note": "Developer API key, local. The run failed at the end: Gemini left the quarter off one export line and the engine stopped on it. Fixed: the quarter comes from the invoice date; an undated line is shown as a gap, never a crash."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:21:14+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.8918918918918919,
+   "two_reader_agreement": 0.9765258215962441,
+   "review_rate": 0.023474178403755867,
+   "total_seconds": 131.40259316697484,
+   "tokens_total": 372156,
+   "note": "Whole bills read correctly but filed without their month, and export quantities without their product line, so the engine counted those months as missing. Fixed in the clean-up step (month from the bill's own period, line from the CN code on the same row)."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:29:29+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.9369369369369369,
+   "two_reader_agreement": 0.9857142857142858,
+   "review_rate": 0.014285714285714285,
+   "total_seconds": 308.9813086249633,
+   "tokens_total": 352237,
+   "note": "One gas-bill extraction stalled past its 75 s limit three times (the same call answers in 13 s). Fixed: a backup request after 30 s, first answer wins."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:36:46+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.9774774774774775,
+   "two_reader_agreement": 0.9771689497716894,
+   "review_rate": 0.0228310502283105,
+   "total_seconds": 72.0457259999821,
+   "tokens_total": 369887,
+   "note": "One gas-bill extraction looped (a number followed by ~100 zeros) and lost the rest of the bill. Fixed: such an answer is read again."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:41:08+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.9864864864864865,
+   "two_reader_agreement": 0.9774774774774775,
+   "review_rate": 0.02252252252252252,
+   "total_seconds": 102.3824992920272,
+   "tokens_total": 371325,
+   "note": "Remaining misses: the rod grade read with its product form ('\u00b7 Coils, hot-rolled'), which also sent three labels to review. Fixed: field description."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T07:47:10+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 1.0,
+   "two_reader_agreement": 0.990990990990991,
+   "review_rate": 0.009009009009009009,
+   "total_seconds": 99.32231629203307,
+   "tokens_total": 371194,
+   "note": "All fixes in: 222/222 fields. One run; the runs above show the spread (89-99 % while the fixes went in)."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T08:33:28+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.963963963963964,
+   "two_reader_agreement": 0.9906542056074766,
+   "review_rate": 0.009345794392523364,
+   "total_seconds": 113.2409314159886,
+   "tokens_total": 366691,
+   "note": "96.4 %. Misses: alloy percentages on two carbon-rod invoices. One value went to review only because the second reader read \"380.000\" right and then wrote 380000 itself (a European thousands dot); its printed digits now count."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T08:38:47+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.963963963963964,
+   "two_reader_agreement": 0.990990990990991,
+   "review_rate": 0.009009009009009009,
+   "total_seconds": 159.18514312501065,
+   "tokens_total": 370135,
+   "note": "96.4 %. The handwritten scrap log was read right but none of its eight figures had a month or product line (the page is now read again when most such values come back untagged); a printed 'Ref.' label sent a reference to review (labels are now stripped)."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T08:43:19+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 0.9819819819819819,
+   "two_reader_agreement": 0.9770642201834863,
+   "review_rate": 0.022935779816513763,
+   "total_seconds": 104.05900499998825,
+   "tokens_total": 365723,
+   "note": "98.2 %. Alloy percentages on one carbon-rod invoice missed; four values to review where the crop-only reader found no number or read a longer supplier name: genuine disagreements, left to a person."
+  },
+  {
+   "mode": "live",
+   "ran_at": "2026-10-13T08:45:20+00:00",
+   "models": {
+    "extraction": "gemini-3.8-flash",
+    "second_reader": "gemini-3.5-flash-lite"
+   },
+   "documents": 24,
+   "fields_total": 222,
+   "field_accuracy": 1.0,
+   "two_reader_agreement": 0.9954954954954955,
+   "review_rate": 0.0045045045045045045,
+   "total_seconds": 96.83775000000605,
+   "tokens_total": 371670,
+   "note": "222/222, one value for a person (the hand-corrected 15.4, as designed). Captured as the sample factory's live run."
   }
  ]
 }

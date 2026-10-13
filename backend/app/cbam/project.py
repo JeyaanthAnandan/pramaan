@@ -6,6 +6,7 @@ points back to evidence, refdata or an explicit assumption.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
@@ -27,6 +28,8 @@ from app.cbam.tree import (
     q,
 )
 from app.evidence.models import Document, Evidence, Project, now
+
+_QUARTER = re.compile(r"\d{4}-Q[1-4]")
 
 D = Decimal
 YEARS = list(range(2026, 2035))
@@ -430,15 +433,27 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
     for p in procs:
         per_q: dict[str, Decimal] = {}
         kids = []
+        undated: list[str] = []
         for x in c.pick("net_mass_kg", p.id):
-            quarter = x.period or "2026-Q?"
+            quarter = x.period or ""
+            if not _QUARTER.fullmatch(quarter):
+                # No quarter, no certificate price: shown as a gap instead of failing the whole run.
+                undated.append(x.value_text)
+                continue
             if quarter in per_q:
                 continue
             per_q[quarter] = _num(x) / D(1000)
             kids.append(c.ev_leaf(x, f"Exported to EU {quarter} (kg)"))
         exports[p.id] = per_q
         tree.calc(
-            f"{p.id}.exports", f"Exported to the EU — {p.name}", sum(per_q.values(), D(0)), "t", "Σ export invoices (kg ÷ 1000)", kids
+            f"{p.id}.exports",
+            f"Exported to the EU — {p.name}",
+            sum(per_q.values(), D(0)),
+            "t",
+            "Σ export invoices (kg ÷ 1000)",
+            kids,
+            note=f"Export lines without a quarter (invoice date not read): {', '.join(undated)} kg" if undated else None,
+            status=MISSING if undated else CALCULATED,
         )
 
     _, price_2026 = _price_2026(c, exports)

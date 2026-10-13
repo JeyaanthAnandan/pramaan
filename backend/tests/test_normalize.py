@@ -152,6 +152,63 @@ def test_a_stalled_call_is_cut_off_and_retried(monkeypatch: pytest.MonkeyPatch) 
     assert r.data == {"doc_type": "gas_invoice"} and calls["n"] == 2
 
 
+def test_a_slow_call_is_hedged_and_the_first_answer_wins(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Second live run: one extraction stalled past its limit twice in a row, then took 13 s."""
+    calls = {"n": 0}
+
+    async def create(**body: Any) -> Any:
+        calls["n"] += 1
+        n = calls["n"]
+        await asyncio.sleep(5 if n == 1 else 0)  # the first request stalls, the backup answers
+        return SimpleNamespace(
+            output_text=json.dumps({"request": n}),
+            steps=None,
+            usage=SimpleNamespace(total_input_tokens=3, total_output_tokens=2, total_thought_tokens=0),
+        )
+
+    monkeypatch.setattr(llm, "HEDGE_S", {"low": 0.05})
+    g = llm.Gemini.__new__(llm.Gemini)
+    g._sem, g._sem_lite, g.use_interactions = asyncio.Semaphore(2), asyncio.Semaphore(2), True
+    g.client = SimpleNamespace(aio=SimpleNamespace(interactions=SimpleNamespace(create=create)))
+    r = asyncio.run(asyncio.wait_for(g.json("gemini-3.8-flash", "sys", [llm.text_part("x")], {"type": "object"}), 2))
+    assert r.data == {"request": 2} and calls["n"] == 2
+
+
+def test_a_failure_names_the_exception(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def create(**body: Any) -> Any:
+        raise TimeoutError
+
+    async def no_wait(_s: float) -> None:
+        return None
+
+    monkeypatch.setattr(asyncio, "sleep", no_wait)
+    g = llm.Gemini.__new__(llm.Gemini)
+    g._sem, g._sem_lite, g.use_interactions = asyncio.Semaphore(2), asyncio.Semaphore(2), True
+    g.client = SimpleNamespace(aio=SimpleNamespace(interactions=SimpleNamespace(create=create)))
+    with pytest.raises(RuntimeError, match="TimeoutError"):
+        asyncio.run(g.json("gemini-3.8-flash", "sys", [llm.text_part("x")], {"type": "object"}))
+
+
+def test_a_looping_extraction_is_read_again(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fourth live run: scm came back as 20240.000... (~100 zeros) and the rest of the bill was lost."""
+    from app.agents import readers
+
+    looped = {"fields": [{"field_key": "scm", "value_text": "20,240", "value_num": "20240." + "0" * 100}]}
+    clean = {
+        "fields": [{"field_key": "scm", "value_text": "20,240", "value_num": "20240"}, {"field_key": "mmbtu", "value_text": "771.864"}]
+    }
+    answers = iter([looped, clean])
+
+    class Fake:
+        async def json(self, *a: Any, **k: Any) -> Any:
+            return llm.LLMResult(next(answers), "gemini-3.8-flash", 1, 1, 1, "")
+
+    monkeypatch.setattr(readers, "gemini", lambda: Fake())
+    r = asyncio.run(readers.extract(b"", "image/jpeg", "gas_invoice", loader.demo_project()))
+    assert r.data == clean
+    assert readers.degenerate(looped) and not readers.degenerate(clean)
+
+
 def test_copilot_falls_back_to_cited_pages_when_gemini_does_not_answer(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.copilot import service
 
@@ -169,3 +226,116 @@ def test_copilot_falls_back_to_cited_pages_when_gemini_does_not_answer(monkeypat
     finally:
         llm.set_gemini(None)
     assert a["mode"] == "retrieval" and a["citations"] and "did not answer" in a["note"]
+
+
+def test_export_line_without_a_period_gets_the_quarter_of_its_invoice_date() -> None:
+    """Second live run (2026-10-13): the 15-06-2026 invoice's carbon line came back with no period,
+    and the engine failed the whole run on 'int("?")'."""
+    p = loader.demo_project()
+    exp = [
+        _f("invoice_date", "15-06-2026"),
+        _f("cn_code", "7318 15 82", process="P1"),
+        _f("net_mass_kg", "300,000", "300000", process="P1"),
+        _f("net_mass_kg", "130,000", "130000", period="Q2 2026", process="P2"),
+    ]
+    normalize_fields(exp, "export_invoice", p)
+    assert [f.period for f in exp] == [None, None, "2026-Q2", "2026-Q2"]
+
+
+def test_engine_shows_an_undated_export_line_as_a_gap_instead_of_failing() -> None:
+    from app.cbam.project import compute
+    from app.cbam.tree import MISSING
+    from app.config import settings
+    from app.evidence.models import Document, Evidence
+
+    snap = json.loads((settings().demo_dir / "cache" / "replay_run.json").read_text())
+    p = loader.demo_project()
+    docs = [Document(**{**d, "project_id": p.id}) for d in snap["documents"]]
+    ev = [Evidence(**{**e, "project_id": p.id}) for e in snap["evidence"]]
+    next(x for x in ev if x.field_key == "net_mass_kg" and x.process == "P1").period = None
+    node = compute(p, ev, docs)["calc_tree"]["P1.exports"]
+    assert node["status"] == MISSING and "280,000" in node["note"]
+
+
+def test_untagged_values_get_their_bill_month_and_their_row_line() -> None:
+    """Same run: whole bills read right but with no month, and export quantities with no product line
+    (the boxes below are the ones Gemini returned for the 15-06-2026 invoice)."""
+    p = loader.demo_project()
+    gas = [_f("period_start", "01-05-2026"), _f("period_end", "31-05-2026"), _f("scm", "20,240", "20240")]
+    normalize_fields(gas, "gas_invoice", p)
+    assert [f.period for f in gas] == ["2026-05"] * 3
+    exp = [
+        _f("invoice_date", "15-06-2026"),
+        _f("cn_code", "7318 15 82", process="P1", box_2d=[427, 473, 440, 556]),
+        _f("net_mass_kg", "300,000", "300000", period="2026-Q2", box_2d=[422, 697, 434, 755]),
+        _f("cn_code", "7318 15 75", process="P2", box_2d=[465, 475, 477, 557]),
+        _f("net_mass_kg", "130,000", "130000", period="2026-Q2", box_2d=[459, 698, 471, 757]),
+    ]
+    normalize_fields(exp, "export_invoice", p)
+    assert [(f.period, f.process) for f in exp if f.field_key == "net_mass_kg"] == [("2026-Q2", "P1"), ("2026-Q2", "P2")]
+    register = [_f("period", "April - September 2026"), _f("produced_t", "41.2", "41.2", process="P1")]
+    normalize_fields(register, "production_register", p)
+    assert register[1].period is None  # a multi-month register: no month to give a row
+
+
+def test_tamil_voice_note_in_the_wrong_script_is_transcribed_again(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Live test: a Tamil note came back in Kannada script ('original script' was not enough)."""
+    from app.agents import voice
+
+    answers = iter(["ಆಗಸ್ಟ್ ಮಾದಮ್ ನಾಲ್ಕರೈ ಟನ್", "ஆகஸ்ட் மாதம் நான்கரை டன்"])
+    seen: list[str] = []
+
+    class Fake:
+        async def text(self, model: str, system: str, parts: Any, **k: Any) -> Any:
+            seen.append(system)
+            t = next(answers)
+            return llm.LLMResult(t, model, 1, 1, 1, t)
+
+    monkeypatch.setattr(voice, "gemini", lambda: Fake())
+    r = asyncio.run(voice.transcribe(b"", "audio/wav", "ta"))
+    assert r.data.startswith("ஆகஸ்ட்") and len(seen) == 2 and "Tamil script" in seen[0]
+
+
+def test_a_text_field_is_not_sent_to_review_over_a_unit() -> None:
+    """Final live run: identical grade text, first unit "text", second "mm" -> wrongly amber."""
+    same = compare("AISI 304, 8.0 mm", None, "text", {"value_text": "AISI 304, 8.0 mm", "unit": "mm"}, "m", [0, 0, 1, 1])
+    assert same.agrees
+    # numbers still need matching units
+    assert not compare("21,192", "21192", "SCM", {"value_text": "21,192", "unit": "kWh"}, "m", [0, 0, 1, 1]).agrees
+
+
+def test_the_second_readers_printed_digits_count_over_its_own_conversion() -> None:
+    """Live runs: Flash-Lite read "380.000" / "699.317" as text, then wrote 380000 / 699317."""
+    for text, wrong in (("380.000", "380000"), ("699.317", "699317")):
+        r = compare(text, text, "t", {"value_text": text, "value_num": wrong}, "m", [0, 0, 1, 1])
+        assert r.agrees, text
+    # a real disagreement is still one
+    assert not compare("380.000", "380.000", "t", {"value_text": "330.000", "value_num": "330"}, "m", [0, 0, 1, 1]).agrees
+
+
+def test_a_reference_loses_its_printed_label() -> None:
+    assert canonical_text("doc_no", "Ref. NWRM-CBAM-2026-07") == "NWRM-CBAM-2026-07"
+    assert canonical_text("invoice_no", "Invoice No: SF/EXP/2526/041") == "SF/EXP/2526/041"
+    assert canonical_text("invoice_no", "NOV-2026-11") == "NOV-2026-11"  # a reference that starts like a label
+
+
+def test_an_untagged_register_is_read_again(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Live run: all eight scrap-log figures right, none with its month or product line."""
+    from app.agents import readers
+
+    bare = {"fields": [{"field_key": "scrap_t", "value_text": "15.4"}, {"field_key": "scrap_t", "value_text": "25.1"}]}
+    tagged = {
+        "fields": [
+            {"field_key": "scrap_t", "value_text": "15.4", "period": "2026-06", "process": "P2"},
+            {"field_key": "scrap_t", "value_text": "25.1", "period": "2026-06", "process": "P1"},
+        ]
+    }
+    answers = iter([bare, tagged])
+
+    class Fake:
+        async def json(self, *a: Any, **k: Any) -> Any:
+            return llm.LLMResult(next(answers), "gemini-3.8-flash", 1, 1, 1, "")
+
+    monkeypatch.setattr(readers, "gemini", lambda: Fake())
+    r = asyncio.run(readers.extract(b"", "image/jpeg", "scrap_log", loader.demo_project()))
+    assert r.data == tagged and readers.untagged(bare, "scrap_log") == 1.0
