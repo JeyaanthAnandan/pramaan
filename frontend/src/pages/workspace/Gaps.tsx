@@ -13,6 +13,7 @@ import { VoiceAnswer } from "@/components/VoiceAnswer";
 import { StatusBadge } from "@/components/Status";
 import { useLens } from "@/components/EvidenceLens";
 import { ProductLines } from "@/components/Setup";
+import { LoadError } from "@/components/ErrorBoundary";
 
 const GROUPS = ["review", "setup", "precursor", "activity", "energy", "exports", "extra", "control"];
 
@@ -360,7 +361,9 @@ function ReviewCard({ g }: { g: Gap }) {
 
 export function NoResult() {
   const { t } = useTranslation();
-  const { pid } = useProject();
+  const { pid, bundle, error, refresh } = useProject();
+  // the project has a report that did not load (a server hiccup): retry it, never suggest a new run
+  if (bundle?.has_result) return error ? <LoadError error={error} onRetry={() => void refresh()} /> : <div className="skeleton mx-auto h-40 max-w-lg" aria-busy="true" />;
   return (
     <div className="card mx-auto max-w-lg p-8 text-center">
       <p className="text-sm text-ink2">{t("timeline.empty")}</p>

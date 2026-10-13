@@ -34,3 +34,18 @@ function Crashed() {
     </div>
   );
 }
+
+/** Data that did not arrive (a server hiccup): say so and offer to try again, instead of an empty page. */
+export function LoadError({ error, onRetry }: { error?: unknown; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="card mx-auto mt-8 max-w-lg p-6 text-center" role="alert">
+      <AlertTriangle className="mx-auto h-6 w-6 text-warn" aria-hidden />
+      <p className="mt-2 text-sm font-semibold">{t("common.error")}</p>
+      {error instanceof Error && error.message && <p className="mt-1 text-[13px] text-muted">{error.message}</p>}
+      <button className="btn-primary mt-4" onClick={onRetry}>
+        <RotateCw className="h-4 w-4" aria-hidden /> {t("common.retry")}
+      </button>
+    </div>
+  );
+}

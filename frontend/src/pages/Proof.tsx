@@ -5,6 +5,7 @@ import { BadgeCheck, CheckCircle2, FileWarning, Loader2, RotateCw, XCircle } fro
 import { api } from "@/lib/api";
 import { Reveal } from "@/lib/motion";
 import { dateTime } from "@/lib/format";
+import { LoadError } from "@/components/ErrorBoundary";
 
 export default function Proof() {
   const { t, i18n } = useTranslation();
@@ -39,6 +40,7 @@ export default function Proof() {
           </motion.div>
         )}
       </div>
+      {q.isError && <LoadError error={q.error} onRetry={() => void q.refetch()} />}
       {q.isLoading && (
         // one placeholder per case (8): the notes below stay below the fold instead of being pushed away when the cases arrive
         <div className="mt-8 space-y-4" aria-busy="true">

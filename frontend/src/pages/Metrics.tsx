@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { Clock, Gauge, ScanEye, UserCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { AnimatedNumber, Reveal, rise, stagger } from "@/lib/motion";
+import { LoadError } from "@/components/ErrorBoundary";
 
 /** A rate shown as a percentage that counts up when first seen. */
 
@@ -56,6 +57,7 @@ export default function Metrics() {
           ))}
         </div>
       )}
+      {q.isError && <LoadError error={q.error} onRetry={() => void q.refetch()} />}
       {m && (
         <>
           {!live && (
