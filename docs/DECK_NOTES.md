@@ -123,3 +123,10 @@ browser on the live service (warm instance), each visitor gets a private copy (t
 Built for JAPAC (Vietnam, China, Korea, Indonesia face the same defaults); Commission proposal to
 extend CBAM downstream (~180 product categories from 2028); UK CBAM from 2027. Pramaan is not a
 substitute for an accredited verifier — it makes verification fast and cheap.
+
+## Visuals for slides and posts (regenerate with `scripts/readme_shots.py <URL>` after a deploy)
+* `docs/screenshots/money-moves.gif` — supplier's phone + exporter's report side by side; the
+  statement goes in, the verdict counts €409,545 → €572,546 (+€163,002). The Social Choice post.
+* `docs/screenshots/evidence-lens.gif` — verdict → SEE → Evidence Lens → the photo → two readers → stamp.
+* `tour.jpg`, `plant-pulse.jpg`, `report.jpg`, `two-readers.jpg`, `lens-see.jpg`, `money.jpg`,
+  `levers.jpg`, `proof.jpg`, `mobile-gaps.jpg`, and `frontend/public/og.jpg` (link preview card).

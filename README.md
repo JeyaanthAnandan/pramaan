@@ -68,9 +68,7 @@ read from its own document, never the exporter's plant data; the link can only a
 one product line. On the fictional sample, *Open as the supplier* plays the supplier's side with a
 bundled statement (`demo/supplier`).
 
-| The supplier, on a phone | The exporter's report, a few seconds later |
-|---|---|
-| ![Supplier upload link](docs/screenshots/supplier-phone.jpg) | ![The money moves](docs/screenshots/supplier-money-moves.jpg) |
+![The supplier's phone and the exporter's report: the statement goes in, the money moves](docs/screenshots/money-moves.gif)
 
 ### Plant pulse: the same bills, read for efficiency
 
@@ -148,12 +146,14 @@ Example 1, 3,690 certificates are due on 15,670 t embedded: 23.5 %, not 5 %.
 ```mermaid
 flowchart LR
   P["Phone / PWA"] --> API["Cloud Run · FastAPI + SSE + SPA"]
-  API --> I[Intake] --> C["Classifier<br/>gemini-3.8-flash"] --> PL["ProductLines<br/>owner's lines, or proposed from invoices<br/>(CN codes checked vs refdata)"] --> E["Extractor<br/>box_2d per value"] --> S["SecondReader<br/>gemini-3.5-flash-lite · crop only"]
-  S -- mismatch --> H["HumanReview<br/>tap to approve"] --> K
+  SUP["Supplier link<br/>(phone, no account)"] --> API
+  API --> I[Intake] --> C["Classifier<br/>gemini-3.8-flash"] --> PL["ProductLines<br/>owner's lines, or proposed from invoices<br/>(CN codes checked vs refdata)"] --> E["Extractor<br/>box_2d per value"] --> N["Normalize (code)<br/>scope · CN · refs · numbers"] --> S["SecondReader<br/>gemini-3.5-flash-lite · crop only"]
+  S -- "mismatch or hand-corrected" --> H["HumanReview<br/>tap to approve"] --> K
   S -- agree --> K["ControlChecks (code)"] --> G["GapFinder"] --> X["Explainer<br/>numbers guard"] --> R["Reporter"]
-  G -. ADK FunctionTool .-> CALC["Calculator<br/>Decimal CBAM engine"] --> REF[("Official refdata<br/>+ SHA-256 manifest")]
+  G -. ADK FunctionTool .-> CALC["Calculator<br/>Decimal CBAM engine<br/>+ Plant pulse"] --> REF[("Official refdata<br/>+ SHA-256 manifest")]
+  API --> ASK["Ask about this report<br/>engine facts + guidance<br/>numbers guard"]
   API --> FS[("Firestore")] & GCS[("Cloud Storage")]
-  C & PL & E & S & X --> GEM[["Gemini · Agent Platform (global)"]]
+  C & PL & E & S & X & ASK --> GEM[["Gemini · Agent Platform (global)"]]
 ```
 
 * **ADK 2.11 Workflow** graph with route-based branching (mismatch → HumanReview). The Calculator is an ADK `FunctionTool`. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

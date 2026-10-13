@@ -9,6 +9,16 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 9 — the story in pictures (README, architecture, GIFs)
+* Judge: the README is the first thing many judges read; its pictures predated iterations 1–8 and the
+  strongest moment (the supplier's upload moving the money) had no picture at all.
+* Built: `scripts/readme_shots.py [URL]` (in the repo, re-runnable against the deployed URL): all README
+  stills, `evidence-lens.gif`, and the new `money-moves.gif` (supplier's phone + exporter's report side by
+  side, €409,545 → €572,546). README diagram and the in-app Architecture page show Normalize, the supplier
+  link, Ask about this report and Plant pulse. DECK_NOTES lists the visuals.
+* Not captured on purpose: an "Ask" screenshot with a Gemini answer (only possible on the live service; a
+  scripted answer would misrepresent it) — capture after the redeploy.
+
 ### Iteration 8 — fast on a phone (and Lighthouse 91/100/100/100 mobile)
 * Judge: Lighthouse mobile 87/100/100/92 on the landing page: all four languages in the first bundle
   (189 KB gzip), the page fade and a fade-in on the headline delayed the largest paint, robots.txt was the

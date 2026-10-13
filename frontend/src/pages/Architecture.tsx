@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ArrowDown, ArrowRight, Boxes, Calculator, ClipboardCheck, Cloud, Database, FileSearch, FileText, Hand, HardDrive, Inbox, MessageSquareText, ScanEye, ShieldCheck, Smartphone, Tags, Cpu, BookMarked, Activity } from "lucide-react";
+import { ArrowDown, ArrowRight, Boxes, Calculator, ClipboardCheck, Cloud, Database, FileSearch, FileText, Hand, HardDrive, Inbox, MessageSquareText, ScanEye, ShieldCheck, Smartphone, Tags, Cpu, BookMarked, Activity, Gauge, Link2, MessagesSquare, Wand2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Reveal } from "@/lib/motion";
 
@@ -9,7 +9,8 @@ const FLOW = [
   { k: "Classifier", icon: Tags, m: "gemini-3.8-flash", c: "{doc_id, doc_type, languages, period, confidence}" },
   { k: "ProductLines", icon: Boxes, m: "owner's lines, or gemini-3.8-flash proposal", c: "one line per exported CN code ← its steel input; every code checked against refdata; owner confirms" },
   { k: "Extractor", icon: FileSearch, m: "gemini-3.8-flash · high media resolution", c: "Field{field_key, value_text, value_num, unit, box_2d, page, label}" },
-  { k: "SecondReader", icon: ScanEye, m: "gemini-3.5-flash-lite · crop only", c: "{reading_value, reading_unit, agrees, delta}" },
+  { k: "Normalize", icon: Wand2, m: "code", c: "schema scope per field · one product line per single-material document · CN as dddd dd dd · salvaged numbers · ISO dates" },
+  { k: "SecondReader", icon: ScanEye, m: "gemini-3.5-flash-lite · crop only", c: "{reading_value, reading_unit, agrees, delta, crossed_out}" },
   { k: "ControlChecks", icon: ClipboardCheck, m: "code", c: "Check{name, formula, inputs, result, tolerance, status}" },
   { k: "GapFinder", icon: ShieldCheck, m: "code → Calculator tool", c: "checklist per process + question per gap (EN/HI/TA/VI)" },
   { k: "Explainer", icon: MessageSquareText, m: "gemini-3.8-flash + numbers guard", c: "sections with page citations; no new numbers" },
@@ -54,12 +55,24 @@ export default function Architecture() {
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <div className="flex items-start gap-2 rounded-xl border border-warn/40 bg-warnbg p-3 text-[12px] text-warnink">
                 <Hand className="mt-0.5 h-4 w-4 shrink-0" />
-                <span><b>HumanReview</b> — SecondReader routes mismatches here; amber values wait for a tap (PATCH /evidence), then a deterministic recalculation.</span>
+                <span><b>HumanReview</b> — SecondReader routes mismatches and hand-corrected figures here; amber values wait for a tap (PATCH /evidence), then a deterministic recalculation.</span>
               </div>
               <div className="flex items-start gap-2 rounded-xl border border-line bg-sunk p-3 text-[12px] text-ink2">
                 <Calculator className="mt-0.5 h-4 w-4 shrink-0" />
                 <span><b>Calculator</b> — Decimal CBAM engine exposed as an ADK FunctionTool. Every node → evidence, refdata or assumption. Golden tests G1–G8.</span>
               </div>
+            </div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {[
+                { icon: Link2, t: "Supplier link", d: "the rod supplier uploads its verified statement from a phone, no account; the same agents read only the new document; the line moves to verified data" },
+                { icon: MessagesSquare, t: "Ask about this report", d: "engine facts (calc-tree ids) + guidance pages → gemini-3.8-flash → numbers guard; every number opens the Evidence Lens" },
+                { icon: Gauge, t: "Plant pulse", d: "gas per tonne by month against the median month; hot months priced at the bill's own rate; all calculation nodes" },
+              ].map((x) => (
+                <div key={x.t} className="flex items-start gap-2 rounded-xl border border-line bg-surface p-3 text-[12px] text-ink2">
+                  <x.icon className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <span><b className="text-ink">{x.t}</b> — {x.d}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
