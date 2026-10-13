@@ -251,3 +251,11 @@ def test_whatif_electric_heating_and_supplier_switch(client: TestClient) -> None
     assert Decimal(e["direct"]) == 0 and Decimal(e["see"]) < Decimal(w["see"])
     assert len(e["series"]) == 9 and Decimal(e["series"][0]["eur_t"]) < Decimal(w["series"][0]["eur_t"])
     assert client.post(f"/api/projects/{PID}/whatif", json={"process_id": "P2", "heating": "coal"}).status_code == 422
+
+
+def test_a_value_to_review_names_its_field(client: TestClient) -> None:
+    """The review card is titled by what the value is and its line (translated in the UI), not only by the
+    label as printed on the page, which on the sample's scrap log is Hindi."""
+    gaps = client.get(f"/api/projects/{PID}/results").json()["gaps"]
+    review = [g for g in gaps if g["group"] == "review"]
+    assert review and review[0]["params"]["field_key"] == "scrap_t" and review[0]["process"] == "P2"

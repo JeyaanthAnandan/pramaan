@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -15,8 +15,14 @@ import { ProductLines } from "@/components/Setup";
 
 const GROUPS = ["review", "setup", "precursor", "activity", "energy", "exports", "extra", "control"];
 
-function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap) {
+function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap, lines: Record<string, string> = {}) {
   const params: Record<string, unknown> = { ...g.params };
+  // a value to review is named by what it is and its product line, in the reader's language; the label
+  // as printed on the page (Hindi on the sample's scrap log) stays the fallback
+  if (g.group === "review" && typeof params.field_key === "string") {
+    const name = t(`field.${params.field_key}`, { defaultValue: "" });
+    if (name) params.label = [name, g.process ? lines[g.process] : ""].filter(Boolean).join(" · ");
+  }
   if (Array.isArray(params.missing)) params.missing = (params.missing as string[]).join(", ");
   if (Array.isArray(params.quarters)) params.quarters = (params.quarters as string[]).join(", ");
   const base = `gaps.kinds.${g.kind}`;
@@ -25,6 +31,13 @@ function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap) 
   if (g.kind === "precursor_see" || g.kind === "precursor_sefa") q = t(`${base}.${g.params.data === "ACTUAL_VERIFIED" || g.status === "green" ? "q_actual" : "q_default"}`, params);
   else q = t(`${base}.q`, params);
   return { title, q };
+}
+
+function useGapText() {
+  const { t } = useTranslation();
+  const { bundle } = useProject();
+  const lines = useMemo(() => Object.fromEntries((bundle?.project.processes ?? []).map((p) => [p.id, p.name])), [bundle]);
+  return (g: Gap) => gapText(t, g, lines);
 }
 
 export default function Gaps() {
@@ -83,8 +96,9 @@ export default function Gaps() {
 
 function SetupGap({ g }: { g: Gap }) {
   const { t } = useTranslation();
+  const gtext = useGapText();
   const { pid } = useProject();
-  const { title, q } = gapText(t, g);
+  const { title, q } = gtext(g);
   return (
     <motion.section variants={rise}>
       <h3 className="eyebrow mb-2">{t("gaps.group_setup")}</h3>
@@ -150,8 +164,9 @@ function GapGroup({ group, items }: { group: string; items: Gap[] }) {
 
 function GapRow({ g }: { g: Gap }) {
   const { t } = useTranslation();
+  const gtext = useGapText();
   const { open } = useLens();
-  const { title, q } = gapText(t, g);
+  const { title, q } = gtext(g);
   return (
     <li className="flex flex-col gap-2 border-t border-line px-4 py-3 transition-colors first:border-t-0 hover:bg-sunk/40 sm:flex-row sm:items-center sm:gap-4">
       <div className="w-36 shrink-0">
@@ -181,6 +196,7 @@ function GapRow({ g }: { g: Gap }) {
 
 function ReviewCard({ g }: { g: Gap }) {
   const { t } = useTranslation();
+  const gtext = useGapText();
   const { pid, evById, docs, refresh } = useProject();
   const toast = useToast();
   const reduce = useReducedMotion();
@@ -195,7 +211,7 @@ function ReviewCard({ g }: { g: Gap }) {
   if (!ev) return null;
   const doc = docs[ev.doc_id];
   const aspect = doc?.width && doc?.height ? doc.width / doc.height : 0.75;
-  const { title, q } = gapText(t, g);
+  const { title, q } = gtext(g);
   const supports = g.params.balance?.supports as "first" | "second" | undefined;
   const crossed = ev.second_reading?.corrected_from; // a crossed-out figure next to the value
   const handFix = !!crossed && !!ev.second_reading?.agrees; // both read the same, but a person confirms a hand correction

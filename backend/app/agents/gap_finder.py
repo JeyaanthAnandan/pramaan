@@ -254,6 +254,7 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
                     "status": "amber",
                     "params": {
                         "label": x.label or x.field_key,
+                        "field_key": x.field_key,
                         "first": x.value_text,
                         "second": x.second_reading.reading_value if x.second_reading else None,
                         "reason": x.second_reading.reason if x.second_reading else "",

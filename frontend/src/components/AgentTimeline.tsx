@@ -68,6 +68,28 @@ export function useRunEvents(pid: string, runId: string | null | undefined, onEn
   return { events, ended };
 }
 
+/** Classifier and Extractor work per document: once they are done, say what all the documents gave,
+ *  not what the last one did ("24 documents, 7 kinds"; "222 values from 24 documents, 222 with regions"). */
+function totals(key: string, done: TimelineEvent[], t: (k: string, o?: Record<string, unknown>) => string): string | null {
+  if (done.length < 2) return null;
+  if (key === "Classifier") {
+    const kinds = new Set(done.map((e) => (e.output_summary ?? "").split(" · ")[0]).filter(Boolean));
+    return t("timeline.classified_all", { n: done.length, k: kinds.size });
+  }
+  if (key === "Extractor") {
+    let v = 0;
+    let r = 0;
+    for (const e of done) {
+      const m = /^(\d+) values, (\d+) with regions/.exec(e.output_summary ?? "");
+      if (!m) return null;
+      v += Number(m[1]);
+      r += Number(m[2]);
+    }
+    return t("timeline.extracted_all", { n: done.length, v, r });
+  }
+  return null;
+}
+
 export function AgentTimeline({ events, ended, mode, compact = false }: { events: TimelineEvent[]; ended: string | null; mode?: string | null; compact?: boolean }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState<string | null>(null);
@@ -162,7 +184,7 @@ export function AgentTimeline({ events, ended, mode, compact = false }: { events
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
                   </span>
                 </div>
-                {!compact && <div className="text-[12px] text-ink2">{state === "pending" ? desc : lastDone?.output_summary || evs[evs.length - 1]?.output_summary || desc}</div>}
+                {!compact && <div className="text-[12px] text-ink2">{state === "pending" ? desc : (state === "done" && totals(key, done, t)) || lastDone?.output_summary || evs[evs.length - 1]?.output_summary || desc}</div>}
                 {(model || toks > 0) && (
                   <div className="mt-0.5 flex flex-wrap gap-1.5">
                     {model && <span className="chip font-mono">{model}</span>}
