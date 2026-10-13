@@ -9,6 +9,18 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 12 — the PDF answers first
+* Judge: the PDF is what an exporter mails to the buyer and the verifier, but page 1 opened with tables;
+  the money, the next step and the Plant pulse were only in the app, and the "Control checks" heading sat
+  alone at the foot of page 3 (whole tables were kept together, so the table jumped to page 4).
+* Built: page 1 now leads with **what the data saves the buyer** (€ and ₹ a year) and **what is within
+  reach** with verified rod data, then **What to do next** (ask the named supplier, approve the open
+  value, send the verified data); the precursor column names the verifier and the verification report;
+  a **Plant pulse** table (GJ per tonne by month, the hot month highlighted, ₹ above the median month);
+  long tables now break between rows and repeat their header row; headings stay with their table.
+* Tests: `test_pdf_leads_with_the_answer` (verdict, next steps, verifier, pulse, a header on every table);
+  rendered and checked by eye before and after the supplier sends data (5 pages, no orphaned headings).
+
 ### Iteration 11 — trust and explainability
 * Judge: the Evidence Lens showed *how* a number is made (formula, inputs, photo) but not *what it means*;
   the buyer link said "actual, verified" without saying by whom.

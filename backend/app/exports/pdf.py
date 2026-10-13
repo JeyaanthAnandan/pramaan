@@ -21,48 +21,62 @@ th, td { border-bottom: 1px solid #ddd; padding: 1.4mm 1.6mm; text-align: left; 
 td.n, th.n { text-align: right; } .ok { color: #1e7a46; font-weight: 600; } .warn { color: #a86a00; font-weight: 600; } .bad { color: #b42318; font-weight: 600; }
 .kpis { display: flex; gap: 3mm; } .kpi { flex: 1; border: 1px solid #ddd; padding: 2.5mm; } .kpi b { font-size: 15pt; display: block; }
 .bar { height: 5mm; display: flex; border: 1px solid #bbb; } .bar span { display: block; height: 100%; }
-table, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: avoid; page-break-after: avoid; } .cn { white-space: nowrap; }
+tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: avoid; page-break-after: avoid; } .cn { white-space: nowrap; }
+.verdict { display: flex; gap: 3mm; margin: 3mm 0; } .verdict > div { flex: 1; padding: 2.5mm 3mm; border: 1px solid #ddd; }
+.verdict .good { background: #eef6f0; border-color: #b9d8c3; } .verdict .reach { background: #eef0f8; border-color: #c4cbe6; }
+.verdict b { font-size: 16pt; display: block; letter-spacing: -0.2px; } ol.next { margin: 1mm 0 0 5mm; padding: 0; } ol.next li { margin: 0.8mm 0; }
+.hot { background: #fdf3dc; font-weight: 600; }
 </style></head><body>
 <div class="muted small">EU CBAM · definitive period · iron & steel · {{ result.period_label }}</div>
 <h1>CBAM embedded-emissions report</h1>
 <div><b>{{ project.company }}</b> — {{ project.city }}, {{ project.country }}</div>
 <div class="banner"><b>PROVISIONAL.</b> Year-to-date data, not yet verified by an accredited verifier. Pramaan is not a substitute for an accredited verifier. Mode: {{ result.mode }} · run {{ result.run_id }} · computed {{ result.computed_at }}.</div>
+<div class="verdict">
+ {% if secured %}<div class="good"><span class="small">Your data saves your buyer</span><b>EUR {{ secured }}</b><span class="small">INR {{ secured_inr }} a year at current volumes</span></div>{% endif %}
+ {% if reach %}<div class="reach"><span class="small">More within reach</span><b>+EUR {{ reach }}</b><span class="small">a year if rod suppliers send verified data</span></div>{% endif %}
+</div>
+{% if next_steps %}<div class="keep"><b>What to do next</b><ol class="next">{% for n in next_steps %}<li>{{ n }}</li>{% endfor %}</ol></div>{% endif %}
 <div class="kpis">
  <div class="kpi"><span class="muted small">Readiness (inputs verified or approved)</span><b>{{ readiness }}%</b><span class="small">{{ lines_ready }} of {{ lines_total }} product lines on actual data</span></div>
  {% for p in procs %}<div class="kpi"><span class="muted small">SEE · CN {{ p.cn_display }}</span><b>{{ p.see3 }} t CO2/t</b><span class="small">{{ p.name }}</span></div>{% endfor %}
 </div>
 <h2>1. Specific embedded emissions per CN group</h2>
-<table><tr><th>CN</th><th>Good</th><th class="n">AL (t)</th><th class="n">Own process</th><th class="n">m (t/t)</th><th class="n">Precursor</th><th class="n">SEE</th><th>Precursor data</th></tr>
+<table><thead><tr><th>CN</th><th>Good</th><th class="n">AL (t)</th><th class="n">Own process</th><th class="n">m (t/t)</th><th class="n">Precursor</th><th class="n">SEE</th><th>Precursor data</th></tr></thead>
 {% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td>{{ p.name }}</td><td class="n">{{ p.al }}</td><td class="n">{{ p.direct3 }}</td><td class="n">{{ p.m3 }}</td><td class="n">{{ p.pre3 }}</td><td class="n"><b>{{ p.see3 }}</b></td>
-<td>{% if p.precursor.data == "ACTUAL_VERIFIED" %}<span class="ok">actual, verified</span>{% else %}<span class="bad">default + mark-up</span>{% endif %}<br><span class="small muted">{{ p.precursor.supplier }}</span></td></tr>{% endfor %}
+<td>{% if p.precursor.data == "ACTUAL_VERIFIED" %}<span class="ok">actual, verified</span>{% else %}<span class="bad">default + mark-up</span>{% endif %}<br><span class="small muted">{{ p.precursor.supplier }}{% if p.verified_by %} · {{ p.verified_by }}{% endif %}</span></td></tr>{% endfor %}
 </table>
 <p class="small muted">t CO2/t of good. Direct emissions only (iron & steel); electricity recorded and excluded. Formula: SEE = AttrEm/AL + Σ m_i × SEE_i (EC Guidance No. 3; Guidance 5d Example 3, p. 53). Scrap and cut-offs carry zero embedded emissions.</p>
 {% for p in procs %}<div class="small">{{ p.name }} — contribution: own process {{ p.own_pct }}% · precursor {{ 100 - p.own_pct }}%</div>
 <div class="bar"><span style="width: {{ p.own_pct }}%; background:#5b6b7a"></span><span style="width: {{ 100 - p.own_pct }}%; background:{% if p.precursor.data == 'ACTUAL_VERIFIED' %}#7ea08a{% else %}#c8796b{% endif %}"></span></div>{% endfor %}
 <h2>2. Free allocation adjustment, certificates and cost (2026 imports)</h2>
-<table><tr><th>CN</th><th class="n">SEFA</th><th class="n">SEFA 2026</th><th class="n">Exported (t)</th><th class="n">Certificates (your data)</th><th class="n">Buyer cost, your data (EUR)</th><th class="n">Buyer cost, EU default (EUR)</th><th>Cheaper for the buyer</th></tr>
+<table><thead><tr><th>CN</th><th class="n">SEFA</th><th class="n">SEFA 2026</th><th class="n">Exported (t)</th><th class="n">Certificates (your data)</th><th class="n">Buyer cost, your data (EUR)</th><th class="n">Buyer cost, EU default (EUR)</th><th>Cheaper for the buyer</th></tr></thead>
 {% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td class="n">{{ p.sefa3 }}</td><td class="n">{{ p.sefay3 }}</td><td class="n">{{ p.exports }}</td><td class="n">{{ p.certs }}</td><td class="n">{{ p.cost }}</td><td class="n">{{ p.cost_default }}</td><td>{% if p.basis == 'actual' %}<span class="ok">your data</span>{% else %}<span class="warn">EU default</span>{% endif %}<br><span class="small muted">INR {{ p.cost_buyer_inr }}</span></td></tr>{% endfor %}
 </table>
 <p class="small muted">While a precursor is on its marked-up default value, the good's own EU default can be cheaper for the buyer than the exporter's data. The supplier's verified data is then the lever (section 3).</p>
 <p class="small muted">SEFA = BM column A (own process) + Σ m_i × SEFA_i; SEFA_2026 = CBAM factor 0.975 × CSCF 1 × SEFA (Guidance 4; Decision (EU) 2026/1862). Certificates = EE − FAA − carbon price paid (0). Quarterly prices: Q1 €75.36, Q2 €75.28, Q3 €82.32 (EC). FX {{ fx }} INR/EUR (assumption).</p>
 <h2>3. Money on the table — buyer's CBAM cost per tonne</h2>
 {% for p in procs %}<div class="keep"><div><b>{{ p.name }} (CN {{ p.cn_display }})</b></div>
-<table><tr><th>Year</th>{% for s in p.series %}<th class="n">{{ s.year }}</th>{% endfor %}</tr>
+<table><thead><tr><th>Year</th>{% for s in p.series %}<th class="n">{{ s.year }}</th>{% endfor %}</tr></thead>
 <tr><td>Actual data (EUR/t)</td>{% for s in p.series %}<td class="n">{{ s.a }}</td>{% endfor %}</tr>
 <tr><td>EU default values (EUR/t)</td>{% for s in p.series %}<td class="n">{{ s.d }}</td>{% endfor %}</tr>
 <tr><td>Difference (EUR/t)</td>{% for s in p.series %}<td class="n">{{ s.g }}</td>{% endfor %}</tr>
 {% if p.whatif %}<tr><td>If supplier sends verified data</td>{% for s in p.whatif %}<td class="n">{{ s }}</td>{% endfor %}</tr>{% endif %}
 </table></div>{% endfor %}
 <p class="small muted">Cost per t = max(0, SEE − SEFA_y) × price. Default SEE = DV({{ project.country }}, CN) × (1 + mark-up: 10 % 2026, 20 % 2027, 30 % 2028+). 2027+ price = €{{ proj_price }} (assumption, editable). <b>Myth-buster:</b> some estimates multiply embedded emissions by 2.5 % in 2026. The Commission's formula subtracts a benchmark-based free allocation, so everything above the benchmark is payable: in EC Example 1, 3,690 certificates are due on 15,670 t embedded (23.5 %), not 5 %.</p>
-<h2>4. Control checks (EC Guidance No. 2, Step 7)</h2>
-<table><tr><th>Check</th><th>Result</th><th>Tolerance</th><th>Status</th></tr>
+{% if pulse %}<h2>4. Plant pulse — heat-treatment gas per tonne, month by month</h2>
+<table><thead><tr><th>Month</th>{% for m in pulse.months %}<th class="n">{{ m.label }}</th>{% endfor %}</tr></thead>
+<tr><td>GJ (NCV) per t produced</td>{% for m in pulse.months %}<td class="n{% if m.hot %} hot{% endif %}">{{ m.v }}</td>{% endfor %}</tr>
+<tr><td>vs the median month</td>{% for m in pulse.months %}<td class="n{% if m.hot %} hot{% endif %}">{{ m.d }}</td>{% endfor %}</tr></table>
+<p class="small">Median month {{ pulse.median }} GJ/t; best month {{ pulse.best }}.{% if pulse.excess_inr %} <b>{{ pulse.hot }} ran hot: INR {{ pulse.excess_inr }} of gas above the median month</b> ({{ pulse.excess_gj }} GJ, {{ pulse.excess_tco2 }} t CO2), at the bill's own rate.{% endif %} Operations insight from the same bills and register; it does not change SEE.</p>{% endif %}
+<h2>{{ 5 if pulse else 4 }}. Control checks (EC Guidance No. 2, Step 7)</h2>
+<table><thead><tr><th>Check</th><th>Result</th><th>Tolerance</th><th>Status</th></tr></thead>
 {% for c in result.checks %}<tr><td>{{ c.name }}<br><span class="small muted">{{ c.formula }}</span></td><td>{{ c.result }}</td><td>{{ c.tolerance }}</td><td class="{{ {'pass':'ok','fail':'bad','warn':'warn'}.get(c.status,'muted') }}">{{ c.status }}</td></tr>{% endfor %}
 </table>
-<h2>5. Extra parameters (EC Guidance No. 5d, Table 3-1)</h2>
-<table><tr><th>CN</th><th>Reducing agent (precursor)</th><th class="n">Mn %</th><th class="n">Cr %</th><th class="n">Ni %</th><th class="n">Other %</th><th class="n">Scrap t/t</th><th>Pre-consumer</th></tr>
+<h2>{{ 6 if pulse else 5 }}. Extra parameters (EC Guidance No. 5d, Table 3-1)</h2>
+<table><thead><tr><th>CN</th><th>Reducing agent (precursor)</th><th class="n">Mn %</th><th class="n">Cr %</th><th class="n">Ni %</th><th class="n">Other %</th><th class="n">Scrap t/t</th><th>Pre-consumer</th></tr></thead>
 {% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td>{{ p.x.main_reducing_agent.value or 'unknown' }}</td><td class="n">{{ p.x.mn_pct.value }}</td><td class="n">{{ p.x.cr_pct.value }}</td><td class="n">{{ p.x.ni_pct.value }}</td><td class="n">{{ p.x.other_alloy_pct.value }}</td><td class="n">{{ p.x.scrap_t_per_t.value }}</td><td>n/a</td></tr>{% endfor %}
 </table>
-<h2>6. Assumptions and reference data</h2>
+<h2>{{ 7 if pulse else 6 }}. Assumptions and reference data</h2>
 <ul class="small">{% for a in result.assumptions_used %}<li>{{ a }}</li>{% endfor %}</ul>
 <p class="small muted">Reference data parsed from official EC files (default values 10 Aug 2026; benchmarks 13 Feb 2026; Guidance 3/4/5d of 14 Aug 2026; certificate prices page) with SHA-256 manifest. Every number in this report opens in the Evidence Lens of the Pramaan app with its source region or reference.</p>
 </body></html>"""
@@ -106,7 +120,68 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
                 "x": p["extra_parameters"],
             }
         )
+    by_cn = {g["cn"]: g["precursor_data"][0]["status"] for g in (result.get("buyer_summary") or {}).get("goods", [])}
+    for x in procs:
+        st = by_cn.get(x["cn_display"], "")
+        x["verified_by"] = st.split("actual — ", 1)[1] if st.startswith("actual — ") else ""
+    secured = sum(
+        (
+            Decimal(x["buyer"]["annual_gap_eur"])
+            for x in procs
+            if x["buyer"]["basis_2026"] == "actual" and Decimal(x["buyer"].get("annual_gap_eur") or 0) > 0
+        ),
+        Decimal(0),
+    )
+    reach = sum(
+        (
+            Decimal(x["buyer"]["supplier_saving_annual_eur"])
+            for x in procs
+            if x["precursor"]["data"] != "ACTUAL_VERIFIED" and Decimal(x["buyer"].get("supplier_saving_annual_eur") or 0) > 0
+        ),
+        Decimal(0),
+    )
+    steps = []
+    for x in procs:
+        b = x["buyer"]
+        if x["precursor"]["data"] != "ACTUAL_VERIFIED" and Decimal(b.get("supplier_saving_eur_t") or 0) > 0:
+            steps.append(
+                f"Ask {x['precursor']['supplier']} for verified data on the {x['precursor']['name'].lower()} ({x['name']}): it would cut the buyer's cost by EUR {_fmt(b['supplier_saving_eur_t'], 0)}/t, about EUR {_fmt(b['supplier_saving_annual_eur'], 0)} a year."
+            )
+    review = sum(1 for g in result.get("gaps", []) if g.get("group") == "review")
+    if review:
+        steps.append(f"Approve {review} value{'s' if review > 1 else ''} the two AI readers could not settle (Close gaps).")
+    for x in procs:
+        if x["buyer"]["basis_2026"] == "actual" and Decimal(x["buyer"].get("gap_vs_default_eur_t") or 0) > 0:
+            steps.append(
+                f"Send your verified data for {x['name']} to the buyer: EUR {_fmt(x['buyer']['gap_vs_default_eur_t'], 0)}/t below EU default values."
+            )
+    gp = (result.get("operations") or {}).get("gas_pulse")
+    pulse = None
+    if gp:
+        import datetime as dt
+
+        def label(m: str) -> str:
+            return dt.date(int(m[:4]), int(m[5:7]), 1).strftime("%b")
+
+        hot = [m for m in gp["months"] if m["hot"]]
+        pulse = {
+            "months": [
+                {"label": label(m["month"]), "v": q(Decimal(m["gj_per_t"]), 2), "d": f"{Decimal(m['delta_pct']):+.0f} %", "hot": m["hot"]}
+                for m in gp["months"]
+            ],
+            "median": q(Decimal(gp["median"]), 2),
+            "best": f"{label(gp['best']['month'])} ({q(Decimal(gp['best']['gj_per_t']), 2)} GJ/t)",
+            "hot": ", ".join(label(m["month"]) for m in hot),
+            "excess_inr": _fmt(gp["excess_inr"], 0) if gp.get("excess_inr") else None,
+            "excess_gj": _fmt(gp.get("excess_gj") or "0", 0),
+            "excess_tco2": _fmt(gp.get("excess_tco2") or "0", 1),
+        }
     return {
+        "secured": _fmt(secured, 0) if secured else None,
+        "secured_inr": _fmt(secured * fx, 0) if secured else None,
+        "reach": _fmt(reach, 0) if reach else None,
+        "next_steps": steps,
+        "pulse": pulse,
         "project": project,
         "result": result,
         "procs": procs,

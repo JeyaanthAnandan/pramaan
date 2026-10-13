@@ -71,6 +71,22 @@ def test_human_approval_turns_amber_green(client: TestClient) -> None:
     assert not [g for g in gaps if g["group"] == "review"]
 
 
+def test_pdf_leads_with_the_answer(client: TestClient) -> None:
+    """Page 1 of the PDF answers first (what the data saves the buyer, what is within reach, what
+    to do next); the supplier column names the verifier; plant pulse is in; checks keep their header."""
+    from app.api.routes import _project, _result
+    from app.exports.pdf import html
+
+    h = html(_project(PID), _result(PID))
+    assert "Your data saves your buyer" in h and "EUR 409,545" in h
+    assert "More within reach" in h and "+EUR 163,002" in h
+    assert "What to do next" in h and "Ask Indus Stainless Rods (SAMPLE) for verified data" in h
+    assert "verified by Kestrel Assurance" in h and "KA-VR-2026-0147" in h
+    assert "Plant pulse" in h and "Jun ran hot: INR 200,905" in h
+    assert h.index("What to do next") < h.index("1. Specific embedded emissions")
+    assert h.count("<thead>") == h.count("<table>")
+
+
 def test_exports(client: TestClient) -> None:
     pdf = client.get(f"/api/projects/{PID}/export/pdf")
     assert pdf.status_code == 200 and pdf.content[:4] == b"%PDF"
