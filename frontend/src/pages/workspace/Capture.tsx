@@ -3,13 +3,15 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { ArrowRight, Camera, Check, FolderUp, Loader2, Mic, Play, RotateCw, Upload } from "lucide-react";
+import { ArrowRight, Camera, Check, FolderUp, Loader2, Mic, Play, RotateCw, Smartphone, Upload } from "lucide-react";
 import { api, imageUrl, type Doc } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { rise, stagger } from "@/lib/motion";
 import { AgentTimeline, useRunEvents } from "@/components/AgentTimeline";
 import { SetupCard } from "@/components/Setup";
 import { useToast } from "@/components/Toast";
+import { QrCode } from "@/components/QrCode";
+import { passcodeFor } from "@/lib/session";
 
 export default function Capture() {
   const { t, i18n } = useTranslation();
@@ -154,6 +156,7 @@ export default function Capture() {
           </div>
           <AgentTimeline events={shownEvents} ended={shownEnded} mode={mode ?? past.data?.mode} />
         </div>
+        <PhoneHandoff pid={pid} />
       </aside>
     </div>
   );
@@ -201,5 +204,25 @@ function DocCard({ d, pid, count, busy }: { d: Doc; pid: string; count: number; 
         </div>
       </div>
     </motion.li>
+  );
+}
+
+/** Bills and registers live on the shop floor: scan to keep adding photos from a phone. For a private
+ *  project the passcode rides in the link's #fragment, which browsers never send to the server; the
+ *  phone unlocks the project with it and drops it from the address bar. */
+function PhoneHandoff({ pid }: { pid: string }) {
+  const { t } = useTranslation();
+  const code = passcodeFor(pid);
+  const url = `${window.location.origin}/p/${pid}/capture${code ? `#k=${code.replace(/[^A-Za-z0-9-]/g, "")}` : ""}`;
+  return (
+    <div className="card mt-4 hidden items-center gap-4 p-4 lg:flex">
+      <QrCode value={url} label={t("capture.handoff_t")} size={112} />
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5 text-sm font-semibold">
+          <Smartphone className="h-4 w-4 text-accent" aria-hidden /> {t("capture.handoff_t")}
+        </div>
+        <p className="mt-1 text-[12px] text-muted">{t(code ? "capture.handoff_private" : "capture.handoff_d")}</p>
+      </div>
+    </div>
   );
 }

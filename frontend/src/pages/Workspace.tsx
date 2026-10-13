@@ -9,7 +9,7 @@ import { TourProvider, useTour } from "@/components/Tour";
 import { ReadinessRing } from "@/components/Charts";
 import { WorkspaceSkeleton } from "@/components/Skeleton";
 import { api, ApiError } from "@/lib/api";
-import { rememberProject } from "@/lib/session";
+import { rememberPasscode, rememberProject } from "@/lib/session";
 import { EASE, SPRING } from "@/lib/motion";
 import Capture from "./workspace/Capture";
 import Gaps from "./workspace/Gaps";
@@ -35,8 +35,21 @@ export default function Workspace() {
 
 function Inner({ step }: { step: string }) {
   const { t } = useTranslation();
-  const { pid, bundle, result, loading, error } = useProject();
+  const { pid, bundle, result, loading, error, refresh } = useProject();
   const tour = useTour();
+  // a handoff link from the owner's laptop carries the passcode in its #fragment: unlock, then forget it
+  useEffect(() => {
+    const m = window.location.hash.match(/(?:^#|&)k=([A-Za-z0-9-]{6,40})/);
+    if (!m) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    api
+      .unlock(pid, m[1])
+      .then(() => {
+        rememberPasscode(pid, m[1]);
+        return refresh();
+      })
+      .catch(() => undefined); // a wrong or old code: the passcode form is still there
+  }, [pid, refresh]);
   useEffect(() => {
     if (bundle) rememberProject(pid);
   }, [bundle, pid]);

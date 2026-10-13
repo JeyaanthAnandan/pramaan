@@ -9,6 +9,19 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 5 — phone first (handoff QR, folds, WhatsApp)
+* Judge: owners live on their phones and the documents are on the shop floor; the report was 9,614 px on a
+  390 px phone and there was no way from the laptop to the phone camera.
+* Built: `QrCode` (qrcode-generator 1.4.4, MIT, lazy 8 KB chunk; drawn as one SVG path, dark on white).
+  Capture (laptop): *Continue on your phone* QR; for private projects the passcode rides in `#k=` (never
+  sent to a server) and the phone unlocks with it, then drops it from the address bar (verified: QR
+  decoded with OpenCV, a fresh phone opens the project without the passcode form). Supplier link: QR, so a
+  judge can play the supplier on a real phone. Phone folds (`PhoneFold`, `CardDetails`): product cards lead
+  with SEE + buyer cost, breakdown behind *Details*; levers and explanations behind one line each →
+  sample report 9,614 → 7,399 px. WhatsApp button on the buyer link. en/hi/ta/vi.
+* Checks: tests, UI smoke (incl. tour), axe 0 (phone report folded/open, capture + handoff, letter + QR;
+  light/dark).
+
 ### Iteration 4 — a 90-second guided tour for people with two minutes
 * Judge: the best parts (Evidence Lens, two readers, supplier loop, Ask, Plant pulse, EC proof) are spread
   over a long report and two pages; a judge with two minutes would see the verdict and leave.

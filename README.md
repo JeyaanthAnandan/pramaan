@@ -104,6 +104,14 @@ where the movement says something:
 * **Time flows left to right.** The money chart draws 2026 → 2034; lines morph when you switch
   product or turn on the supplier what-if.
 
+**Phone first.** Bills live on the shop floor: on a laptop, Capture shows a *Continue on your phone* QR
+code (a private project's passcode rides in the link's `#fragment`, which browsers never send to a
+server; the phone unlocks with it and drops it from the address bar). The supplier link has its own QR
+code, so the supplier — or a judge playing it — opens it on a phone while the laptop's report moves. On a
+phone the report leads with the answers: each product line shows SEE and what the buyer pays, its
+breakdown folds behind *Details*, and the levers and explanations fold behind one line each (the
+sample report is 23 % shorter). Buyer and supplier links go out on WhatsApp in one tap.
+
 Everything respects *reduced motion* (numbers appear final, nothing slides), works at 360 px, in
 light and dark, in all four languages, and passes axe (WCAG 2.1 A/AA: 0 violations on every page and
 dialog).

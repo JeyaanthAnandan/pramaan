@@ -10,6 +10,7 @@ import { EASE, Segmented } from "@/lib/motion";
 import { LensNum } from "./EvidenceLens";
 import { StatusBadge } from "./Status";
 import { useToast } from "./Toast";
+import { QrCode } from "./QrCode";
 
 const STEPS = ["requested", "received", "verified"] as const;
 
@@ -275,8 +276,12 @@ function SupplierLinkRow({ link, supplier, lang }: { link: { token: string; url:
       <div className="flex items-center gap-2 text-[13px] font-semibold">
         <Link2 className="h-4 w-4 text-accent" aria-hidden /> {t("lever.link_t", { supplier })}
       </div>
-      <p className="mt-0.5 text-[12px] text-muted">{t("lever.link_d")}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <p className="mt-0.5 text-[12px] text-ink2">{t("lever.link_d")}</p>
+      <div className="mt-2 flex items-start gap-3">
+      <div className="hidden sm:block">
+        <QrCode value={link.url} label={t("lever.qr")} size={92} />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-wrap gap-2">
         <input readOnly value={link.url} aria-label={t("lever.link_t", { supplier })} className="input min-w-0 flex-1 basis-56 font-mono text-[12px]" onFocus={(e) => e.currentTarget.select()} />
         <button
           className="btn-ghost"
@@ -295,6 +300,8 @@ function SupplierLinkRow({ link, supplier, lang }: { link: { token: string; url:
             <ExternalLink className="h-4 w-4" /> {t("lever.as_supplier")}
           </a>
         )}
+        <p className="hidden w-full text-[11px] text-ink2 sm:block">{t("lever.qr")}</p>
+      </div>
       </div>
     </div>
   );

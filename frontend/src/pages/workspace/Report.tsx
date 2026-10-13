@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
-import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MessageCircle, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { api, exportUrl, type ProcessResult } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n } from "@/lib/format";
@@ -10,6 +10,7 @@ import { AnimatedNumber, Collapse, SPRING, rise, stagger, useRise } from "@/lib/
 import { LensNum } from "@/components/EvidenceLens";
 import { useAsk } from "@/components/ReportAsk";
 import { PlantPulse } from "@/components/PlantPulse";
+import { PhoneFold, useIsPhone } from "@/components/PhoneFold";
 import { ContributionBar, CostBars, ReadinessRing } from "@/components/Charts";
 import { StatusBadge } from "@/components/Status";
 import { MoneySection } from "@/components/MoneySection";
@@ -22,6 +23,7 @@ import { NoResult } from "./Gaps";
 const SECTIONS = ["next", "lines", "money", "pulse", "levers", "share", "checks"] as const;
 
 export default function Report() {
+  const { t } = useTranslation();
   const { result } = useProject();
   const [whatIf, setWhatIf] = useState(false);
   if (!result) return <NoResult />;
@@ -60,11 +62,15 @@ export default function Report() {
       )}
 
       <div id="levers">
-        <WhatIfPanel result={result} />
+        <PhoneFold title={t("report.levers_fold")} hint={t("report.levers_fold_d")}>
+          <WhatIfPanel result={result} />
+        </PhoneFold>
       </div>
 
       <div id="share" className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <Explanations />
+        <PhoneFold title={t("report.expl_fold")} hint={t("report.expl_fold_d")}>
+          <Explanations />
+        </PhoneFold>
         <Exports />
       </div>
       <div id="checks">
@@ -266,6 +272,48 @@ function ProcessCard({ p }: { p: ProcessResult }) {
   const b = p.buyer;
   const onDefault = b.basis_2026 === "default";
   const rp = result!.readiness.by_process?.[p.id];
+  // on a phone the card leads with SEE and what the buyer pays; the breakdown folds behind Details
+  const phone = useIsPhone();
+  const breakdown = (
+    <>
+          <dl className="mt-5 grid grid-cols-3 gap-3 text-[13px]">
+            <div className="rounded-xl bg-sunk px-3 py-2">
+              <dt className="text-[11px] text-muted">{t("report.own")}</dt>
+              <dd className="num text-base font-semibold"><LensNum node={`${p.id}.direct`}>{n(p.direct, 3)}</LensNum></dd>
+            </div>
+            <div className="rounded-xl bg-sunk px-3 py-2">
+              <dt className="text-[11px] text-muted">{t("report.precursor")}</dt>
+              <dd className="num text-base font-semibold"><LensNum node={`${p.id}.rod.contrib`}>{n(contrib, 3)}</LensNum></dd>
+            </div>
+            <div className="rounded-xl bg-sunk px-3 py-2">
+              <dt className="text-[11px] text-muted">m · {t("report.m")}</dt>
+              <dd className="num text-base font-semibold"><LensNum node={`${p.id}.rod.m`}>{n(p.m, 3)}</LensNum></dd>
+            </div>
+          </dl>
+
+          <div className="mt-5">
+            <div className="eyebrow mb-2">{t("report.contribution")}</div>
+            <ContributionBar
+              segments={p.contribution.map((c) => ({ key: c.key, label: c.key === "own" ? t("report.own") : `${p.precursor.name}`, value: Number(c.value), node: c.node, tag: c.key === "rod" ? (actual ? t("report.actual_verified") : t("report.default_used")) : undefined }))}
+            />
+          </div>
+    </>
+  );
+  const more = (
+        <dl className="mt-4 grid grid-cols-2 gap-2 text-[12px] sm:grid-cols-4">
+          {[
+            { k: "sefa", label: t("report.sefa"), v: <LensNum node={p.sefa_node}>{n(p.sefa, 3)}</LensNum> },
+            { k: "sefa_y", label: t("report.sefa_y"), v: <LensNum node={p.sefa_y_node}>{n(p.sefa_y, 3)}</LensNum> },
+            { k: "exp", label: `${t("report.exported")} (${Object.keys(p.exports_by_quarter).map((q) => q.slice(-2)).join(", ") || "—"})`, v: <LensNum node={`${p.id}.exports`}>{n(p.exports_t, 1)} t</LensNum> },
+            { k: "certs", label: t("report.certs"), v: <LensNum node={p.certificates_node}>{n(p.certificates_2026, 1)}</LensNum> },
+          ].map((x) => (
+            <div key={x.k} className="rounded-lg border border-line px-2.5 py-1.5">
+              <dt className="truncate text-[11px] text-muted" title={x.label}>{x.label}</dt>
+              <dd className="num text-[13px] font-semibold">{x.v}</dd>
+            </div>
+          ))}
+        </dl>
+  );
   return (
     <motion.article variants={rise} className="card min-w-0 p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -297,28 +345,7 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         </div>
       )}
 
-      <dl className="mt-5 grid grid-cols-3 gap-3 text-[13px]">
-        <div className="rounded-xl bg-sunk px-3 py-2">
-          <dt className="text-[11px] text-muted">{t("report.own")}</dt>
-          <dd className="num text-base font-semibold"><LensNum node={`${p.id}.direct`}>{n(p.direct, 3)}</LensNum></dd>
-        </div>
-        <div className="rounded-xl bg-sunk px-3 py-2">
-          <dt className="text-[11px] text-muted">{t("report.precursor")}</dt>
-          <dd className="num text-base font-semibold"><LensNum node={`${p.id}.rod.contrib`}>{n(contrib, 3)}</LensNum></dd>
-        </div>
-        <div className="rounded-xl bg-sunk px-3 py-2">
-          <dt className="text-[11px] text-muted">m · {t("report.m")}</dt>
-          <dd className="num text-base font-semibold"><LensNum node={`${p.id}.rod.m`}>{n(p.m, 3)}</LensNum></dd>
-        </div>
-      </dl>
-
-      <div className="mt-5">
-        <div className="eyebrow mb-2">{t("report.contribution")}</div>
-        <ContributionBar
-          segments={p.contribution.map((c) => ({ key: c.key, label: c.key === "own" ? t("report.own") : `${p.precursor.name}`, value: Number(c.value), node: c.node, tag: c.key === "rod" ? (actual ? t("report.actual_verified") : t("report.default_used")) : undefined }))}
-        />
-      </div>
-
+      {!phone && breakdown}
       <div className="mt-5 border-t border-line pt-4">
         <div className="eyebrow mb-2.5">{t("report.cost")}</div>
         <CostBars
@@ -335,19 +362,14 @@ function ProcessCard({ p }: { p: ProcessResult }) {
         </p>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-2 text-[12px] sm:grid-cols-4">
-        {[
-          { k: "sefa", label: t("report.sefa"), v: <LensNum node={p.sefa_node}>{n(p.sefa, 3)}</LensNum> },
-          { k: "sefa_y", label: t("report.sefa_y"), v: <LensNum node={p.sefa_y_node}>{n(p.sefa_y, 3)}</LensNum> },
-          { k: "exp", label: `${t("report.exported")} (${Object.keys(p.exports_by_quarter).map((q) => q.slice(-2)).join(", ") || "—"})`, v: <LensNum node={`${p.id}.exports`}>{n(p.exports_t, 1)} t</LensNum> },
-          { k: "certs", label: t("report.certs"), v: <LensNum node={p.certificates_node}>{n(p.certificates_2026, 1)}</LensNum> },
-        ].map((x) => (
-          <div key={x.k} className="rounded-lg border border-line px-2.5 py-1.5">
-            <dt className="truncate text-[11px] text-muted" title={x.label}>{x.label}</dt>
-            <dd className="num text-[13px] font-semibold">{x.v}</dd>
-          </div>
-        ))}
-      </dl>
+      {phone ? (
+        <CardDetails label={t("report.details")}>
+          {breakdown}
+          {more}
+        </CardDetails>
+      ) : (
+        more
+      )}
     </motion.article>
   );
 }
@@ -387,7 +409,7 @@ function Explanations() {
 
 export function Exports() {
   const { t } = useTranslation();
-  const { pid } = useProject();
+  const { pid, bundle } = useProject();
   const toast = useToast();
   const [link, setLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -444,6 +466,15 @@ export function Exports() {
             >
               {copied ? <Check className="h-4 w-4 animate-pop text-good" /> : <Copy className="h-4 w-4" />}
             </button>
+            <a
+              className="btn-ghost h-10 min-h-0 px-3"
+              href={`https://wa.me/?text=${encodeURIComponent(t("exports.wa_text", { company: bundle?.project.company ?? "", url: link }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("exports.wa")}
+            >
+              <MessageCircle className="h-4 w-4" />
+            </a>
             <a className="btn-ghost h-10 min-h-0 px-3" href={link} target="_blank" rel="noreferrer" aria-label={t("common.open")}>
               <ExternalLink className="h-4 w-4" />
             </a>
@@ -500,5 +531,18 @@ function Checks() {
         </>
       )}
     </section>
+  );
+}
+
+function CardDetails({ label, children }: { label: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-3 border-t border-line pt-2">
+      <button type="button" className="btn-quiet -mx-3 w-[calc(100%+1.5rem)] justify-between" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        {label}
+        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      <Collapse open={open}>{children}</Collapse>
+    </div>
   );
 }
