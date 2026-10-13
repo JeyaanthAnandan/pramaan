@@ -2,6 +2,7 @@
  {
   "doc": "gas-2026-03",
   "src": "/hero/gas-2026-03.jpg",
+  "webp": "/hero/gas-2026-03.webp",
   "w": 1278,
   "h": 1600,
   "title": "Gas invoice March 2026",
@@ -47,6 +48,7 @@
  {
   "doc": "scrap-2026-06-to-09",
   "src": "/hero/scrap-2026-06-to-09.jpg",
+  "webp": "/hero/scrap-2026-06-to-09.webp",
   "w": 1278,
   "h": 1600,
   "title": "Scrap log p.2 (handwritten)",
@@ -92,6 +94,7 @@
  {
   "doc": "stmt-NWRM-2026",
   "src": "/hero/stmt-NWRM-2026.jpg",
+  "webp": "/hero/stmt-NWRM-2026.webp",
   "w": 1278,
   "h": 1600,
   "title": "Supplier emissions statement (Northern Wire Rod Mills)",

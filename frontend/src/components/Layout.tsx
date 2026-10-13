@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { Languages, Menu, Moon, Sun, SunMoon, X } from "lucide-react";
-import { LANGS } from "@/i18n";
+import { LANGS, setLanguage } from "@/i18n";
 import { lastProject } from "@/lib/session";
 import { EASE, SPRING } from "@/lib/motion";
 
@@ -65,7 +65,7 @@ export function LangSwitch({ className = "" }: { className?: string }) {
       <Languages className="pointer-events-none absolute left-2.5 h-4 w-4 text-muted" aria-hidden />
       <select
         value={i18n.language}
-        onChange={(e) => i18n.changeLanguage(e.target.value)}
+        onChange={(e) => void setLanguage(e.target.value)}
         className="min-h-[40px] appearance-none rounded-xl border border-line bg-surface pl-8 pr-3 text-sm font-medium text-ink hover:bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
       >
         {LANGS.map((l) => (

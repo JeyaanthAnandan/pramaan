@@ -1,0 +1,7 @@
+# Pramaan: the public pages may be indexed; private projects, buyer and supplier links may not.
+User-agent: *
+Allow: /
+Disallow: /p/
+Disallow: /share/
+Disallow: /supplier/
+Disallow: /api/

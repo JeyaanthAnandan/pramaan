@@ -9,6 +9,10 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Pramaan · CBAM proof from a phone photo</title>
+    <script>
+      /* the stored theme before the first paint (no light flash for someone who chose dark) */
+      try { var th = localStorage.getItem("pramaan.theme"); if (th === "light" || th === "dark") document.documentElement.setAttribute("data-theme", th); } catch (e) {}
+    </script>
     <!-- link previews (the server fills in __ORIGIN__; crawlers need absolute URLs) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Pramaan" />
@@ -22,7 +26,36 @@
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- First paint before the app's JavaScript: the landing header and hero text with the app's own
+           classes (the app replaces it with the same markup). English, landing page only; the script
+           below removes it everywhere else. Keep the text in step with landing.title / landing.lead. -->
+      <div class="min-h-screen" data-shell>
+        <header class="sticky top-0 z-30 border-b border-t-[3px] border-t-rule border-b-line/80 bg-page/85">
+          <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+            <span class="inline-flex items-center gap-2">
+              <svg viewBox="0 0 64 64" class="h-8 w-8" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#14213d" /><circle cx="32" cy="32" r="17" fill="none" stroke="#f4efe2" stroke-width="3" /><circle cx="32" cy="32" r="11" fill="none" stroke="#f4efe2" stroke-width="1.5" stroke-dasharray="2 3" /><path d="M25 32.5l5 5 9.5-11" fill="none" stroke="#7dd3a8" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span class="font-display text-[19px] font-semibold">Pramaan</span>
+            </span>
+          </div>
+        </header>
+        <main>
+          <section class="relative overflow-hidden">
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60rem_30rem_at_80%_-10%,rgb(var(--accent)/0.10),transparent),radial-gradient(40rem_24rem_at_-10%_10%,rgb(var(--s3)/0.08),transparent)]"></div>
+            <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-16">
+              <div>
+                <span class="chip invisible border-accent/25 bg-accent/5 text-accent">EU CBAM · iron &amp; steel · definitive period since 1 Jan 2026</span>
+                <h1 class="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">CBAM proof from a phone photo.</h1>
+                <p class="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">Pramaan turns photos of bills, invoices and production logs into verifier-ready EU CBAM data for small steel-goods exporters — and every number traces back to the exact spot on the page it came from.</p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <script>
+      try { if (location.pathname !== "/" || (localStorage.getItem("pramaan.lang") || "en") !== "en") document.querySelector("[data-shell]").remove(); } catch (e) {}
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

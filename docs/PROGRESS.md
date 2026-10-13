@@ -9,6 +9,21 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 8 — fast on a phone (and Lighthouse 91/100/100/100 mobile)
+* Judge: Lighthouse mobile 87/100/100/92 on the landing page: all four languages in the first bundle
+  (189 KB gzip), the page fade and a fade-in on the headline delayed the largest paint, robots.txt was the
+  SPA page, hero photos were 100 KB JPEGs, public files had no cache policy.
+* Built: hi/ta/vi load on demand (`setLanguage`; a returning Hindi reader gets Hindi before the first
+  paint; the WhatsApp text loads the letter's language) → main bundle 189 → 151 KB gzip. No page fade on
+  the first load; headline and lead render at once. `index.html` paints a static English copy of the
+  header + hero text (landing only, removed on any other route or language; CI checks it matches
+  `landing.*`) and applies the stored theme before the first paint (no light flash in dark mode).
+  `scripts/build_hero.py` rebuilds the hero assets from the current sample (WebP, half the bytes; JPEG
+  fallback). `robots.txt` keeps private projects, buyer and supplier links out of search; public files
+  cached a day.
+* Lighthouse, landing, local production build: mobile **91 · 100 · 100 · 100** (FCP 2.3 s, LCP 3.1 s,
+  CLS 0), desktop **99 · 100 · 100 · 100**.
+
 ### Iteration 7 — runs that survive the platform
 * Judge: three ways a judge's run could go wrong on Cloud Run: (1) an instance restarts mid-run and the
   run stays "running" forever (the project refuses new runs, the UI spins); (2) the browser closed the

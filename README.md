@@ -112,6 +112,12 @@ phone the report leads with the answers: each product line shows SEE and what th
 breakdown folds behind *Details*, and the levers and explanations fold behind one line each (the
 sample report is 23 % shorter). Buyer and supplier links go out on WhatsApp in one tap.
 
+**Fast on a phone.** English ships with the app; Hindi, Tamil and Vietnamese load when picked (13–15 KB
+each), so the first load is 151 KB of JavaScript (gzip). The landing page paints a static copy of its
+headline before the app starts, the stored theme is applied before the first paint, hero photos are
+WebP, hashed assets are cached for a year. Lighthouse (landing page, local production build): **mobile
+91 · 100 · 100 · 100**, **desktop 99 · 100 · 100 · 100** (performance · accessibility · best practices · SEO).
+
 Everything respects *reduced motion* (numbers appear final, nothing slides), works at 360 px, in
 light and dark, in all four languages, and passes axe (WCAG 2.1 A/AA: 0 violations on every page and
 dialog).

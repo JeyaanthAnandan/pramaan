@@ -34,8 +34,16 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWin
 
 const Fallback = PageSkeleton;
 
+// pages fade in when you move between them, but not on the very first load: the first page should
+// paint at once (it is the largest paint people and Lighthouse wait for)
+let firstPageShown = false;
+
 function Shell() {
   const loc = useLocation();
+  const firstPage = !firstPageShown;
+  useEffect(() => {
+    firstPageShown = true;
+  }, []);
   if (loc.pathname.startsWith("/share/") || loc.pathname.startsWith("/supplier/")) {
     // links for people outside the factory (the EU buyer, the rod supplier): no workspace chrome
     return (
@@ -52,7 +60,7 @@ function Shell() {
   return (
     <Layout>
       <Suspense fallback={<Fallback />}>
-        <motion.div key={top} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <motion.div key={top} initial={firstPage ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/p/:pid" element={<Navigate to="report" replace />} />

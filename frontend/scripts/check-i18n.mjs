@@ -32,5 +32,13 @@ for (const lang of ["hi", "ta", "vi"]) {
     console.error(`${lang}: missing ${missing.join(", ") || "-"}; unknown ${extra.join(", ") || "-"}`);
   }
 }
+// index.html carries a static first-paint copy of the landing headline and lead: keep it in step
+const html = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/&amp;/g, "&");
+for (const key of ["landing.title", "landing.lead", "landing.eyebrow"]) {
+  if (!html.includes(en[key])) {
+    bad++;
+    console.error(`index.html first-paint shell is out of date: ${key} = ${JSON.stringify(en[key])}`);
+  }
+}
 if (bad) process.exit(1);
-console.log("i18n: hi, ta, vi cover every English key");
+console.log("i18n: hi, ta, vi cover every English key; the first-paint shell matches");

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "motion/react";
@@ -11,6 +11,7 @@ import { LensNum } from "./EvidenceLens";
 import { StatusBadge } from "./Status";
 import { useToast } from "./Toast";
 import { QrCode } from "./QrCode";
+import { loadLanguage } from "@/i18n";
 
 const STEPS = ["requested", "received", "verified"] as const;
 
@@ -270,6 +271,11 @@ function SupplierLinkRow({ link, supplier, lang }: { link: { token: string; url:
   const toast = useToast();
   const isDemo = !!bundle?.project.is_demo;
   const company = bundle?.project.company ?? "";
+  // the WhatsApp message follows the letter's language, which may not be the UI's: load it if needed
+  const [, ready] = useState(0);
+  useEffect(() => {
+    if (lang !== "en") void loadLanguage(lang).then(() => ready((x) => x + 1));
+  }, [lang]);
   const wa = `https://wa.me/?text=${encodeURIComponent(i18n.t("lever.wa_text", { lng: lang, supplier, company, url: link.url }))}`;
   return (
     <div className="border-t border-line bg-sunk/60 px-4 py-3">

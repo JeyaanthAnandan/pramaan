@@ -84,7 +84,8 @@ if static.exists():
     def spa(path: str, request: Request) -> Response:
         candidate = (static / path).resolve()
         if path and candidate.is_file() and str(candidate).startswith(str(static.resolve())):
-            return FileResponse(candidate)
+            # public files without a content hash (hero photos, icon, og card): a day in the browser
+            return FileResponse(candidate, headers={"Cache-Control": "public, max-age=86400"})
         idx = static / "index.html"
         if _index.get("mtime") != (m := idx.stat().st_mtime):
             _index.update(mtime=m, html=idx.read_text())

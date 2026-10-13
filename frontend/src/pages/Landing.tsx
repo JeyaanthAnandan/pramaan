@@ -9,7 +9,7 @@ import { lastProject, rememberPasscode, rememberProject } from "@/lib/session";
 import { useToast } from "@/components/Toast";
 import { EASE, Reveal, Stamp, rise, stagger, useAfter } from "@/lib/motion";
 
-interface HeroDoc { doc: string; src: string; w: number; h: number; title: string; fields: { label: string; text: string; unit: string; box: number[]; alt?: string | null }[] }
+interface HeroDoc { doc: string; src: string; webp?: string; w: number; h: number; title: string; fields: { label: string; text: string; unit: string; box: number[]; alt?: string | null }[] }
 
 /** The product in one loop: a value is boxed on the photo, reader 1 reads it from the page, reader 2
  *  reads only the crop, and the verdict is stamped (agree = verified; disagree = a person checks). */
@@ -41,8 +41,19 @@ function HeroLens() {
     <div className="relative" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
       <div className="card relative overflow-hidden p-2 shadow-lift">
         <div className="relative overflow-hidden rounded-xl bg-sunk" style={{ aspectRatio: `${d.w} / ${d.h}` }}>
-          {docs.map((x) => (
-            <img key={x.doc} src={x.src} alt={x.title} className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${x.doc === d.doc ? "opacity-100" : "opacity-0"}`} />
+          {docs.map((x, i) => (
+            <picture key={x.doc}>
+              {x.webp && <source srcSet={x.webp} type="image/webp" />}
+              <img
+                src={x.src}
+                alt={x.title}
+                width={879}
+                height={1100}
+                decoding="async"
+                fetchPriority={i === 0 ? "high" : "low"}
+                className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ${x.doc === d.doc ? "opacity-100" : "opacity-0"}`}
+              />
+            </picture>
           ))}
           <div
             className={`absolute overflow-hidden rounded-[3px] border-2 transition-all duration-700 ease-[cubic-bezier(.2,.7,.2,1)] ${review && verdict ? "border-warn" : "border-good"} shadow-[0_0_0_9999px_rgb(0_0_0/0.22)]`}
@@ -196,12 +207,9 @@ export default function Landing() {
             <motion.span variants={rise} className="chip border-accent/25 bg-accent/5 text-accent">
               {t("landing.eyebrow")}
             </motion.span>
-            <motion.h1 variants={rise} className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">
-              {t("landing.title")}
-            </motion.h1>
-            <motion.p variants={rise} className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">
-              {t("landing.lead")}
-            </motion.p>
+            {/* the headline and lead are the page's first read and its largest paint: shown at once, not faded in */}
+            <h1 className="mt-5 text-[40px] font-semibold leading-[1.05] tracking-[-0.01em] sm:text-6xl">{t("landing.title")}</h1>
+            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-ink2">{t("landing.lead")}</p>
             <motion.div variants={rise} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button className="btn-primary glint nudge h-12 px-6 text-[15px]" onClick={() => load(false)} disabled={!!busy}>
                 {busy === "load" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Factory className="h-4 w-4" />}
