@@ -268,7 +268,7 @@ async def try_upload(request: Request, file: UploadFile = File(...)) -> Streamin
     if ctype not in ALLOWED:
         raise HTTPException(415, f"unsupported type {ctype or 'unknown'}: use a photo (JPEG, PNG, HEIC) or a PDF")
     try:
-        jpeg = to_pages(data, ctype)[0][0]  # a PDF: its first page
+        jpeg = to_pages(data, ctype, max_pages=1)[0][0]  # a PDF: only its first page is rendered
     except Exception as exc:
         raise HTTPException(422, f"could not read the file ({exc.__class__.__name__})") from exc
     # no product lines: values are read as printed, not assigned to a line

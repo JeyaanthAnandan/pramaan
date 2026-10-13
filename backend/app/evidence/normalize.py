@@ -21,14 +21,14 @@ def _jpeg(img: Image.Image) -> tuple[bytes, int, int]:
     return out.getvalue(), img.width, img.height
 
 
-def to_pages(data: bytes, content_type: str) -> list[tuple[bytes, int, int]]:
-    """Return one (jpeg_bytes, width, height) per page."""
+def to_pages(data: bytes, content_type: str, max_pages: int = MAX_PAGES) -> list[tuple[bytes, int, int]]:
+    """Return one (jpeg_bytes, width, height) per page (a PDF: at most ``max_pages`` rendered)."""
     if content_type == "application/pdf":
         import pypdfium2 as pdfium
 
         pdf = pdfium.PdfDocument(data)
         pages = []
-        for i in range(min(len(pdf), MAX_PAGES)):
+        for i in range(min(len(pdf), max_pages)):
             bitmap = pdf[i].render(scale=2.0)  # ~144 dpi: enough for printed bills
             pages.append(_jpeg(bitmap.to_pil()))
         return pages
