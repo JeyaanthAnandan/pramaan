@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
-import { BadgeCheck, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MessageCircle, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, ScanSearch, BookOpenCheck, Check, ChevronDown, ClipboardCheck, Copy, ExternalLink, FileArchive, FileSpreadsheet, FileText, Link2, Loader2, MessageCircle, MousePointerClick, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { api, exportUrl, type ProcessResult } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { eur, inr, n, periodLabel } from "@/lib/format";
@@ -447,6 +447,9 @@ export function Exports() {
         ))}
         <Link to={`/p/${pid}/plan`} className="btn-ghost group justify-start">
           <ClipboardCheck className="h-4 w-4 text-muted transition-colors group-hover:text-accent" /> {t("exports.plan")}
+        </Link>
+        <Link to={`/p/${pid}/verify`} className="btn-ghost group justify-start">
+          <ScanSearch className="h-4 w-4 text-muted transition-colors group-hover:text-accent" /> {t("verify.card_open")}
         </Link>
       </div>
       <div id="buyer-link" className="mt-4 rounded-xl border border-line bg-sunk p-3">

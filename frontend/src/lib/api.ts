@@ -187,6 +187,14 @@ export interface ProjectBundle {
   has_result: boolean;
 }
 
+export interface SpotMark { match: boolean; note: string; by: string; at: string }
+export interface SpotItem {
+  id: string; why: string; field_key: string; label: string; value_text: string; unit: string; period: string | null; line: string | null;
+  doc_id: string; doc_title: string; doc_type: string | null; width: number | null; height: number | null; crop_box: number[];
+  status: string; approved_by: string | null; second: string | null; mark: SpotMark | null;
+}
+export interface SpotCheck { items: SpotItem[]; summary: { total: number; checked: number; match: number; differ: number; by: string | null; at: string | null } }
+
 export class ApiError extends Error {
   constructor(public status: number, message: string, public detail: unknown = null) { super(message); }
 }
@@ -206,6 +214,9 @@ export const api = {
   health: () => req<any>("/api/health"),
   demoLoad: (replay = false) => req<{ project_id: string; run_id: string; source: string }>("/api/demo/load", { method: "POST", body: JSON.stringify({ replay }) }),
   project: (pid: string) => req<ProjectBundle>(`/api/projects/${pid}`),
+  spotcheck: (pid: string) => req<SpotCheck>(`/api/projects/${pid}/spotcheck`),
+  spotMark: (pid: string, eid: string, body: { match: boolean; note?: string; by?: string }) =>
+    req<{ id: string; mark: SpotMark }>(`/api/projects/${pid}/spotcheck/${eid}`, { method: "POST", body: JSON.stringify(body) }),
   deleteProject: (pid: string) => req<{ deleted: string; documents: number; files: number }>(`/api/projects/${pid}`, { method: "DELETE" }),
   createProject: (body: { name: string; company: string; country?: string; city?: string; months_to?: number }) =>
     req<ProjectBundle["project"] & { access_key: string }>("/api/projects", { method: "POST", body: JSON.stringify(body) }),

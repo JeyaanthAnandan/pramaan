@@ -19,6 +19,7 @@ const Share = lazy(() => import("@/pages/Share"));
 const Supplier = lazy(() => import("@/pages/Supplier"));
 const Plan = lazy(() => import("@/pages/Plan"));
 const Try = lazy(() => import("@/pages/Try"));
+const Verify = lazy(() => import("@/pages/Verify"));
 
 function Start() {
   const nav = useNavigate();
@@ -35,7 +36,7 @@ const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWin
 
 // A project page opened directly (a judge's link, a reload): its code and its data start now, alongside the
 // app's own start-up, instead of one after another (the page's code, then the project, then its results).
-const opened = /^\/p\/([^/]+)/.exec(window.location.pathname);
+const opened = /^\/p\/([^/]+)(?:\/(?:capture|gaps|report))?\/?$/.exec(window.location.pathname);
 if (opened) {
   const pid = decodeURIComponent(opened[1]);
   void import("@/pages/Workspace");
@@ -77,6 +78,7 @@ function Shell() {
           <Route path="/" element={<Landing />} />
           <Route path="/p/:pid" element={<Navigate to="report" replace />} />
           <Route path="/p/:pid/plan" element={<Plan />} />
+          <Route path="/p/:pid/verify" element={<Verify />} />
           <Route path="/p/:pid/:step" element={<Workspace />} />
           <Route path="/start" element={<Start />} />
           <Route path="/proof" element={<Proof />} />

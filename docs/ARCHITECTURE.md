@@ -93,6 +93,11 @@ its photos (the Cloud Storage prefix `projects/{pid}/`), its Firestore documents
 results, and its buyer and supplier links. Not the fictional sample, whose visitor copies expire; not
 while a run is in progress.
 
+**Verifier spot-check** (`GET /api/projects/{pid}/spotcheck`, `POST …/spotcheck/{eid}`; `app/cbam/spotcheck.py`): a
+risk-based sample of 12 values (every value a person changed, the supplier's data, then the inputs by weight),
+seeded per project so it holds still; a mark (`match`, `note`, `by`, `at`) is kept on the evidence with a
+history entry and exported as `spot_check.csv` in the verifier pack. Behind the project's passcode.
+
 **Try one photo** (`POST /api/try`, `POST /api/try/sample/{name}`) reads a visitor's page with the
 same reader calls as a full run and streams each step as a server-sent event. The photo is read in
 memory and never written to Firestore or Cloud Storage; at most 40 blind second reads per photo and 20

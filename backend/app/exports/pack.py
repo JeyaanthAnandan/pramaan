@@ -99,6 +99,48 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
                 ]
             )
         z.writestr("evidence_index.csv", s.getvalue())
+        from app.cbam.spotcheck import items as spot_items
+
+        spot = spot_items(project, evidence, documents)
+        s = io.StringIO()
+        w = csv.writer(s)
+        w.writerow(
+            [
+                "evidence_id",
+                "why_sampled",
+                "field_key",
+                "label",
+                "value",
+                "unit",
+                "period",
+                "document",
+                "checked",
+                "matches",
+                "note",
+                "by",
+                "at",
+            ]
+        )
+        for it in spot["items"]:
+            m = it["mark"] or {}
+            w.writerow(
+                [
+                    it["id"],
+                    it["why"],
+                    it["field_key"],
+                    it["label"],
+                    it["value_text"],
+                    it["unit"],
+                    it["period"],
+                    it["doc_title"],
+                    bool(m),
+                    m.get("match", ""),
+                    m.get("note", ""),
+                    m.get("by", ""),
+                    m.get("at", ""),
+                ]
+            )
+        z.writestr("spot_check.csv", s.getvalue())
         s = io.StringIO()
         w = csv.writer(s)
         w.writerow(["id", "name", "formula", "inputs", "result", "tolerance", "status", "evidence_ids", "reference"])

@@ -82,6 +82,7 @@ class Evidence(BaseModel):
     approved_at: str | None = None
     notes: str | None = None
     history: list[dict[str, Any]] = Field(default_factory=list)
+    spot_check: dict[str, Any] | None = None  # a verifier's mark: {match, note, by, at}
 
 
 class Document(BaseModel):

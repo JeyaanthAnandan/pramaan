@@ -154,6 +154,37 @@ def delete_project(pid: str) -> dict[str, Any]:
     return {"deleted": pid, "documents": documents, "files": photos}
 
 
+class SpotMark(BaseModel):
+    match: bool
+    note: str = ""
+    by: str = ""
+
+
+@router.get("/projects/{pid}/spotcheck")
+def spotcheck(pid: str) -> dict[str, Any]:
+    """The verifier's sample: every value a person changed, the supplier's data, then the inputs by weight."""
+    from app.cbam.spotcheck import items
+
+    p = _project(pid)
+    _result(pid)
+    st = store()
+    return items(p, st.list_evidence(pid), st.list_documents(pid))
+
+
+@router.post("/projects/{pid}/spotcheck/{eid}")
+def spotcheck_mark(pid: str, eid: str, body: SpotMark) -> dict[str, Any]:
+    """A verifier marks one sampled value as matching its document or not (kept with an audit entry)."""
+    _project(pid)
+    e = store().get_evidence(pid, eid)
+    if e is None:
+        raise HTTPException(404, "value not found")
+    mark = {"match": body.match, "note": body.note.strip()[:300], "by": body.by.strip()[:60] or "Verifier", "at": now()}
+    e.spot_check = mark
+    e.history.append({"action": "spot_check", **mark})
+    store().put_evidence([e])
+    return {"id": e.id, "mark": mark}
+
+
 @router.get("/projects/{pid}")
 def get_project(pid: str) -> dict[str, Any]:
     p = _project(pid)
