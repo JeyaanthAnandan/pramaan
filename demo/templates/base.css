@@ -30,7 +30,10 @@ td, th { padding: 6px 8px; vertical-align: top; }
 .box { border: 1.5px solid #333; padding: 10px 12px; }
 .hand { font-family: "Kalam", "Deva", "Guru"; color: #1f3a8a; font-size: 21px; }
 .hand2 { font-family: "Caveat", "Deva"; color: #20338a; font-size: 26px; }
-.strike { text-decoration: line-through; text-decoration-thickness: 2px; color: #3b4fa0; margin-right: 6px; }
+.strike { position: relative; color: #3b4fa0; margin-right: 6px; }
+/* one stroke through the lower half of the old figure: through the middle, a handwritten 1 reads as a 4
+   (13.4 -> "43.4"); slanted, it closes the 4 into a 9 */
+.strike::after { content: ""; position: absolute; left: -4px; right: -4px; top: 62%; border-top: 2px solid #3b4fa0; transform: rotate(-3deg); }
 .mono { font-family: "Courier", monospace; }
 .monob { font-family: "CourierB", monospace; }
 .stamp { display: inline-block; border: 3px double #3a5ea8; color: #3a5ea8; padding: 6px 12px; transform: rotate(-6deg); font-weight: 700; font-size: 13px; }
