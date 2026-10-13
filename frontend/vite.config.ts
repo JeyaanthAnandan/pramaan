@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(__dirname, "src") } },
   server: {
     port: 5173,
-    proxy: { "/api": "http://127.0.0.1:8080", "/healthz": "http://127.0.0.1:8080" },
+    proxy: { "/api": { target: "http://127.0.0.1:8080", ws: true }, "/healthz": "http://127.0.0.1:8080" },
   },
   build: { outDir: "dist", sourcemap: false, chunkSizeWarningLimit: 900 },
 });

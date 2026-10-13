@@ -9,6 +9,7 @@ context -> EC proof -> copilot. Fails on any page error or missing element.
 
 from __future__ import annotations
 
+import re
 import sys
 import time
 from pathlib import Path
@@ -38,6 +39,16 @@ def main() -> int:
             # no horizontal overflow
             sw = page.evaluate("document.documentElement.scrollWidth")
             assert sw <= vp["width"] + 1, f"{name}: horizontal overflow {sw}px"
+            # Call Pramaan: the panel offers the five call languages and shows the examples in the one
+            # picked (a call itself needs a microphone and live Gemini: backend/tests/test_call.py)
+            page.get_by_test_id("call-fab").click()
+            call = page.get_by_role("dialog", name="Call Pramaan")
+            expect(call.get_by_role("radio")).to_have_count(5)
+            call.get_by_role("radio", name="ਪੰਜਾਬੀ").click()
+            expect(call.get_by_text("ਗੈਸ ਵਾਲਾ ਅੰਕੜਾ ਕਿੱਥੋਂ ਆਇਆ, ਦਿਖਾਓ।")).to_be_visible()
+            page.keyboard.press("Escape")
+            expect(page.get_by_test_id("call-fab")).to_be_visible()
+            print(f"[{name}] call panel: five languages")
             if name == "desktop":
                 page.locator("button.clickable-num").first.click()
                 dialog = page.get_by_role("dialog")
@@ -51,6 +62,13 @@ def main() -> int:
                 page.get_by_role("link", name="Close gaps").first.click()
                 expect(page.get_by_text("Mass-balance check", exact=True)).to_be_visible()
                 page.get_by_role("button", name="Approve 15.4").click()
+                # a captured live run may hold a few more values for a person (the readers disagreed)
+                for _ in range(10):
+                    page.wait_for_timeout(1500)  # the approved card is stamped, then folds away
+                    more = page.get_by_role("button", name=re.compile(r"^Approve "), disabled=False)
+                    if not more.count():
+                        break
+                    more.first.click()
                 expect(page.get_by_text("Nothing left to approve.")).to_be_visible(timeout=10_000)
                 print(f"[{name}] amber value approved")
                 page.get_by_role("link", name="Report").first.click()

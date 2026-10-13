@@ -61,6 +61,7 @@ duration, model, tokens) that stream over SSE and are saved as the run receipt.
 | Calculator | `app/cbam` (Decimal), exposed as an ADK `FunctionTool` | result + calculation tree: every node → evidence id (with region), refdata entry (with document, page, SHA-256) or a stated assumption. Per product line it also costs the 2026 imports on EU default values and records which path is cheaper for the buyer (`buyer.basis_2026`), readiness per line, and operational KPIs (yield, scrap share of rod, gas GJ/t) |
 | Explainer | `gemini-3.8-flash` (live) or template | sections with page citations; a guard rejects any number not present in the calculation tree |
 | Reporter | code | PDF (WeasyPrint), Excel (openpyxl), verifier pack (zip), buyer summary |
+| Call Pramaan | `gemini-3.8-live` on Agent Platform (`LIVE_LOCATION`, default `us-central1`: the model is not served from `global` or `asia-southeast1`), audio in and out, `speech_config.language_code` per call language (en-IN, hi-IN, pa-IN, ta-IN, vi-VN), input and output transcription (`app/agents/call.py`, WebSocket `GET /api/projects/{pid}/call?lang=`) | voice answers from the report's facts; tool calls answered by code (`explain_number`, `open_evidence` → a screen action, `search_guidance`, `open_items`); after each answer a `turn` event with the report figures it said and any number not in the report (the numbers guard on the transcript of its own speech) |
 
 ## The LLM never computes a compliance number
 

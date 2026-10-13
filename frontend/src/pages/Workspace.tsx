@@ -5,6 +5,7 @@ import { AlertTriangle, Check, Compass, KeyRound, Loader2 } from "lucide-react";
 import { ProjectProvider, useProject } from "@/lib/project";
 import { LensProvider } from "@/components/EvidenceLens";
 import { AskProvider } from "@/components/ReportAsk";
+import { CallProvider } from "@/components/CallPramaan";
 import { TourProvider, useTour } from "@/components/Tour";
 import { ReadinessRing } from "@/components/Charts";
 import { WorkspaceSkeleton } from "@/components/Skeleton";
@@ -25,9 +26,11 @@ export default function Workspace() {
     <ProjectProvider pid={pid}>
       <LensProvider>
         <AskProvider>
-          <TourProvider>
-            <Inner step={step} />
-          </TourProvider>
+          <CallProvider>
+            <TourProvider>
+              <Inner step={step} />
+            </TourProvider>
+          </CallProvider>
         </AskProvider>
       </LensProvider>
     </ProjectProvider>

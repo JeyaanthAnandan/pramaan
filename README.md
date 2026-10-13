@@ -36,7 +36,7 @@ Industrial Efficiency) by team **Innovative Warriors**.
 
 ## What it does — three steps, one question each
 
-| 1 · **Add your documents** | 2 · **What's missing?** (or answer by **voice** in Hindi / Punjabi / Tamil) | 3 · **Here's your proof** |
+| 1 · **Add your documents** | 2 · **What's missing?** (or answer by **voice** in Hindi / Punjabi / Tamil) | 3 · **Here's your proof** (or **call** it and ask out loud) |
 |---|---|---|
 | Phone camera or upload. Live agent timeline. Your own factory: type your product lines (every CN code checked against the official files as you type) or let the **ProductLines agent** propose them from your export and rod invoices. | Checklist per production process. Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. EN / हिंदी / தமிழ் / Tiếng Việt (complete, checked in CI). | The answer first: **what your data saves your buyer a year, what more is within reach, how many product lines are ready**. Then **What to do next** with the money attached, SEE per CN group, Evidence Lens on every number, Precursor Lever, Money on the table, operations levers, PDF / Excel / verifier pack, buyer link. |
 
@@ -53,6 +53,41 @@ Industrial Efficiency) by team **Innovative Warriors**.
 | Money on the table | Proof against the Commission's examples |
 |---|---|
 | ![Money on the table](docs/screenshots/money.jpg) | ![EC proof](docs/screenshots/proof.jpg) |
+
+### Call Pramaan: talk to your report, in your language
+
+The owner taps **Call** and talks to the report as on a phone call, in **English, हिंदी, ਪੰਜਾਬੀ, தமிழ் or
+Tiếng Việt**: *"How much does my data save my buyer a year?"*, *"Why are my stainless bolts so much
+higher?"*, *"Show me where the gas figure comes from."*, *"What is still left for me to do?"* Gemini 3.8
+Live hears the question and answers out loud in about 1–2 s, and the caller can talk over it to interrupt.
+
+| A call in Hindi: every figure it says appears and opens its proof | "Show me where it comes from": the agent opens the Evidence Lens itself |
+|---|---|
+| ![Call Pramaan in Hindi](docs/screenshots/call-hindi.jpg) | ![The agent opens the Evidence Lens](docs/screenshots/call-show-phone.jpg) |
+
+The same rules as everywhere else in Pramaan hold on the phone:
+
+* **It answers from the engine, not from memory.** The agent gets the report's ~60 facts (each with its
+  calculation-tree node) and four tools that run in our code, not in the model: `explain_number` (the
+  formula and the values behind a figure, each with the document it was read from), `open_evidence`
+  (opens the Evidence Lens on the caller's screen), `search_guidance` (the EC guidance pages) and
+  `open_items` (what still needs the owner). It may not compute, and it cannot approve or send anything.
+* **Every number it says is checked.** The server transcribes the agent's own voice, reads the numbers
+  (digits in any script, English number words; for other languages Gemini Flash-Lite rewrites number
+  words as digits after the answer) and matches them to the report: matched figures appear as cards that
+  open the Evidence Lens, and a number that is not in the report is flagged on screen. A number rebuilt
+  from words can add a card but never raise the warning, because a garbled transcript must not accuse a
+  correct answer.
+* **Credentials never reach the browser.** The browser streams 16 kHz microphone audio over a WebSocket to
+  Cloud Run, which holds the Gemini Live session (Agent Platform, service account) and streams 24 kHz
+  speech back. Calls are private like the project (passcode cookie), same-origin only, capped at 5 minutes
+  and 20 calls per address per hour, and each call's length, turns, tools and unchecked numbers go to Cloud
+  Logging. No recording is kept.
+
+Tested live on 2026-10-13: spoken questions in English, Hindi, Tamil and Vietnamese (macOS voices, played
+into Chrome as the microphone for the browser tests) and typed questions in Punjabi (macOS has no Punjabi
+voice). Answers came in the caller's language, 1.1–2.3 s after the question, with the right figures
+(€409,545 a year, SEE 8.889 with 8.693 from the rod), the Evidence Lens opened by voice, and no false warnings.
 
 ### Closing the loop: the supplier uploads, the money moves
 
@@ -152,6 +187,8 @@ flowchart LR
   S -- agree --> K["ControlChecks (code)"] --> G["GapFinder"] --> X["Explainer<br/>numbers guard"] --> R["Reporter"]
   G -. ADK FunctionTool .-> CALC["Calculator<br/>Decimal CBAM engine<br/>+ Plant pulse"] --> REF[("Official refdata<br/>+ SHA-256 manifest")]
   API --> ASK["Ask about this report<br/>engine facts + guidance<br/>numbers guard"]
+  P <-- "WebSocket · PCM audio" --> CALL["Call Pramaan<br/>tools: explain · show · guidance · open items<br/>numbers guard on speech"]
+  CALL --> LIVE[["Gemini 3.8 Live · Agent Platform (us-central1)"]]
   API --> FS[("Firestore")] & GCS[("Cloud Storage")]
   C & PL & E & S & X & ASK --> GEM[["Gemini · Agent Platform (global)"]]
 ```
@@ -167,7 +204,7 @@ flowchart LR
 
 ### Google Cloud services
 Cloud Run (asia-southeast1, CPU boost, min-instances 1 during judging) · Gemini Enterprise Agent Platform (`global`;
-Gemini 3.8 Flash, Gemini 3.5 Flash-Lite) · Agent Development Kit 2.x · Firestore (Native) · Cloud
+Gemini 3.8 Flash, Gemini 3.5 Flash-Lite; Gemini 3.8 Live in `us-central1` for voice calls) · Agent Development Kit 2.x · Firestore (Native) · Cloud
 Storage · Cloud Build / Artifact Registry · Cloud Logging & Trace · IAM (dedicated least-privilege
 service account, no API keys).
 
@@ -205,7 +242,8 @@ page; the full report is in [backend/eval/report.md](backend/eval/report.md).
 
 | Run | Field accuracy | Two-reader agreement | Review rate | 24 docs → report |
 |---|---|---|---|---|
-| Live Gemini (3.8 Flash + 3.5 Flash-Lite), after the clean-up below | _pending — next live eval_ | _pending_ | _pending_ | _pending_ |
+| Live Gemini (3.8 Flash + 3.5 Flash-Lite), 2026-10-13, the run the sample factory serves | **100 % (222/222)** | 99.5 % | 0.5 % (the hand-corrected 15.4) | 97 s |
+| Live Gemini, all ten runs that day, while the fixes below went in | 89–100 % (each run and what it taught is on the Metrics page) | 97.7–99.5 % | 0.5–2.3 % | 72–309 s |
 | Live Gemini, first run on Cloud Run (2026-10-12, before the clean-up; that day's 213-field set) | 83.6 % (178/213) | 98.6 % | 1.4 % | 392 s |
 | Replay of ground truth (harness self-check, **not a model score**) | 100 % | 99.5 % | 0.5 % | 1.3 s |
 
@@ -220,6 +258,20 @@ size) and the engine reproduces the golden SEE 2.040. Speed: one extraction call
 so every Gemini call now has a time limit and a retry, and the Flash-Lite crop reads run in their
 own lane. A figure corrected by hand on the page (crossed out, rewritten) always waits for a person,
 even when both readers agree on it.
+
+**What the second day of live runs taught us** (2026-10-13; Gemini Developer API from a laptop, same
+models as on Cloud Run). Each run found one more way a correct reading could still go wrong, and each
+is now a test in [`test_normalize.py`](backend/tests/test_normalize.py): an export line without its
+quarter stopped the whole run (the quarter now comes from the invoice date, and an undated line is a
+gap, never a crash); whole bills were read right but filed without their month (the month now comes
+from the bill's own period); one extraction stalled past its time limit three times although the same
+call answers in 13 s (a backup request now goes out after 30 s and the first answer wins); one looped
+on a number followed by ~100 zeros and lost the rest of the bill (such an answer is read again); the
+handwritten scrap log came back read right but with no month or product line on any figure (the page is
+read again when most such values are untagged); the second reader read "380.000" right and then wrote
+380000 itself, and a printed "Ref." label made two identical references "differ" (its printed digits
+count, labels are stripped); a Tamil voice note came back in Kannada script (the language and script
+are now named and checked).
 
 Every visitor who clicks **Load sample factory** gets a private copy of the sample (so judges never see each other's approvals); `scripts/ui_smoke.py` runs the whole flow in a logged-out browser on desktop and a 360 px phone in CI and after every deploy.
 
@@ -270,8 +322,8 @@ docs/      BUILD_BRIEF · ARCHITECTURE · EC_EXAMPLE_NOTES · DEMO_SCRIPT · DEC
 
 * **Pramaan is not a substitute for an accredited verifier.** Outputs are provisional (year-to-date) until verified.
 * The sample factory and all its documents are fictional and watermarked "SAMPLE — FICTIONAL".
-* The live extraction metrics above are pending until the live eval run is captured. Gemini is configured on the deployment
-  (the rules copilot answers live), but "Load sample factory" still replays the bundled ground truth and says so.
+* The live metrics come from the 24-document synthetic set. "Load sample factory" serves a captured live Gemini run
+  (2026-10-13) and says so; a run on your own documents calls Gemini live.
 * Scope: iron & steel goods; other CBAM sectors are not modelled. No CBAM Registry integration, no payments, no user accounts (own projects are protected by a passcode).
 * The Commission's Excel files are informational; the legally valid values are in the Official Journal.
 * Projections beyond 2026 use an editable certificate-price assumption; CSCF after 2030 and benchmark (2) after 2030 are preliminary.

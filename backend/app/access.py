@@ -78,9 +78,12 @@ async def require(request: Request) -> None:
     pid = request.path_params.get("pid")
     if not pid or request.url.path.endswith("/unlock"):
         return
-    h = _hash_for(pid)
-    if not h:
-        return
-    code = request.cookies.get(cookie_name(pid)) or request.headers.get("x-pramaan-key")
-    if not matches(pid, h, code):
+    if not allowed(pid, request.cookies.get(cookie_name(pid)) or request.headers.get("x-pramaan-key")):
         raise HTTPException(401, "This project is private: enter its passcode.")
+
+
+def allowed(pid: str, code: str | None) -> bool:
+    """True for an open project (fictional sample copies) or the right passcode. Shared by the HTTP
+    routes and the voice-call WebSocket, which has no Request to raise on."""
+    h = _hash_for(pid)
+    return not h or matches(pid, h, code)

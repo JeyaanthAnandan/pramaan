@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app import refdata
+from app.api.call import router as call_router
 from app.api.routes import router
 from app.api.supplier import router as supplier_router
 from app.config import settings
@@ -22,6 +23,7 @@ app = FastAPI(title="Pramaan", version=settings().version, docs_url="/api/docs",
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(router)
 app.include_router(supplier_router)
+app.include_router(call_router)
 
 
 @app.middleware("http")
@@ -50,6 +52,8 @@ def healthz() -> dict[str, Any]:
             "extraction": cfg.model_flash,
             "second_reader": cfg.model_lite,
             "embedding": cfg.model_embedding,
+            "voice_call": cfg.model_live,
+            "voice_call_location": cfg.live_location,
             "gemini_location": cfg.gemini_location,
             "gemini_mode": cfg.gemini_mode,
             "gemini_configured": cfg.gemini_configured,

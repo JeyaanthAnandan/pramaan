@@ -153,3 +153,32 @@ html[lang="ta"] body { font-family: "Noto Sans Tamil", "IBM Plex Sans", system-u
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Call Pramaan: the ring grows with whoever is talking (--lvl 0..1 is set per audio frame, no React
+   render), and breathes slowly while listening. Reduced motion: a static ring. */
+.call-ring::before,
+.call-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgb(var(--good) / 0.18);
+  transform: scale(calc(1 + var(--lvl, 0) * 0.45));
+  transition: transform 90ms linear;
+}
+.call-ring::after {
+  background: transparent;
+  border: 2px solid rgb(var(--good) / 0.35);
+  animation: call-breathe 2.4s ease-in-out infinite;
+}
+.call-ring[data-agent="1"]::before { background: rgb(var(--ink) / 0.12); }
+.call-ring[data-agent="1"]::after { border-color: rgb(var(--ink) / 0.3); }
+.call-ring[data-reduce="1"]::before,
+.call-ring[data-reduce="1"]::after { transform: none; animation: none; transition: none; }
+@keyframes call-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 0.3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .call-ring::before, .call-ring::after { transform: none; animation: none; transition: none; }
+}
