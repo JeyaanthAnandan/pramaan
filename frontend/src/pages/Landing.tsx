@@ -61,7 +61,7 @@ function HeroLens() {
           >
             <span key={i} className="absolute inset-y-0 left-0 w-1/2 animate-scanx bg-gradient-to-r from-transparent via-white/70 to-transparent [animation-delay:500ms]" aria-hidden />
           </div>
-          <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-surface/90 px-2 py-1 shadow-card backdrop-blur">
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full bg-surface/90 px-2 py-1 shadow-card backdrop-blur">
             <button type="button" onClick={() => setPaused((p) => !p)} className="grid h-6 w-6 place-items-center rounded-full text-ink2 hover:bg-sunk hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60" aria-label={paused ? t("landing.play") : t("landing.pause")}>
               {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
             </button>
