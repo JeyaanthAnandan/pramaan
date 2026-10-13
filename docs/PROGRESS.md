@@ -9,6 +9,22 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iterations 15–18 — the merged product, judged with the live run as the sample
+* **Tour**: an eighth stop lights up **Call** after Ask (judges explore through the tour, and it skipped the
+  voice agent); the landing's "Built with" names Gemini 3.8 Live; DEMO_SCRIPT's proof line carries the live
+  result and suggests /try as an optional ten-second live moment.
+* **Live-run wording**: with the captured live run as the sample, the review card read "Confirm this corrected
+  value: स्टेनलेस स्क्रैप (t)" in the English UI (the label as printed on the Hindi scrap log); it is now titled
+  by the field and its line in the reader's language ("Scrap · Stainless hexagon bolts"), printed label as the
+  fallback. The run receipt summed 24 documents up by the last one ("10 values, 10 with regions"); the
+  Classifier and Extractor rows now total their documents ("222 values from 24 documents, 222 with regions").
+  Metrics: ten runs on one day all read "10/13/2026"; each now shows its time in the reader's locale.
+* **Cost safety**: a visitor leaving /try mid-reading still paid for up to 40 second reads (tasks outlived the
+  stream); they are cancelled with it (the test fails on the old code: all 8 reads finished).
+* **Accessibility**: axe over the merged pages (landing, report with the call panel open, gaps, capture; light
+  and dark; desktop and 360 px): one violation, the call panel's Start button in dark mode (2.59:1); fixed with
+  the theme's ink for strong fills. Now 0 everywhere.
+
 ### Iteration 14 — Gemini you can watch: try one photo
 * Judge: on the sample, the Gen AI is a recording; the only live path was a full 24-document run (a
   minute or more and ~370k tokens). A judge with two minutes, or an exporter deciding whether to trust
