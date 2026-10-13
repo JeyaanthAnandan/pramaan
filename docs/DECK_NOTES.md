@@ -1,5 +1,9 @@
 # Deck notes — real numbers, ready to paste (10 slides)
 
+**A finished 14-slide deck built from these notes** (Claude artifact, private to Jeyaanth's account until
+shared from its Share menu; downloads as PDF or PowerPoint): https://claude.ai/artifact/3oBUoBccWsFRNufcy6Qo6P.
+Before submitting, fill slide 11's final live-run line from `backend/eval/report.md`.
+
 All numbers come from the running app on the fictional sample factory (Jan–Sep 2026,
 provisional) and from the golden tests. Re-check the eval slide after the live Gemini run.
 

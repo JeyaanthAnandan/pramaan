@@ -9,6 +9,18 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 13 — the deck, and the demo's key photo
+* Judge: the deck is one of the four submission items and did not exist; the notes did. And the demo's key
+  moment had a flaw: on the scrap log, the struck-out 13.4 read as **43.4** (a level line through a
+  handwritten 1 makes a 4), while the story and the review card say 13.4.
+* Built: a 14-slide pitch deck from the product's own screens and numbers (problem with sources, the data
+  chain, three steps, the ADK workflow with the model per agent, Evidence Lens, blind second reading, the
+  money, the supplier loop, Plant pulse, proof, Google Cloud architecture, scale, a close with the live
+  link and a QR code), speaker notes from DEMO_SCRIPT; it downloads as PDF or PowerPoint. One placeholder
+  to fill after the redeploy: the final live-run accuracy and time (slide 11). The correction stroke now
+  runs through the lower half of the old figure (only that photo changes; ground truth byte-identical);
+  hero images and every README screenshot/GIF regenerated.
+
 ### Iteration 12 — the PDF answers first
 * Judge: the PDF is what an exporter mails to the buyer and the verifier, but page 1 opened with tables;
   the money, the next step and the Plant pulse were only in the app, and the "Control checks" heading sat
