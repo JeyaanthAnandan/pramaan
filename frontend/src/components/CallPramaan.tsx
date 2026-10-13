@@ -176,7 +176,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
               onClick={openCall}
               data-testid="call-fab"
             >
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-good text-white">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-good text-accentink">
                 <Phone className="h-3.5 w-3.5" aria-hidden />
               </span>
               {t("call.fab")}
@@ -200,7 +200,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
             aria-describedby="call-lead"
           >
             <div className="flex items-start gap-3 border-b border-line px-4 py-3">
-              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-good text-white">
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-good text-accentink">
                 <Phone className="h-4 w-4" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
@@ -258,7 +258,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
                       style={{ ["--lvl" as string]: 0 }}
                       aria-hidden
                     >
-                      <span className={`grid h-16 w-16 place-items-center rounded-full ${speaking ? "bg-ink text-[#7dd3a8]" : "bg-good text-white"}`}>
+                      <span className={`grid h-16 w-16 place-items-center rounded-full ${speaking ? "bg-ink text-[#7dd3a8]" : "bg-good text-accentink"}`}>
                         {phase === "connecting" ? <Loader2 className="h-6 w-6 animate-spin" /> : speaking ? <span className="font-display text-lg font-semibold">P</span> : muted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
                       </span>
                     </div>
@@ -328,7 +328,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
                   </div>
                 </div>
               ) : (
-                <button className="btn w-full bg-good text-white shadow-cta hover:brightness-110" onClick={() => void start()} data-testid="call-start">
+                <button className="btn w-full bg-good text-accentink shadow-cta hover:brightness-110" onClick={() => void start()} data-testid="call-start">
                   <Phone className="h-4 w-4" /> {phase === "idle" ? t("call.start") : t("call.again")}
                 </button>
               )}
