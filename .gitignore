@@ -29,3 +29,4 @@ frontend/dist/
 demo/.cache/
 playwright-report/
 test-results/
+scripts/qa/fixtures/
