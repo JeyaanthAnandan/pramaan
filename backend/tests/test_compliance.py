@@ -19,7 +19,7 @@ def test_only_gemini_3_models_configured() -> None:
     from app.config import settings
 
     cfg = settings()
-    for m in (cfg.model_flash, cfg.model_lite, cfg.model_transcribe):
+    for m in (cfg.model_flash, cfg.model_lite, cfg.model_transcribe, cfg.model_live):
         assert re.match(r"gemini-3\.\d", m), m
 
 

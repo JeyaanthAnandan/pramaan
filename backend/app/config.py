@@ -38,6 +38,11 @@ class Settings:
     model_embedding: str = field(default_factory=lambda: _env("MODEL_EMBEDDING", "gemini-embedding-2"))
     model_transcribe: str = field(default_factory=lambda: _env("MODEL_TRANSCRIBE", "gemini-3.5-transcribe"))
     file_search_store: str = field(default_factory=lambda: _env("FILE_SEARCH_STORE", ""))
+    # Call Pramaan (voice calls). Gemini 3.8 Live is served from us-central1 on Agent Platform, not
+    # from global or asia-southeast1 (probed 2026-10-13), so the call session has its own location.
+    model_live: str = field(default_factory=lambda: _env("MODEL_LIVE", "gemini-3.8-live"))
+    live_location: str = field(default_factory=lambda: _env("LIVE_LOCATION", "us-central1"))
+    call_max_seconds: int = field(default_factory=lambda: int(_env("CALL_MAX_SECONDS", "300")))
 
     store_backend: str = field(default_factory=lambda: _env("STORE_BACKEND", "memory"))  # memory | firestore
     data_dir: Path = field(default_factory=lambda: Path(_env("PRAMAAN_DATA_DIR", str(BACKEND_DIR / ".data"))))

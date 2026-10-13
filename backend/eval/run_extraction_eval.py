@@ -200,6 +200,18 @@ def write_report(metrics: dict[str, Any]) -> None:
     (HERE / "report.md").write_text("\n".join(lines) + "\n")
 
 
+async def preflight() -> str | None:
+    """One tiny call per model so an auth/quota/model-name problem is reported as such, not as a 0 % score."""
+    from app.agents.llm import gemini, text_part
+
+    for m in (settings().model_flash, settings().model_lite):
+        try:
+            await gemini().text(m, "Reply with OK.", [text_part("OK?")])
+        except Exception as exc:
+            return f"{m}: {type(exc).__name__}: {str(exc)[:300]}"
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["live", "replay"], default="live")
@@ -210,7 +222,15 @@ def main() -> int:
     if args.mode == "live" and not settings().gemini_configured:
         print("Gemini is not configured (no ADC / service account / GEMINI_API_KEY). Run `gcloud auth application-default login` first.")
         return 2
+    if args.mode == "live":
+        err = asyncio.run(preflight())
+        if err:
+            print(f"Gemini preflight failed, nothing was run or written: {err}")
+            return 2
     result, snapshot = asyncio.run(run(args.mode))
+    if args.mode == "live" and (not result["extracted_values"] or not result["tokens_total"]):
+        print(f"Live run produced no model output (status={result['run_status']}, error={result['run_error']}); metrics NOT written.")
+        return 3
     path = HERE / "metrics.json"
     metrics = json.loads(path.read_text()) if path.exists() else {"runs": {}}
     metrics.setdefault("runs", {})[args.mode] = result

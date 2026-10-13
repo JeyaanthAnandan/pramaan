@@ -111,9 +111,14 @@ def crop(image_bytes: bytes, box_2d: list[int]) -> tuple[bytes, list[int]]:
 
 def compare(first_text: str, first_num: str | None, first_unit: str, second: dict, model: str, crop_box: list[int]) -> SecondReading:
     r2_text = str(second.get("value_text") or "")
-    r2_num = parse_num(str(second.get("value_num") or "")) if second.get("value_num") else parse_num(r2_text)
     r2_unit = norm_unit(second.get("unit"))
     n1 = parse_num(first_num) if first_num else parse_num(first_text)
+    # The second reader's printed digits are its reading; its own plain-number conversion is a second
+    # guess. Live runs (2026-10-13) had Flash-Lite read "699.317" and "380.000" correctly as text and
+    # then write 699317 and 380000 (a European thousands dot), sending correct values to review.
+    from_text = parse_num(r2_text)
+    from_num = parse_num(str(second.get("value_num") or "")) if second.get("value_num") else None
+    r2_num = next((x for x in (from_text, from_num) if x is not None and n1 is not None and within(n1, x, NUM_TOL)), from_text or from_num)
     reason = ""
     if n1 is not None and r2_num is not None:
         agrees = within(n1, r2_num, NUM_TOL)
@@ -132,7 +137,10 @@ def compare(first_text: str, first_num: str | None, first_unit: str, second: dic
         if not agrees:
             reason = "text differs"
     u1 = norm_unit(first_unit)
-    if agrees and r2_unit and u1 and r2_unit != u1:
+    # Units belong to numbers. On a text field (a steel grade) the first reader's unit is "text" and
+    # the second may say "mm" for the bar size: the final live run (2026-10-13) sent an identical
+    # "AISI 304, 8.0 mm" to review as "units differ: text vs mm".
+    if agrees and r2_unit and u1 and u1 != "text" and r2_unit != u1:
         agrees = False
         reason = f"units differ: {u1} vs {r2_unit}"
     if not second.get("legible", True):

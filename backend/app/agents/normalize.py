@@ -29,6 +29,10 @@ _LEAD_NUM = re.compile(r"\s*[-+]?\d[\d,]*(?:\.\d+)?")
 # "KA-VR-2026-0147 dated 2026-10-02", "INV/22 dt. 03.04.2026": the date is not part of the reference
 _ISO = re.compile(r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)")
 _DMY = re.compile(r"(?<!\d)(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})(?!\d)")
+# "Ref. NWRM-CBAM-2026-07", "Invoice No: SF/EXP/2526/041": the printed label is not part of the reference
+_LEADING_LABEL = re.compile(
+    r"^\s*(?:ref(?:erence)?|doc(?:ument)?\s*no|invoice\s*no|inv\s*no|bill\s*no|statement\s*no|no)\s*[.:#]+\s*", re.IGNORECASE
+)
 _TRAILING_DATE = re.compile(r"\s*[,;]?\s+(?:dated|dt\.?|date)\s*[:.]?\s*\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}.*$", re.IGNORECASE)
 
 
@@ -48,7 +52,7 @@ def canonical_text(field_key: str, text: str | None) -> str:
     if field_key in CN_FIELDS:
         return canonical_cn(t) or t
     if field_key in REF_FIELDS:
-        return _TRAILING_DATE.sub("", t).strip() or t
+        return _LEADING_LABEL.sub("", _TRAILING_DATE.sub("", t)).strip() or t
     return t
 
 
@@ -111,10 +115,28 @@ def document_line(fields: list[ExtractedField], project: Project) -> str | None:
     return project.processes[0].id if len(project.processes) == 1 else None
 
 
+_QUARTER = re.compile(r"\d{4}-Q[1-4]")
+_MONTH = re.compile(r"\d{4}-(0[1-9]|1[0-2])")
+
+
+def quarter_of(date_text: str | None) -> str | None:
+    """'2026-Q2' for a date string the model read ('15-06-2026', '2026-06-15'); None if no date."""
+    d = iso_date(date_text)
+    return f"{d[:4]}-Q{(int(d[5:7]) - 1) // 3 + 1}" if d else None
+
+
 def normalize_fields(fields: list[ExtractedField], doc_type: str, project: Project) -> list[ExtractedField]:
     """Apply the schema's unit and scope to every extracted value (in place; also returned)."""
     spec = FIELDS.get(doc_type, {})
     line = document_line(fields, project) if any(spec.get(f.field_key, ("", "", ""))[2] == "process" for f in fields) else None
+    # A line quantity belongs to the calendar quarter of its invoice date. The second live run
+    # (2026-10-13) left the period off one line of an otherwise correct export invoice.
+    doc_quarter = quarter_of(next((f.value_text for f in fields if f.field_key == "invoice_date"), None))
+    # A one-month bill's values belong to that month. The same run left the month off whole bills
+    # that were read correctly, and the engine then counted those months as missing.
+    start, end = document_period(fields, None)
+    doc_month = start[:7] if start and start[:7] == end[:7] else None
+    cn_rows = [f for f in fields if f.field_key in CN_FIELDS and f.process]
     for f in fields:
         _desc, unit, scope = spec.get(f.field_key, ("", "", ""))
         f.value_text = canonical_text(f.field_key, f.value_text)
@@ -125,13 +147,39 @@ def normalize_fields(fields: list[ExtractedField], doc_type: str, project: Proje
             f.period, f.process = None, None
         elif scope == "period":
             f.process = None
+            if doc_month and not (f.period and _MONTH.fullmatch(f.period)):
+                f.period = doc_month
         elif scope == "process":
             f.period = None
             if line:
                 f.process = line
         elif scope == "line" and not unit:
             f.period = None  # a CN code describes the line; only its quantity belongs to a quarter
+        else:
+            if scope == "line" and not (f.period and _QUARTER.fullmatch(f.period)):
+                f.period = doc_quarter
+            if scope == "line" and not f.process:
+                f.process = _row_line(f, cn_rows)
     return fields
+
+
+def _row_line(f: ExtractedField, cn_rows: list[ExtractedField]) -> str | None:
+    """The product line of the CN code printed on the same row as a line quantity (the nearest
+    row by its box's vertical centre), else the invoice's only line."""
+    lines = {c.process for c in cn_rows}
+    if len(lines) == 1:
+        return lines.pop()
+    if not f.box_2d or not cn_rows:
+        return None
+    mid = (f.box_2d[0] + f.box_2d[2]) / 2
+    boxed = [c for c in cn_rows if c.box_2d]
+    if not boxed:
+        return None
+    dist = sorted((abs((c.box_2d[0] + c.box_2d[2]) / 2 - mid), c.process) for c in boxed if c.box_2d)
+    # Two rows equally close: not ours to guess.
+    if len(dist) > 1 and dist[0][0] == dist[1][0] and dist[0][1] != dist[1][1]:
+        return None
+    return dist[0][1]
 
 
 def all_dates(text: str | None) -> list[str]:

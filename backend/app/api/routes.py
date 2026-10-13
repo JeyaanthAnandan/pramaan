@@ -752,16 +752,23 @@ class Ask(BaseModel):
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 # Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
 # cannot run up the demo's bill; the caps sit well above what a room of judges asks.
-AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12, "try": 20}
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12, "call": 20, "try": 20}
 
 
-def _ai_limit(request: Request, bucket: str) -> None:
-    window, t = _ai_log[(bucket, _client_ip(request))], time.time()
+def ai_allow(ip: str, bucket: str) -> bool:
+    """Count one Gemini-backed request from this address; False once the hour's cap is reached."""
+    window, t = _ai_log[(bucket, ip)], time.time()
     while window and t - window[0] > 3600:
         window.popleft()
     if len(window) >= AI_CALLS_PER_HOUR[bucket]:
-        raise HTTPException(429, "too many requests from this address in the last hour; try again later")
+        return False
     window.append(t)
+    return True
+
+
+def _ai_limit(request: Request, bucket: str) -> None:
+    if not ai_allow(_client_ip(request), bucket):
+        raise HTTPException(429, "too many requests from this address in the last hour; try again later")
 
 
 @router.post("/copilot/ask")

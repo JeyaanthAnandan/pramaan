@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+import logging
+import re
 from typing import Any
 
 from app.agents.llm import LLMResult, gemini, image_part, text_part
 from app.agents.schemas import CLASSIFY_SCHEMA, FIELDS, SECOND_READ_SCHEMA, extraction_schema
 from app.config import settings
 from app.evidence.models import ExtractedField, Project
+
+log = logging.getLogger(__name__)
 
 CLASSIFY_SYSTEM = (
     "You classify photos of documents from a small steel-goods factory (fasteners, wire, pipes) for EU CBAM "
@@ -62,17 +66,54 @@ async def classify(image: bytes, mime: str) -> LLMResult:
     )
 
 
+# 20 or more of the same character: a repetition loop, not a reading. The fourth live run
+# (2026-10-13) returned scm "20240.000..." with ~100 zeros and lost the rest of the gas bill.
+_LOOP = re.compile(r"(.)\1{19,}")
+
+
+def degenerate(data: Any) -> bool:
+    rows = data.get("fields", []) if isinstance(data, dict) else []
+    return any(isinstance(v, str) and _LOOP.search(v) for r in rows if isinstance(r, dict) for v in r.values())
+
+
+def untagged(data: Any, doc_type: str) -> float:
+    """Share of the month-and-line values (a register, a scrap log) that came back without their
+    month or product line. A later live run (2026-10-13) read all eight figures of the handwritten
+    scrap log right and tagged none of them, so the engine saw no scrap at all."""
+    spec = FIELDS.get(doc_type, {})
+    rows = [r for r in (data.get("fields", []) if isinstance(data, dict) else []) if isinstance(r, dict)]
+    need = [r for r in rows if spec.get(str(r.get("field_key")), ("", "", ""))[2] == "process_period"]
+    if not need:
+        return 0.0
+    return sum(1 for r in need if not r.get("period") or not r.get("process")) / len(need)
+
+
 async def extract(image: bytes, mime: str, doc_type: str, project: Project) -> LLMResult:
     spec = FIELDS.get(doc_type, {})
     lines = "\n".join(f"- {k}: {desc} [unit: {unit or 'text'}; scope: {scope}]" for k, (desc, unit, scope) in spec.items())
     prompt = f"Document type: {doc_type}.\nFields to extract (field_key: meaning):\n{lines}\nReturn JSON only."
-    return await gemini().json(
-        settings().model_flash,
-        _extract_system(project),
-        [text_part(prompt), image_part(image, mime, "high")],
-        extraction_schema(),
-        thinking_level="medium",
-    )
+
+    async def once() -> LLMResult:
+        return await gemini().json(
+            settings().model_flash,
+            _extract_system(project),
+            [text_part(prompt), image_part(image, mime, "high")],
+            extraction_schema(),
+            thinking_level="medium",
+        )
+
+    r = await once()
+    if degenerate(r.data):
+        log.warning("Extractor output for a %s looped; reading the page again", doc_type)
+        again = await once()
+        if not degenerate(again.data) or len(again.data.get("fields", [])) > len(r.data.get("fields", [])):
+            r = again
+    if untagged(r.data, doc_type) > 0.5:
+        log.warning("Extractor left most %s values without their month or line; reading the page again", doc_type)
+        again = await once()
+        if not degenerate(again.data) and untagged(again.data, doc_type) < untagged(r.data, doc_type):
+            r = again
+    return r
 
 
 async def second_read(crop_jpeg: bytes, field_key: str, unit_hint: str) -> LLMResult:

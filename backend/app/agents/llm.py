@@ -30,6 +30,13 @@ FORBIDDEN_PREFIXES = ("gemini-1", "gemini-2", "veo-", "deep-research")
 TIMEOUT_S = {"minimal": 25.0, "low": 45.0, "medium": 75.0, "high": 120.0}
 
 
+# When a structured call has not answered after this long, a second identical request is sent and
+# the first answer wins. The second live run (2026-10-13, Developer API) had the same gas-bill
+# extraction answer in 12.8 s once and stall past the 75 s limit twice in a row the next time;
+# waiting out each limit before retrying turned a 2-minute run into 5.
+HEDGE_S = {"minimal": 10.0, "low": 20.0, "medium": 30.0, "high": 50.0}
+
+
 def _timeout(thinking_level: str | None, transcription: bool = False) -> float:
     return 90.0 if transcription else TIMEOUT_S.get(thinking_level or "", 60.0)
 
@@ -201,14 +208,40 @@ class Gemini:
         for attempt in range(retries + 1):
             t0 = time.perf_counter()
             try:
-                text, tin, tout = await self._call(model, system, parts, schema, thinking_level)
+                text, tin, tout = await self._hedged(model, system, parts, schema, thinking_level)
                 return LLMResult(json.loads(text), model, tin, tout, int((time.perf_counter() - t0) * 1000), text)
             except json.JSONDecodeError as exc:
                 last = exc
             except Exception as exc:  # network / quota: back off and retry
                 last = exc
                 await asyncio.sleep(1.5 * (attempt + 1))
-        raise RuntimeError(f"Gemini call failed after {retries + 1} attempts: {last}")
+        # A timeout has an empty message: name the exception so the timeline says what happened.
+        raise RuntimeError(f"Gemini call failed after {retries + 1} attempts: {type(last).__name__}: {last}")
+
+    async def _hedged(
+        self, model: str, system: str | None, parts: list[dict[str, Any]], schema: dict[str, Any] | None, thinking_level: str | None
+    ) -> tuple[str, int | None, int | None]:
+        """_call, plus one identical backup request if the first is slow; the first answer wins."""
+        first = asyncio.ensure_future(self._call(model, system, parts, schema, thinking_level))
+        tasks = {first}
+        try:
+            done, _ = await asyncio.wait(tasks, timeout=HEDGE_S.get(thinking_level or "", 30.0))
+            if done:
+                return first.result()
+            log.info("Gemini %s slow after %.0f s; sending a backup request", model, HEDGE_S.get(thinking_level or "", 30.0))
+            tasks.add(asyncio.ensure_future(self._call(model, system, parts, schema, thinking_level)))
+            failure: BaseException | None = None
+            while tasks:
+                done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                for t in done:
+                    if t.exception() is None:
+                        return t.result()
+                    failure = t.exception()
+            assert failure is not None
+            raise failure
+        finally:
+            for t in tasks:
+                t.cancel()
 
     async def transcribe(self, model: str, audio: dict[str, Any], transcription_config: dict[str, Any]) -> LLMResult:
         """Speech-to-text model (no thinking, no system instruction)."""

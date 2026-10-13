@@ -207,7 +207,7 @@ def test_each_visitor_gets_a_private_sample(client: TestClient) -> None:
     ev = [e for e in client.get(f"/api/projects/{a}/evidence").json() if e["status"] == "NEEDS_REVIEW"]
     client.patch(f"/api/projects/{a}/evidence/{ev[0]['id']}", json={"action": "approve"})
     still_amber = [e for e in client.get(f"/api/projects/{b}/evidence").json() if e["status"] == "NEEDS_REVIEW"]
-    assert len(still_amber) == 1  # b is unaffected by a's approval
+    assert ev and len(still_amber) == len(ev)  # b is unaffected by a's approval (replay or captured live sample)
 
 
 def test_upload_normalises_png_and_pdf(client: TestClient) -> None:

@@ -58,13 +58,32 @@ async def transcribe(audio: bytes, mime: str, lang: str) -> LLMResult:
             audio_part(audio, mime),
             {"mode": {"type": "smart"}, "language_codes": LANG_CODES[lang], "custom_vocabulary": VOCAB[lang]},
         )
-    # Tamil (not in gemini-3.5-transcribe's language list): Gemini 3.8 Flash audio understanding
-    return await gemini().text(
-        cfg.model_flash,
-        "You transcribe short voice notes from an Indian factory floor. Output only the transcript in the original script, verbatim.",
-        [text_part("Transcribe this voice note."), audio_part(audio, mime)],
-        thinking_level="low",
+    # Tamil (not in gemini-3.5-transcribe's language list): Gemini 3.8 Flash audio understanding.
+    # "The original script" alone came back in Kannada script for a Tamil note (live test,
+    # 2026-10-13), so the language and its script are named, checked, and asked for once more.
+    name, script = SCRIPTS.get(lang, ("the speaker's language", None))
+    system = (
+        "You transcribe short voice notes from an Indian factory floor. "
+        f"The speaker speaks {name}. Output only the verbatim transcript, written in {name} script."
     )
+    r = await gemini().text(
+        cfg.model_flash, system, [text_part("Transcribe this voice note."), audio_part(audio, mime)], thinking_level="low"
+    )
+    if script and not in_script(r.data, script):
+        r = await gemini().text(
+            cfg.model_flash, system, [text_part(f"Transcribe this voice note in {name} script."), audio_part(audio, mime)]
+        )
+    return r
+
+
+# Unicode block of each language transcribed by Flash (lower, upper code point).
+SCRIPTS: dict[str, tuple[str, tuple[int, int] | None]] = {"ta": ("Tamil", (0x0B80, 0x0BFF))}
+
+
+def in_script(text: str, block: tuple[int, int]) -> bool:
+    """Most letters of the transcript are in the language's own script."""
+    letters = [ch for ch in text or "" if ch.isalpha()]
+    return bool(letters) and sum(block[0] <= ord(ch) <= block[1] for ch in letters) >= 0.6 * len(letters)
 
 
 async def read_value(transcript: str, field_key: str, period: str | None, lang: str) -> LLMResult:
