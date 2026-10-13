@@ -9,6 +9,18 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 23 — no layout jumps (the report page was CLS 0.99 on a phone)
+* Judge: Lighthouse mobile on the pages judges actually land on, not just the landing: report **56** (CLS
+  0.99), /try 63 (CLS 0.51). Found with a layout-shift observer on a 412 px phone: the company name wrapped onto
+  a second line when IBM Plex replaced the fallback font; the run badge and tour chip arrived with the results
+  and wrapped the chip row (+30 px); the footer showed inside the first screen while the page loaded and was
+  then pushed away; /try's replay note and sample cards arrived late above the picker; /proof's notes were
+  pushed down when the eight cases replaced two placeholders.
+* Fixed: the first render waits up to 400 ms for the preloaded faces; the header chips come from the project
+  bundle; `main` is at least a screen tall; /try draws its samples at once with the note below them; /proof
+  shows one placeholder per case. Every page's CLS is now 0–0.017; Lighthouse mobile **report 80, /try 84,
+  landing 95, proof 90** (accessibility and best practices 100; project pages are no-index on purpose).
+
 ### Iterations 19–22 — trust, the live result up front, and speed
 * **Screens from the live run**: README screenshots/GIFs and the deck's images regenerated from the merged build
   (they showed "Replay of bundled sample (Gemini not used)" and `replay:ground-truth` under the readers); they
