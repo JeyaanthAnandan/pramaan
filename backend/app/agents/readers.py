@@ -33,14 +33,19 @@ def _extract_system(project: Project) -> str:
     procs = "; ".join(
         f"{p.id} = {p.name} (CN {p.cn_display}), made from {p.precursor_name} (CN {p.precursor_cn})" for p in project.processes
     )
+    lines = (
+        f"Product lines of this factory: {procs}. Set process to the product line id (P1, P2, ...) when a value belongs "
+        "to one line; decide from the material, grade, CN code or product name printed next to it. "
+        if procs
+        else "The factory's product lines are not known: leave process empty. "
+    )
     return (
         "You extract values from a photographed factory document for EU CBAM reporting. Return EVERY requested field you can see, "
         "exactly as written (value_text) plus a normalised number (value_num, '.' decimal separator, no thousands separators, Indian "
         "grouping like 1,10,460.80 -> 110460.80). For each value give box_2d = [ymin, xmin, ymax, xmax] normalised to 0-1000 that "
         "tightly encloses only the value itself (not its label). If a figure is crossed out and replaced, report the replacement and "
         "box both. Monthly rows: set period=YYYY-MM. Export invoice line items: set period to the calendar quarter of the invoice date "
-        f"(YYYY-Qn). Product lines of this factory: {procs}. Set process to the product line id (P1, P2, ...) when a value belongs "
-        "to one line; decide from the material, grade, CN code or product name printed next to it. "
+        f"(YYYY-Qn). {lines}"
         "Identifiers (invoice, document, verification numbers) and CN/HSN codes: the identifier itself, without dates, labels or "
         "descriptions. Never invent values; skip fields that are not on the document. Do not compute anything."
     )

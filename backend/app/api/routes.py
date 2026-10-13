@@ -752,7 +752,7 @@ class Ask(BaseModel):
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 # Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
 # cannot run up the demo's bill; the caps sit well above what a room of judges asks.
-AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12}
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12, "try": 20}
 
 
 def _ai_limit(request: Request, bucket: str) -> None:

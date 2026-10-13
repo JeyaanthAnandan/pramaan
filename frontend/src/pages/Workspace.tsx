@@ -91,6 +91,9 @@ function Inner({ step }: { step: string }) {
     );
   if (!bundle) return null;
   const p = bundle.project;
+  // a live run says when it ran: a captured run restored for the sample is not running now
+  const lr = bundle.last_run;
+  const ranAt = lr?.mode === "live" && lr.started_at ? new Date(lr.started_at).toLocaleString(i18n.language === "en" ? "en-IN" : i18n.language, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
   const gaps = result?.gaps ?? [];
   const red = gaps.filter((g) => g.status === "red").length;
   const amber = gaps.filter((g) => g.status === "amber").length;
@@ -105,7 +108,7 @@ function Inner({ step }: { step: string }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {p.is_demo && <span className="chip border-warn/40 bg-warnbg text-warnink">{t("app.sample")}</span>}
-            {result?.mode && <span className="chip">{result.mode === "live" ? t("app.live") : t("app.replay")}</span>}
+            {result?.mode && <span className="chip">{result.mode === "live" ? (ranAt ? t("app.live_at", { when: ranAt }) : t("app.live")) : t("app.replay")}</span>}
             {p.is_demo && result && (
               <button className="chip border-accent/30 bg-accent/5 text-accent transition hover:bg-accent/10" onClick={tour}>
                 <Compass className="h-3 w-3" aria-hidden /> {t("tour.start")}

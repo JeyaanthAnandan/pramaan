@@ -18,6 +18,7 @@ const Copilot = lazy(() => import("@/pages/Copilot"));
 const Share = lazy(() => import("@/pages/Share"));
 const Supplier = lazy(() => import("@/pages/Supplier"));
 const Plan = lazy(() => import("@/pages/Plan"));
+const Try = lazy(() => import("@/pages/Try"));
 
 function Start() {
   const nav = useNavigate();
@@ -71,6 +72,7 @@ function Shell() {
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/architecture" element={<Architecture />} />
           <Route path="/copilot" element={<Copilot />} />
+          <Route path="/try" element={<Try />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </motion.div>

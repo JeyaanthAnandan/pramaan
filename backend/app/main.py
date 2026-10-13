@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from app import refdata
 from app.api.routes import router
 from app.api.supplier import router as supplier_router
+from app.api.try_one import router as try_router
 from app.config import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -22,6 +23,7 @@ app = FastAPI(title="Pramaan", version=settings().version, docs_url="/api/docs",
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(router)
 app.include_router(supplier_router)
+app.include_router(try_router)
 
 
 @app.middleware("http")

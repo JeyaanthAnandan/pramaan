@@ -28,6 +28,7 @@ flowchart LR
     end
     REF[("refdata JSON<br/>+ manifest")]
     COP["Rules copilot<br/>page retrieval + Gemini"]
+    TRY["Try one photo<br/>Classifier · Extractor · SecondReader<br/>on one page, streamed, not stored"]
   end
   GEM[["Gemini · Agent Platform (global)"]]
   FS[("Firestore")]
@@ -35,7 +36,7 @@ flowchart LR
   LOG[["Cloud Logging + Trace"]]
   UI <--> API
   API --> WF
-  C & PL & E & S & X & COP --> GEM
+  C & PL & E & S & X & COP & TRY --> GEM
   CALC --> REF
   API --> FS
   API --> GCS
@@ -86,6 +87,12 @@ characters without look-alikes) and sets an HttpOnly, SameSite=Lax cookie scoped
 `POST …/unlock` (rate-limited) opens the project on another device. Uploaded photos of private
 projects are served with `Cache-Control: private`. The fictional sample copies stay open, and
 `/api/share/{token}` serves only the buyer summary.
+
+**Try one photo** (`POST /api/try`, `POST /api/try/sample/{name}`) reads a visitor's page with the
+same reader calls as a full run and streams each step as a server-sent event. The photo is read in
+memory and never written to Firestore or Cloud Storage; at most 40 blind second reads per photo and 20
+live tries per address and hour. Without live Gemini, own photos are refused (503) and the three
+bundled samples replay their recorded reading, labelled `replay:ground-truth`.
 
 ## Reference data
 

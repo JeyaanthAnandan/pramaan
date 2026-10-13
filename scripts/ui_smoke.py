@@ -4,7 +4,7 @@
 
 Clicks through like a judge: Load sample factory -> report -> Evidence Lens down to a photo ->
 close gaps (approve the amber value) -> supplier letter in Hindi -> buyer link in a fresh
-context -> EC proof -> copilot. Fails on any page error or missing element.
+context -> EC proof -> copilot -> try one photo. Fails on any page error or missing element.
 """
 
 from __future__ import annotations
@@ -123,6 +123,15 @@ def main() -> int:
                 if shots:
                     page.screenshot(path=str(shots / "smoke-phone-gaps.png"))
                 print(f"[{name}] gaps page fits {vp['width']}px")
+            # try one photo: every value boxed and re-read; a selected value shows the crop reader 2 saw
+            page.goto(base + "/try", wait_until="networkidle")
+            page.get_by_role("button", name="Handwritten scrap log").click()
+            expect(page.get_by_role("button", name="Try another page")).to_be_visible(timeout=90_000)
+            page.locator("[data-id] > button").first.click()
+            expect(page.get_by_text("Reader 2 saw only this crop", exact=False).first).to_be_visible(timeout=10_000)
+            sw = page.evaluate("document.documentElement.scrollWidth")
+            assert sw <= vp["width"] + 1, f"{name}: /try overflow {sw}px"
+            print(f"[{name}] try one photo: values boxed, re-read blind, crop shown")
             ctx.close()
         browser.close()
     if errors:

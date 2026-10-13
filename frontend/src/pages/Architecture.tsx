@@ -62,8 +62,9 @@ export default function Architecture() {
                 <span><b>Calculator</b> — Decimal CBAM engine exposed as an ADK FunctionTool. Every node → evidence, refdata or assumption. Golden tests G1–G8.</span>
               </div>
             </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {[
+                { icon: ScanEye, t: "Try one photo", d: "/try: Classifier, Extractor and the blind SecondReader on one page, streamed as server-sent events; the photo is never stored" },
                 { icon: Link2, t: "Supplier link", d: "the rod supplier uploads its verified statement from a phone, no account; the same agents read only the new document; the line moves to verified data" },
                 { icon: MessagesSquare, t: "Ask about this report", d: "engine facts (calc-tree ids) + guidance pages → gemini-3.8-flash → numbers guard; every number opens the Evidence Lens" },
                 { icon: Gauge, t: "Plant pulse", d: "gas per tonne by month against the median month; hot months priced at the bill's own rate; all calculation nodes" },

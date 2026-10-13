@@ -118,8 +118,15 @@ function Pipeline() {
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6">
       <Reveal>
-        <h2 className="eyebrow">{t("landing.pipe_title")}</h2>
-        <p className="mt-2 max-w-2xl text-[15px] text-ink2">{t("landing.pipe_lead")}</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="eyebrow">{t("landing.pipe_title")}</h2>
+            <p className="mt-2 max-w-2xl text-[15px] text-ink2">{t("landing.pipe_lead")}</p>
+          </div>
+          <Link to="/try" className="btn-ghost nudge min-h-[40px] px-4 text-[13px]">
+            <ScanEye className="h-4 w-4 text-accent" aria-hidden /> {t("try.pipe_cta")} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        </div>
       </Reveal>
       <Reveal delay={0.1} className="relative mt-5">
         <div className="pointer-events-none absolute left-[8.333%] right-[8.333%] top-[34px] z-[5] hidden h-px bg-line2 lg:block" aria-hidden>
@@ -231,6 +238,9 @@ export default function Landing() {
                 {busy === "own" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {t("landing.own", { defaultValue: "Or start with your own documents →" })}
               </button>
+              <Link to="/try" className="link mt-1 flex w-fit items-center gap-1.5 text-[13px]">
+                {t("try.landing_link")}
+              </Link>
               {err && <p className="mt-3 rounded-lg border border-bad/30 bg-badbg px-3 py-2 text-sm text-badink">{err}</p>}
             </motion.div>
             <motion.div variants={rise} className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">

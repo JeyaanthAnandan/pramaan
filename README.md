@@ -13,7 +13,7 @@ Built for the **Google Cloud AI Builder Cup 2026** (Manufacturing: Intelligent O
 Industrial Efficiency) by team **Innovative Warriors**.
 
 **Live demo:** [pramaan-646454690406.asia-southeast1.run.app](https://pramaan-646454690406.asia-southeast1.run.app) (Cloud Run, asia-southeast1) · **3-min video:** _to be recorded_ ·
-**Try it locally in 60 s:** see [Run locally](#run-locally) · **Two minutes?** On the live site press **Take the 90-second tour**: seven stops, from the verdict to the Commission's examples.
+**Try it locally in 60 s:** see [Run locally](#run-locally) · **Two minutes?** On the live site press **Take the 90-second tour**: seven stops, from the verdict to the Commission's examples. **One photo?** Open [`/try`](https://pramaan-646454690406.asia-southeast1.run.app/try) and watch two Gemini models read one page, or your own bill, in seconds.
 
 ![Pramaan landing](docs/screenshots/landing.jpg)
 
@@ -81,6 +81,20 @@ calculation tree, so the Evidence Lens opens it down to the June bill and its pr
 report* knows these figures too ("Where is my plant wasting gas?").
 
 ![Plant pulse](docs/screenshots/plant-pulse.jpg)
+
+### Try one photo: two Gemini models, live, in seconds
+
+For a judge with two minutes, or an exporter deciding whether to trust Pramaan with a year of bills:
+[`/try`](https://pramaan-646454690406.asia-southeast1.run.app/try) runs the three reading steps of a full
+run on **one page**, in front of you. Gemini 3.8 Flash classifies it and reads every value with its box;
+the boxes appear on the photo, then Gemini 3.5 Flash-Lite re-reads each crop blind and each box turns
+green (agree) or amber (a person checks). Select a value to see **exactly the crop the second reader saw**.
+Pick one of three fictional samples (a gas bill, the handwritten Hindi/Punjabi scrap log, a rod invoice)
+or take a photo of your own bill. Steps stream as server-sent events; the photo is read in memory and
+never stored; tries are capped per address. Without Gemini the samples replay their recording, labelled
+as a replay, and own photos are refused with a clear message.
+
+![Try one photo](docs/screenshots/try-one-photo.jpg)
 
 ### Design: motion that explains
 
@@ -152,8 +166,9 @@ flowchart LR
   S -- agree --> K["ControlChecks (code)"] --> G["GapFinder"] --> X["Explainer<br/>numbers guard"] --> R["Reporter"]
   G -. ADK FunctionTool .-> CALC["Calculator<br/>Decimal CBAM engine<br/>+ Plant pulse"] --> REF[("Official refdata<br/>+ SHA-256 manifest")]
   API --> ASK["Ask about this report<br/>engine facts + guidance<br/>numbers guard"]
+  API --> TRY["Try one photo<br/>classify · read · blind re-read<br/>streamed, nothing stored"]
   API --> FS[("Firestore")] & GCS[("Cloud Storage")]
-  C & PL & E & S & X & ASK --> GEM[["Gemini · Agent Platform (global)"]]
+  C & PL & E & S & X & ASK & TRY --> GEM[["Gemini · Agent Platform (global)"]]
 ```
 
 * **ADK 2.11 Workflow** graph with route-based branching (mismatch → HumanReview). The Calculator is an ADK `FunctionTool`. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -164,6 +179,7 @@ flowchart LR
 * **No hand-typed regulatory values.** `backend/refdata/build_refdata.py` parses the Commission's default-values and benchmark Excel files, Guidance 3/4 tables, Implementing Decision 2026/1862 (CSCF) and the certificate-price page into JSON with a **SHA-256 manifest**. CI re-runs the parser and fails on drift. Anything else is an explicit, cited **assumption** shown as such in the UI (FX, MMBtu→GJ, NCV/GCV, projection price).
 * **Rules copilot**: page-level retrieval over the official EC guidance plus Gemini 3.8 Flash grounded on those pages, with validated `[Guidance N, p. X]` citations. Without Gemini it still shows the cited passages.
 * **Ask about this report** (in the workspace): questions about the factory's *own* figures ("Which of my product lines is on the EU default, and why?", "Which official default values apply to my products?"). Gemini 3.8 Flash answers from ~50 facts of the deterministic engine, each with its calculation-tree id, plus the relevant guidance pages and the official default values. Every number carries a chip that opens the Evidence Lens on that node; the Explainer's numbers guard withholds any answer with a number that is not in the report (and shows the report's figures instead). Without Gemini the same figures answer directly. In the Evidence Lens, **Explain in plain words** hands one number, its formula and its inputs to the same assistant.
+* **Try one photo** (`/try`): the Classifier, Extractor and blind SecondReader calls of a full run on a single page, streamed step by step (server-sent events over a POST, uncompressed so each step lands at once). Same prompts, same normalisation, same comparison; at most 40 second reads per photo, 20 live tries per address and hour, nothing stored.
 
 ### Google Cloud services
 Cloud Run (asia-southeast1, CPU boost, min-instances 1 during judging) · Gemini Enterprise Agent Platform (`global`;

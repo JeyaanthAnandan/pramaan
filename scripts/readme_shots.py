@@ -128,6 +128,14 @@ def evidence_lens_and_stills(b) -> None:  # type: ignore[no-untyped-def]
     pg.goto(B + "/proof", wait_until="networkidle")
     pg.wait_for_timeout(1800)
     save(pg.screenshot(), "proof")
+    # try one photo: the handwritten scrap log, read and re-read; the value to check opens its crop
+    pg.goto(B + "/try", wait_until="networkidle")
+    pg.get_by_role("button", name="Handwritten scrap log").click()
+    expect(pg.get_by_role("button", name="Try another page")).to_be_visible(timeout=90_000)
+    pg.wait_for_timeout(1600)
+    top_of(pg, "main section", 96)
+    pg.wait_for_timeout(500)
+    save(pg.screenshot(), "try-one-photo")
     # the tour, second stop
     pg.goto(B + "/", wait_until="networkidle")
     pg.get_by_role("button", name="Take the 90-second tour").click()
