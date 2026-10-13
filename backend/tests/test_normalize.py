@@ -339,3 +339,24 @@ def test_an_untagged_register_is_read_again(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(readers, "gemini", lambda: Fake())
     r = asyncio.run(readers.extract(b"", "image/jpeg", "scrap_log", loader.demo_project()))
     assert r.data == tagged and readers.untagged(bare, "scrap_log") == 1.0
+
+
+def test_a_page_read_without_product_lines_is_not_read_again(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Try one photo has no product lines: dated values without a line are complete, so no second
+    (paid) extraction; a value without its month still is not."""
+    from app.agents import readers
+    from app.evidence.models import Project
+
+    dated = {"fields": [{"field_key": "scrap_t", "value_text": "15.4", "period": "2026-06"}]}
+    calls: list[int] = []
+
+    class Fake:
+        async def json(self, *a: Any, **k: Any) -> Any:
+            calls.append(1)
+            return SimpleNamespace(data=dated)
+
+    monkeypatch.setattr(readers, "gemini", lambda: Fake())
+    r = asyncio.run(readers.extract(b"", "image/jpeg", "scrap_log", Project(name="Try one photo", company="")))
+    assert r.data == dated and len(calls) == 1
+    assert readers.untagged(dated, "scrap_log", need_line=False) == 0.0 and readers.untagged(dated, "scrap_log") == 1.0
+    assert readers.untagged({"fields": [{"field_key": "scrap_t", "value_text": "15.4"}]}, "scrap_log", need_line=False) == 1.0

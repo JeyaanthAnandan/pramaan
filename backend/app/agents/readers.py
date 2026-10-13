@@ -76,16 +76,17 @@ def degenerate(data: Any) -> bool:
     return any(isinstance(v, str) and _LOOP.search(v) for r in rows if isinstance(r, dict) for v in r.values())
 
 
-def untagged(data: Any, doc_type: str) -> float:
+def untagged(data: Any, doc_type: str, need_line: bool = True) -> float:
     """Share of the month-and-line values (a register, a scrap log) that came back without their
     month or product line. A later live run (2026-10-13) read all eight figures of the handwritten
-    scrap log right and tagged none of them, so the engine saw no scrap at all."""
+    scrap log right and tagged none of them, so the engine saw no scrap at all. Without product
+    lines (a page read on its own, /try) only the month is expected."""
     spec = FIELDS.get(doc_type, {})
     rows = [r for r in (data.get("fields", []) if isinstance(data, dict) else []) if isinstance(r, dict)]
     need = [r for r in rows if spec.get(str(r.get("field_key")), ("", "", ""))[2] == "process_period"]
     if not need:
         return 0.0
-    return sum(1 for r in need if not r.get("period") or not r.get("process")) / len(need)
+    return sum(1 for r in need if not r.get("period") or (need_line and not r.get("process"))) / len(need)
 
 
 async def extract(image: bytes, mime: str, doc_type: str, project: Project) -> LLMResult:
@@ -108,10 +109,11 @@ async def extract(image: bytes, mime: str, doc_type: str, project: Project) -> L
         again = await once()
         if not degenerate(again.data) or len(again.data.get("fields", [])) > len(r.data.get("fields", [])):
             r = again
-    if untagged(r.data, doc_type) > 0.5:
+    line = bool(project.processes)
+    if untagged(r.data, doc_type, line) > 0.5:
         log.warning("Extractor left most %s values without their month or line; reading the page again", doc_type)
         again = await once()
-        if not degenerate(again.data) and untagged(again.data, doc_type) < untagged(r.data, doc_type):
+        if not degenerate(again.data) and untagged(again.data, doc_type, line) < untagged(r.data, doc_type, line):
             r = again
     return r
 
