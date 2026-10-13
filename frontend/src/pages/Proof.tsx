@@ -39,9 +39,11 @@ export default function Proof() {
         )}
       </div>
       {q.isLoading && (
+        // one placeholder per case (8): the notes below stay below the fold instead of being pushed away when the cases arrive
         <div className="mt-8 space-y-4" aria-busy="true">
-          <div className="skeleton h-48" />
-          <div className="skeleton h-48" />
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="skeleton h-48" />
+          ))}
         </div>
       )}
       <div className="mt-8 space-y-4">

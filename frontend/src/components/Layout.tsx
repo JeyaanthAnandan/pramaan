@@ -161,7 +161,8 @@ export function Layout({ children }: { children: ReactNode }) {
           )}
         </AnimatePresence>
       </header>
-      <main id="main">{children}</main>
+      {/* at least a screen tall: while a page loads, the footer stays below the fold instead of showing and then being pushed away */}
+      <main id="main" className="min-h-[calc(100svh-4rem)]">{children}</main>
       <footer className="mt-16 border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-[12px] text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span>

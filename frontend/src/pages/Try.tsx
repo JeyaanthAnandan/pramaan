@@ -40,6 +40,8 @@ async function* sse(res: Response): AsyncGenerator<Record<string, any>> {
 }
 
 const SHOWABLE = /^image\/(jpeg|png|webp|gif)$/;
+// the bundled sample pages (as the server lists them): drawn at once, so the cards do not arrive late and move the page
+const SAMPLES = ["gas-2026-03", "scrap-2026-06-to-09", "rod-ISR-2026-038"];
 
 /** Try one photo: the three reading steps of a full run on a single page, live, in front of you.
  *  Boxes appear on the photo as reader 1 returns them and turn green (or amber) as the blind second
@@ -132,9 +134,6 @@ export default function Try() {
         <motion.div variants={rise} className="eyebrow">{t("try.eyebrow")}</motion.div>
         <motion.h1 variants={rise} className="mt-2 text-[30px] font-semibold leading-tight tracking-tight sm:text-[40px]">{t("try.title")}</motion.h1>
         <motion.p variants={rise} className="mt-3 text-[16px] leading-relaxed text-ink2">{t("try.lead")}</motion.p>
-        {status.data && !live && (
-          <motion.p variants={rise} className="mt-3 rounded-lg border border-line bg-sunk px-3 py-2 text-[13px] text-ink2">{t("try.replay_note")}</motion.p>
-        )}
       </motion.header>
 
       <AnimatePresence mode="wait">
@@ -142,21 +141,21 @@ export default function Try() {
           <motion.section key="pick" className="mt-8" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25, ease: EASE }}>
             <h2 className="eyebrow">{t("try.pick")}</h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {(status.data?.samples ?? []).map((s, i) => (
+              {SAMPLES.map((name, i) => (
                 <motion.button
-                  key={s.name}
+                  key={name}
                   type="button"
                   className="card group overflow-hidden text-left transition hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-                  onClick={() => start({ sample: s.name })}
+                  onClick={() => start({ sample: name })}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * i, duration: 0.3, ease: EASE }}
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-sunk">
-                    <img src={`/api/try/sample/${s.name}/image`} alt="" className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.03]" loading="lazy" />
+                    <img src={`/api/try/sample/${name}/image`} alt="" className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.03]" loading="lazy" />
                   </div>
                   <div className="p-3">
-                    <div className="text-[14px] font-semibold">{t(`try.sample_${s.name.split("-")[0]}`, { defaultValue: s.title })}</div>
+                    <div className="text-[14px] font-semibold">{t(`try.sample_${name.split("-")[0]}`)}</div>
                     <div className="mt-0.5 text-[12px] text-muted">{t("app.sample")}</div>
                   </div>
                 </motion.button>
@@ -178,6 +177,7 @@ export default function Try() {
               </motion.div>
             </div>
             <p className="mt-4 flex items-center gap-1.5 text-[12px] text-muted"><Lock className="h-3.5 w-3.5" aria-hidden /> {t("try.private")}</p>
+            {status.data && !live && <p className="mt-3 max-w-3xl rounded-lg border border-line bg-sunk px-3 py-2 text-[13px] text-ink2">{t("try.replay_note")}</p>}
           </motion.section>
         ) : (
           <motion.section key="run" className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25, ease: EASE }}>
