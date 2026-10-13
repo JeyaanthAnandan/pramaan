@@ -32,7 +32,7 @@ def main() -> int:
             t0 = time.perf_counter()
             page.get_by_role("button", name="Load sample factory").click()
             page.wait_for_url("**/p/demo-*/report", timeout=30_000)
-            expect(page.get_by_text("Here's your proof").first).to_be_visible(timeout=15_000)
+            expect(page.get_by_role("heading", name="Here's your proof", exact=True)).to_be_visible(timeout=15_000)
             load_s = time.perf_counter() - t0
             pid = page.url.split("/p/")[1].split("/")[0]
             print(f"[{name}] sample loaded in {load_s:.1f}s as {pid}")
@@ -172,6 +172,17 @@ def main() -> int:
             assert sw <= vp["width"] + 1, f"{name}: /try overflow {sw}px"
             print(f"[{name}] try one photo: values boxed, re-read blind, crop shown")
             ctx.close()
+        # a page whose code cannot be fetched (a tab left open across a redeploy): never a blank screen
+        ctx = browser.new_context()
+        page = ctx.new_page()
+        page.on("pageerror", lambda e: None)
+        page.goto(base + "/", wait_until="networkidle")
+        ctx.route(re.compile(r".*/assets/Proof-.*\.js"), lambda route: route.fulfill(status=404, body="gone"))
+        page.get_by_role("link", name="EC proof").first.click()
+        expect(page.get_by_text("This page could not load")).to_be_visible(timeout=15_000)
+        expect(page.get_by_role("button", name="Reload")).to_be_visible()
+        print("[desktop] a page that cannot load explains itself and offers a reload")
+        ctx.close()
         browser.close()
     if errors:
         print("PAGE ERRORS:\n" + "\n".join(errors))

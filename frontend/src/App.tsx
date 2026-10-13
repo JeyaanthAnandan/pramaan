@@ -9,6 +9,7 @@ import { ToastProvider } from "@/components/Toast";
 import { PageSkeleton } from "@/components/Skeleton";
 import { EASE } from "@/lib/motion";
 import Landing from "@/pages/Landing";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Workspace = lazy(() => import("@/pages/Workspace"));
 const Proof = lazy(() => import("@/pages/Proof"));
@@ -68,10 +69,12 @@ function Shell() {
     // links for people outside the factory (the EU buyer, the rod supplier): no workspace chrome
     return (
       <Suspense fallback={<Fallback />}>
-        <Routes>
-          <Route path="/share/:token" element={<Share />} />
-          <Route path="/supplier/:token" element={<Supplier />} />
-        </Routes>
+        <ErrorBoundary key={loc.pathname}>
+          <Routes>
+            <Route path="/share/:token" element={<Share />} />
+            <Route path="/supplier/:token" element={<Supplier />} />
+          </Routes>
+        </ErrorBoundary>
       </Suspense>
     );
   }
@@ -80,6 +83,7 @@ function Shell() {
   return (
     <Layout>
       <Suspense fallback={<Fallback />}>
+        <ErrorBoundary key={top}>
         <motion.div key={top} initial={firstPage ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -96,6 +100,7 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </motion.div>
+        </ErrorBoundary>
       </Suspense>
     </Layout>
   );
