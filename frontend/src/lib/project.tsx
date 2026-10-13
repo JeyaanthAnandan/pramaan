@@ -28,6 +28,7 @@ export function ProjectProvider({ pid, children }: { pid: string; children: Reac
   const bundle = useQuery({
     queryKey: ["project", pid],
     queryFn: () => api.project(pid),
+    staleTime: 2_000, // a bundle fetched at start-up (App.tsx) is used, not fetched again on mount
     // fast while agents run; slower while a supplier may upload (only while the tab is visible)
     refetchInterval: (q) => (q.state.data?.running ? 2500 : awaitingSupplier(q.state.data) ? 5000 : false),
   });

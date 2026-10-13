@@ -33,6 +33,17 @@ function Start() {
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 
+// A project page opened directly (a judge's link, a reload): its code and its data start now, alongside the
+// app's own start-up, instead of one after another (the page's code, then the project, then its results).
+const opened = /^\/p\/([^/]+)/.exec(window.location.pathname);
+if (opened) {
+  const pid = decodeURIComponent(opened[1]);
+  void import("@/pages/Workspace");
+  void qc.prefetchQuery({ queryKey: ["project", pid], queryFn: () => api.project(pid) });
+  void qc.prefetchQuery({ queryKey: ["results", pid], queryFn: () => api.results(pid) });
+  void qc.prefetchQuery({ queryKey: ["evidence", pid], queryFn: () => api.evidence(pid) });
+}
+
 const Fallback = PageSkeleton;
 
 // pages fade in when you move between them, but not on the very first load: the first page should
