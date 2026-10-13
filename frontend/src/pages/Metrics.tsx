@@ -7,6 +7,12 @@ import { api } from "@/lib/api";
 import { AnimatedNumber, Reveal, rise, stagger } from "@/lib/motion";
 
 /** A rate shown as a percentage that counts up when first seen. */
+
+/** A run's date and time in the reader's language: ten runs on one day differ only by the time. */
+function runAt(iso: string | undefined, lang: string): string {
+  return iso ? new Date(iso).toLocaleString(lang === "en" ? "en-IN" : lang, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+}
+
 function Pct({ v }: { v?: number | null }) {
   if (v === undefined || v === null) return <>—</>;
   return <AnimatedNumber value={v * 100} format={(x) => `${x.toFixed(1)}%`} countUp />;
@@ -31,7 +37,8 @@ function Tile({ icon: Icon, label, value, target, ok, note }: { icon: typeof Gau
 }
 
 export default function Metrics() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const at = (iso?: string) => runAt(iso, i18n.language);
   const q = useQuery({ queryKey: ["metrics"], queryFn: api.metrics });
   const m = q.data;
   const live = m?.runs?.live;
@@ -58,7 +65,7 @@ export default function Metrics() {
           )}
           {live && (
             <section className="mt-8">
-              <h2 className="eyebrow mb-3">Live · {live.models?.extraction} + {live.models?.second_reader} · {live.ran_at}</h2>
+              <h2 className="eyebrow mb-3">Live · {live.models?.extraction} + {live.models?.second_reader} · {at(live.ran_at)}</h2>
               <motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" variants={stagger(0.07)} initial="hidden" animate="show">
                 <Tile icon={Gauge} label={t("metrics.field_acc")} value={<Pct v={live.field_accuracy} />} target="≥ 95%" ok={live.field_accuracy >= 0.95} note={`${live.fields_correct}/${live.fields_total} fields`} />
                 <Tile icon={ScanEye} label={t("metrics.agreement")} value={<Pct v={live.two_reader_agreement} />} note={`box IoU ≥ 0.5: ${pct(live.box_hit_rate)}`} />
@@ -69,7 +76,7 @@ export default function Metrics() {
           )}
           {replay && (
             <section className="mt-8">
-              <h2 className="eyebrow mb-3">Pipeline check · replay of ground truth (no model) · {replay.ran_at}</h2>
+              <h2 className="eyebrow mb-3">Pipeline check · replay of ground truth (no model) · {at(replay.ran_at)}</h2>
               <motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" variants={stagger(0.07)} initial="hidden" animate="show">
                 <Tile icon={Gauge} label={t("metrics.field_acc")} value={<Pct v={replay.field_accuracy} />} note="sanity check of the eval harness, not a model score" />
                 <Tile icon={ScanEye} label={t("metrics.agreement")} value={<Pct v={replay.two_reader_agreement} />} />
@@ -109,7 +116,7 @@ export default function Metrics() {
                   <tbody className="divide-y divide-line">
                     {[...(m.history as any[])].reverse().map((h, i) => (
                       <tr key={`${h.ran_at}${i}`} className="align-top">
-                        <td className="whitespace-nowrap px-4 py-2">{new Date(h.ran_at).toLocaleDateString()}</td>
+                        <td className="whitespace-nowrap px-4 py-2">{at(h.ran_at)}</td>
                         <td className="px-4 py-2">
                           <div className="font-medium">{h.mode === "live" ? t("metrics.mode_live") : t("metrics.mode_replay")}</div>
                           {h.note && <div className="mt-0.5 max-w-md text-[12px] leading-snug text-muted">{h.note}</div>}
