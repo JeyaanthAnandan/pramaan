@@ -7,6 +7,7 @@ import { api, type ReportAnswer, type ReportFact } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { EASE, rise, stagger } from "@/lib/motion";
 import { useLens } from "./EvidenceLens";
+import { useReturnFocus } from "@/lib/focus";
 
 interface Turn { q: string; a?: ReportAnswer; err?: string }
 const AskCtx = createContext<(q?: string) => void>(() => {});
@@ -50,12 +51,15 @@ export function AskProvider({ children }: { children: ReactNode }) {
     },
     [busy, pid, i18n.language],
   );
+  const focus = useReturnFocus('[data-fab="ask"]');
+  const { remember } = focus;
   const openAsk = useCallback(
     (question?: string, node?: string) => {
+      remember();
       setOpen(true);
       if (question) void ask(question, node);
     },
-    [ask],
+    [ask, remember],
   );
   // the Evidence Lens asks for a plain-words explanation of one number (it sits above this provider,
   // so it learns that the panel exists from a flag on <html>)
@@ -87,7 +91,8 @@ export function AskProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 420, damping: 30 }}
-              onClick={() => setOpen(true)}
+              onClick={() => openAsk()}
+              data-fab="ask"
             >
               <Sparkles className="h-4 w-4 text-[#7dd3a8]" aria-hidden /> {t("ask.fab")}
             </motion.button>
@@ -97,6 +102,7 @@ export function AskProvider({ children }: { children: ReactNode }) {
       <Dialog.Root open={open} onOpenChange={setOpen} modal={false}>
         <Dialog.Portal>
           <Dialog.Content
+            onCloseAutoFocus={focus.onCloseAutoFocus}
             onInteractOutside={(e) => e.preventDefault()}
             onOpenAutoFocus={(e) => {
               e.preventDefault();

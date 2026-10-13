@@ -9,6 +9,7 @@ import { EASE, rise, stagger, useAfter } from "@/lib/motion";
 import { DocImage, CropView } from "./DocImage";
 import { StatusBadge, toneOf } from "./Status";
 import { when } from "@/lib/format";
+import { useReturnFocus } from "@/lib/focus";
 
 interface LensCtx {
   open: (nodeId: string) => void;
@@ -20,25 +21,31 @@ export function LensProvider({ children }: { children: ReactNode }) {
   const [stack, setStack] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [dir, setDir] = useState(1); // +1 drilling down, -1 going back: the panel slides that way
+  const focus = useReturnFocus();
+  const { remember, forget } = focus;
   const open = useCallback((id: string) => {
+    remember();
     setDir(1);
     setStack([id]);
     setIsOpen(true);
-  }, []);
+  }, [remember]);
   const value = useMemo(() => ({ open }), [open]);
   // "Explain in plain words" hands the number to the Ask panel: the lens steps aside
   useEffect(() => {
-    const f = () => setIsOpen(false);
+    const f = () => {
+      forget(); // the Ask panel takes the focus
+      setIsOpen(false);
+    };
     window.addEventListener("pramaan:ask", f);
     return () => window.removeEventListener("pramaan:ask", f);
-  }, []);
+  }, [forget]);
   return (
     <Ctx.Provider value={value}>
       {children}
       <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] data-[state=closed]:animate-fadeout data-[state=open]:animate-fadein" />
-          <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[560px] flex-col border-l border-line bg-page shadow-lift focus:outline-none data-[state=closed]:animate-sheetout data-[state=open]:animate-sheet" aria-describedby={undefined}>
+          <Dialog.Content onCloseAutoFocus={focus.onCloseAutoFocus} className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[560px] flex-col border-l border-line bg-page shadow-lift focus:outline-none data-[state=closed]:animate-sheetout data-[state=open]:animate-sheet" aria-describedby={undefined}>
             {stack.length > 0 && (
               <LensBody
                 stack={stack}

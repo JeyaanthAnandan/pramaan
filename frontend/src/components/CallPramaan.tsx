@@ -8,6 +8,7 @@ import { CALL_LANGS, CallClient, callSupported, type CallEvent, type CallFigure 
 import { EASE, rise, stagger } from "@/lib/motion";
 import { loadLanguage } from "@/i18n";
 import { useLens } from "./EvidenceLens";
+import { useReturnFocus } from "@/lib/focus";
 
 type Phase = "idle" | "connecting" | "live" | "ended" | "error";
 interface Turn { who: "caller" | "agent"; text: string; open: boolean; figures?: CallFigure[]; unverified?: string[]; cut?: boolean }
@@ -155,7 +156,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setTool(null);
   }, []);
 
-  const openCall = useCallback(() => setOpen(true), []);
+  const focus = useReturnFocus('[data-testid="call-fab"]');
+  const { remember } = focus;
+  const openCall = useCallback(() => {
+    remember();
+    setOpen(true);
+  }, [remember]);
   const live = phase === "live" || phase === "connecting";
   const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const status = phase === "connecting" ? t("call.connecting") : tool ? t(`call.${TOOL_KEY[tool] ?? "tool_explain"}`) : speaking ? t("call.speaking") : muted ? t("call.muted") : t("call.listening");
@@ -194,6 +200,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       >
         <Dialog.Portal>
           <Dialog.Content
+            onCloseAutoFocus={focus.onCloseAutoFocus}
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => live && e.preventDefault()}
             className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[440px] flex-col border-l border-line bg-page shadow-lift focus:outline-none data-[state=closed]:animate-sheetout data-[state=open]:animate-sheet"
