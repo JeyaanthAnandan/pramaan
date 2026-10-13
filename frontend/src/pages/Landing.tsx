@@ -157,7 +157,7 @@ function Pipeline() {
 const FACTS = [
   { k: "f1", href: "https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/cbam-legislation-and-guidance_en", src: "European Commission; EC Guidance No. 3, p. 115" },
   { k: "f2", href: "https://visionias.in/current-affairs/upsc-daily-news-summary/article/2026-01-29/business-standard/economy/india-eu-free-trade-agreement-cbam-rules-strain-indias-steel-msmes", src: "Business Standard via Vision IAS, 29 Jan 2026" },
-  { k: "f3", href: "https://www.kotakneo.com/news/market-news/india-msme-compliance-costs-eu-carbon-border-adjustment-mechanism-2026/", src: "The Indian Express, reported 30 Jun 2026" },
+  { k: "f3", href: "https://www.business-standard.com/economy/news/carbon-border-adjustment-mechanism-cbam-eu-india-msme-exporters-126063000478_1.html", src: "The Indian Express via Business Standard, 30 Jun 2026" },
   { k: "f4", href: "https://eurometal.net/cbam-efda-calls-for-immediate-corrections-to-avoid-jump-in-production-costs-of-eu-products-assembled-with-imported-fasteners/", src: "EFDA via Eurometal" },
 ];
 

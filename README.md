@@ -29,7 +29,7 @@ Industrial Efficiency) by team **Innovative Warriors**.
   exports**, and exporters may need to cut prices by **15–22 %**
   ([Business Standard via Vision IAS, 29 Jan 2026](https://visionias.in/current-affairs/upsc-daily-news-summary/article/2026-01-29/business-standard/economy/india-eu-free-trade-agreement-cbam-rules-strain-indias-steel-msmes)).
 * Compliance is reported to cost **₹15–20 lakh per MSME**, and India is working on a scheme to reimburse 90 %
-  ([The Indian Express, reported 30 Jun 2026](https://www.kotakneo.com/news/market-news/india-msme-compliance-costs-eu-carbon-border-adjustment-mechanism-2026/)).
+  ([The Indian Express via Business Standard, 30 Jun 2026](https://www.business-standard.com/economy/news/carbon-border-adjustment-mechanism-cbam-eu-india-msme-exporters-126063000478_1.html)).
 * European fastener distributors say a **verification bottleneck** is pushing importers onto default
   values in 2026 ([EFDA via Eurometal](https://eurometal.net/cbam-efda-calls-for-immediate-corrections-to-avoid-jump-in-production-costs-of-eu-products-assembled-with-imported-fasteners/)).
 * The same problem hits exporters in Vietnam, China, Korea and Indonesia. Pramaan is built for JAPAC.
