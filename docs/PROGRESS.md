@@ -363,13 +363,16 @@ Robustness for judging: "Load sample factory" gives every visitor a **private co
 
 ## What the team needs to do next
 
-Done: gcloud sign-in, billing + budget alert, public GitHub repo, `scripts/gcp_setup.sh`, first deploy.
+Done: gcloud sign-in, billing + budget alert, public GitHub repo, `scripts/gcp_setup.sh`, first deploy, ten
+live runs and the captured live run (222/222, 96.8 s; the sample serves it), Call Pramaan deployed (6c6df4e),
+a 15-slide deck draft (link in DECK_NOTES; private until shared).
 
-1. `backend/eval/run_extraction_eval.py --mode live --capture` (real Gemini metrics + live demo cache; paid
-   Gemini calls), then `MIN_INSTANCES=0 scripts/deploy.sh` so "Load sample factory" serves the live run, and
-   fill the live row in README / DECK_NOTES / DEMO_SCRIPT from `backend/eval/report.md`.
+1. `git pull`, then `MIN_INSTANCES=0 scripts/deploy.sh`: the service runs 6c6df4e, which lacks **/try** (try one
+   photo), the PDF that answers first and the API 404 fix. Then on the live link: one sample photo on /try (a few
+   cheap calls) to see the boxes turn green live.
 2. Before judging (and before recording the video): plain `scripts/deploy.sh` → min-instances 1, no cold start.
-3. Record the video and build the deck from the live service.
+3. Record the video (DEMO_SCRIPT; /try makes a good 10-second live moment), share the deck from its Share menu,
+   check it, export the PDF, and tag `v1.0-submission`.
 
 ## Decisions needed from the team
 
