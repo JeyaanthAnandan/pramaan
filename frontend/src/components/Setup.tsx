@@ -154,18 +154,18 @@ function Details() {
   }
   return (
     <div>
-      <div className="grid gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
         <label className="flex flex-col gap-1">
           <span className="text-ink2">{t("setup.company")}</span>
-          <input value={company} onChange={(e) => setCompany(e.target.value)} className="min-h-[40px] rounded-lg border border-line2 bg-page px-2" />
+          <input value={company} onChange={(e) => setCompany(e.target.value)} className="min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2" />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-ink2">{t("setup.city")}</span>
-          <input value={city} onChange={(e) => setCity(e.target.value)} className="min-h-[40px] rounded-lg border border-line2 bg-page px-2" />
+          <input value={city} onChange={(e) => setCity(e.target.value)} className="min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2" />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-ink2">{t("setup.country")}</span>
-          <select value={country} onChange={(e) => setCountry(e.target.value)} className="min-h-[40px] rounded-lg border border-line2 bg-page px-2">
+          <select value={country} onChange={(e) => setCountry(e.target.value)} className="min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2">
             {(countries.data ?? [p.country]).map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -173,7 +173,7 @@ function Details() {
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-ink2">{t("setup.period")}</span>
-          <select value={last} onChange={(e) => setLast(Number(e.target.value))} className="min-h-[40px] rounded-lg border border-line2 bg-page px-2">
+          <select value={last} onChange={(e) => setLast(Number(e.target.value))} className="min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2">
             {MONTHS.map((m, i) => (
               <option key={m} value={i + 1}>Jan–{m} {p.year}</option>
             ))}
@@ -315,7 +315,7 @@ function Editor({ drafts, setDrafts, errors, country, onCancel, onSave, busy }: 
             {d.source === "ai" && <span className="chip border-accent/25 bg-accent/5 py-0 text-accent"><Sparkles className="h-3 w-3" /> {t("setup.by_ai")}</span>}
           </legend>
           {d.rationale && <p className="mb-2 text-[12px] text-muted">{d.rationale}</p>}
-          <div className="grid gap-3 text-[13px] sm:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 text-[13px] sm:grid-cols-2">
             <Text label={t("setup.f_name")} value={d.name} onChange={(v) => set(i, { name: v })} placeholder="Stainless hexagon bolts" />
             <CnField label={t("setup.f_cn")} value={d.cn} onChange={(v) => set(i, { cn: v })} country={country} role="good" />
             <Text label={t("setup.f_pre")} value={d.precursor_name} onChange={(v) => set(i, { precursor_name: v })} placeholder="Stainless wire rod" />
@@ -356,7 +356,7 @@ function Text({ label, value, onChange, placeholder }: { label: string; value: s
   return (
     <label className="flex flex-col gap-1">
       <span className="text-ink2">{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="min-h-[40px] rounded-lg border border-line2 bg-page px-2" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2" />
     </label>
   );
 }
@@ -378,7 +378,7 @@ function CnField({ label, value, onChange, country, role }: { label: string; val
     <div className="flex flex-col gap-1">
       <label className="flex flex-col gap-1">
         <span className="text-ink2">{label}</span>
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={t("setup.cn_hint")} className="num min-h-[40px] rounded-lg border border-line2 bg-page px-2" />
+        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={t("setup.cn_hint")} className="num min-h-[40px] w-full min-w-0 rounded-lg border border-line2 bg-page px-2" />
       </label>
       {!words && digits.length === 8 && check.data && (
         <p key={`${digits}-${check.data.ok}`} className={`flex animate-rise items-start gap-1 text-[12px] ${check.data.ok ? "text-goodink" : "text-badink"}`}>

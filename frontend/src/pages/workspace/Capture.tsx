@@ -80,7 +80,7 @@ export default function Capture() {
   const compactDrop = docs.length > 0; // documents are in: the drop zone steps back
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="space-y-6">
         <SetupCard />
         <div
