@@ -137,7 +137,9 @@ def supplier_image(token: str, doc_id: str) -> Response:
 
 
 def _start(background: BackgroundTasks, p: Project, proc: ProcessDef) -> dict[str, Any]:
-    if any(r.status == "running" for r in store().list_runs(p.id)):
+    from app.api.routes import runs_settled
+
+    if any(r.status == "running" for r in runs_settled(p.id)):
         raise HTTPException(409, "documents are being processed right now; try again in a minute")
     cfg = settings()
     mode = "live" if (cfg.gemini_configured and cfg.live_runs_enabled) else "replay"

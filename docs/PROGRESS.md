@@ -9,6 +9,18 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 7 — runs that survive the platform
+* Judge: three ways a judge's run could go wrong on Cloud Run: (1) an instance restarts mid-run and the
+  run stays "running" forever (the project refuses new runs, the UI spins); (2) the browser closed the
+  timeline stream on its first error and never reconnected (a phone on mobile data would see a spinner
+  after the run finished); (3) live runs were capped per project, but every visitor gets a private sample
+  copy, so a script could run many live runs on the team's bill.
+* Built: `runs_settled()` marks a run still "running" 30 min after it started (and not executing on this
+  instance) as *interrupted*; the bundle, `start_run` and supplier uploads use it. The timeline reconnects
+  with backoff (history replayed, de-duplicated by seq) and Capture settles a run from the project state.
+  Live runs capped per address (12/h; replays uncapped). ARCHITECTURE: how runs keep CPU on Cloud Run.
+* Tests: `tests/test_runs_robust.py` (3).
+
 ### Iteration 6 — the report in the reader's language, all of it
 * Judge: in Hindi/Tamil/Vietnamese the checks, the explanations and the period label were still English
   (server text); a Ludhiana owner reading Hindi hit English paragraphs.

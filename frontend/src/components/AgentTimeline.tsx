@@ -29,19 +29,41 @@ export function useRunEvents(pid: string, runId: string | null | undefined, onEn
     setEvents([]);
     setEnded(null);
     if (!runId) return;
-    const es = new EventSource(`/api/projects/${pid}/runs/${runId}/events`);
-    es.addEventListener("timeline", (e) => {
-      const ev = JSON.parse((e as MessageEvent).data) as TimelineEvent;
-      setEvents((xs) => (xs.some((x) => x.seq === ev.seq) ? xs : [...xs, ev]));
-    });
-    es.addEventListener("end", (e) => {
-      const d = JSON.parse((e as MessageEvent).data);
-      setEnded(d.status);
-      endRef.current?.(d.status);
-      es.close();
-    });
-    es.onerror = () => es.close();
-    return () => es.close();
+    // a phone on mobile data or a proxy may drop the stream mid-run: reconnect with backoff; the server
+    // replays the run's history first and events are de-duplicated by their sequence number
+    let es: EventSource | null = null;
+    let tries = 0;
+    let timer = 0;
+    let done = false;
+    const open = () => {
+      es = new EventSource(`/api/projects/${pid}/runs/${runId}/events`);
+      es.onopen = () => {
+        tries = 0;
+      };
+      es.addEventListener("timeline", (e) => {
+        const ev = JSON.parse((e as MessageEvent).data) as TimelineEvent;
+        setEvents((xs) => (xs.some((x) => x.seq === ev.seq) ? xs : [...xs, ev]));
+      });
+      es.addEventListener("end", (e) => {
+        done = true;
+        const d = JSON.parse((e as MessageEvent).data);
+        setEnded(d.status);
+        endRef.current?.(d.status);
+        es?.close();
+      });
+      es.onerror = () => {
+        es?.close();
+        if (done || tries >= 8) return;
+        tries += 1;
+        timer = window.setTimeout(open, Math.min(1000 * 2 ** tries, 15_000));
+      };
+    };
+    open();
+    return () => {
+      done = true;
+      es?.close();
+      window.clearTimeout(timer);
+    };
   }, [pid, runId]);
   return { events, ended };
 }

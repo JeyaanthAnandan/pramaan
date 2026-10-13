@@ -111,11 +111,35 @@ def unlock(pid: str, body: Unlock, request: Request, response: Response) -> dict
     return {"ok": True, "project_id": pid}
 
 
+STALE_RUN_S = 30 * 60  # a run still "running" after this was cut off (instance restarted); live runs take minutes
+
+
+def runs_settled(pid: str) -> list[Run]:
+    """The project's runs, with any run cut off by a server restart marked as interrupted, so it never
+    blocks the project ("a run is already in progress") or spins in the UI forever."""
+    import datetime as dt
+
+    runs = store().list_runs(pid)
+    t = dt.datetime.now(dt.UTC)
+    for r in runs:
+        if r.status != "running" or r.id in RUNS:  # RUNS: executing on this instance right now
+            continue
+        try:
+            age = (t - dt.datetime.fromisoformat(r.started_at)).total_seconds()
+        except (ValueError, TypeError):
+            continue
+        if age > STALE_RUN_S:
+            r.status, r.finished_at = "error", now()
+            r.error = "interrupted: the server restarted during this run; run it again"
+            store().put_run(r)
+    return runs
+
+
 @router.get("/projects/{pid}")
 def get_project(pid: str) -> dict[str, Any]:
     p = _project(pid)
     st = store()
-    runs = st.list_runs(pid)
+    runs = runs_settled(pid)
     last = runs[-1] if runs else None
     return {
         "project": _public(p),
@@ -244,7 +268,7 @@ class RunRequest(BaseModel):
 
 
 @router.post("/projects/{pid}/runs")
-async def start_run(pid: str, body: RunRequest, background: BackgroundTasks) -> dict[str, Any]:
+async def start_run(pid: str, request: Request, body: RunRequest, background: BackgroundTasks) -> dict[str, Any]:
     p = _project(pid)
     cfg = settings()
     window = _run_log[pid]
@@ -253,11 +277,13 @@ async def start_run(pid: str, body: RunRequest, background: BackgroundTasks) -> 
         window.popleft()
     if len(window) >= cfg.max_runs_per_hour:
         raise HTTPException(429, "run limit reached for this project; try again later")
-    if any(r.status == "running" for r in store().list_runs(pid)):
+    if any(r.status == "running" for r in runs_settled(pid)):
         raise HTTPException(409, "a run is already in progress")
     mode = body.mode or ("live" if (cfg.gemini_configured and cfg.live_runs_enabled) else "replay")
     if mode == "live" and not cfg.gemini_configured:
         raise HTTPException(503, "Gemini is not configured on this server; use replay mode")
+    if mode == "live":  # every visitor has a private sample copy: cap live (paid) runs per address too
+        _ai_limit(request, "run")
     if p.is_demo:
         for d in store().list_documents(pid):  # re-run every agent on the sample docs
             if d.content_type.startswith("audio/"):
@@ -725,7 +751,7 @@ class Ask(BaseModel):
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 # Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
 # cannot run up the demo's bill; the caps sit well above what a room of judges asks.
-AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30}
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12}
 
 
 def _ai_limit(request: Request, bucket: str) -> None:

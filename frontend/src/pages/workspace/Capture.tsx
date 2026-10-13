@@ -34,8 +34,10 @@ export default function Capture() {
   });
   const past = useQuery({ queryKey: ["run", pid, lastRunId], queryFn: () => api.run(pid, lastRunId!), enabled: !!lastRunId && !activeId });
   const shownEvents = activeId ? events : past.data?.events ?? [];
-  const shownEnded = activeId ? ended : past.data?.status ?? null;
-  const running = !!activeId && !ended;
+  // the stream may have missed the end (a dropped connection): the project's own state settles it
+  const settled = !!activeId && bundle?.last_run?.id === activeId && bundle.last_run.status !== "running";
+  const shownEnded = activeId ? (ended ?? (settled ? bundle!.last_run!.status : null)) : past.data?.status ?? null;
+  const running = !!activeId && !ended && !settled;
 
   async function start() {
     setErr(null);

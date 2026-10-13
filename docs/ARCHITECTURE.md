@@ -126,4 +126,15 @@ Locally (and in CI) the same interface is backed by an in-memory store with a JS
 `min-instances=1` for judging (`MIN_INSTANCES` in `scripts/deploy.sh`; 0 scales to zero between
 demos), CPU boost, session affinity. Timeline events are persisted per event, so an
 SSE stream served by another instance follows the run through Firestore. Runs are rate-limited
-per project (`MAX_RUNS_PER_HOUR`).
+per project (`MAX_RUNS_PER_HOUR`) and live (paid) runs also per address (12 an hour), like the copilot,
+voice notes, product-line suggestions and supplier uploads.
+
+**Runs survive the platform.** A run executes as a background task after `POST /runs` returns. Cloud Run
+(request-based billing) gives an instance CPU while it serves a request, and the browser keeps one open
+for the whole run: the SSE timeline, the project poll every 2.5 s while a run is going, the supplier page's
+poll. The browser reconnects a dropped stream with backoff (the server replays the history; events are
+de-duplicated by sequence) and the Capture page also settles a run from the project's own state, so a
+lost `end` event never leaves a spinner. A run still "running" 30 minutes after it started was cut off by
+an instance restart: it is marked *interrupted* and never blocks the project. Every Gemini call has a time
+limit and retries; Flash and Flash-Lite have separate concurrency lanes. (`--no-cpu-throttling` would let
+background work run with no request open, at the price of billing the instance for its whole lifetime.)
