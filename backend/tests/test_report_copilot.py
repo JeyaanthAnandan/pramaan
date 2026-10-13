@@ -100,3 +100,22 @@ def test_private_project_needs_its_passcode_to_ask(client: TestClient) -> None:
     own = client.post("/api/projects", json={"name": "Own", "company": "Test Co (SAMPLE)"}).json()
     pid = own["project"]["id"] if "project" in own else own["id"]
     assert TestClient(app).post(f"/api/projects/{pid}/ask", json={"question": "What is my SEE?"}).status_code == 401
+
+
+def test_explaining_a_lens_number_puts_its_formula_and_inputs_first(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    q = "How is the SEE of the stainless rod worked out?"
+    a = client.post(f"/api/projects/{PID}/ask", json={"question": q, "node": "P2.rod.see"}).json()
+    assert a["relevant"][0] == "P2.rod.see" and {"ref.dv.72210010", "y2026.default_markup"} <= set(a["relevant"])
+    first = next(f for f in a["facts"] if f["id"] == "P2.rod.see")
+    assert "formula" in first["label"] and first["node"] == "P2.rod.see"
+    _live(monkeypatch)
+    fake = Scripted(
+        "The default for stainless rod from India is 6.480 [F:ref.dv.72210010], plus the 2026 mark-up of 0.100 [F:y2026.default_markup]: 7.128 t CO2/t [F:P2.rod.see]."
+    )
+    llm.set_gemini(fake)
+    try:
+        g = client.post(f"/api/projects/{PID}/ask", json={"question": q, "node": "P2.rod.see"}).json()
+    finally:
+        llm.set_gemini(None)
+    assert g["mode"] == "grounded" and g["cited"] == ["ref.dv.72210010", "y2026.default_markup", "P2.rod.see"]
+    assert "[F:P2.rod.see]" in fake.prompts[0].split("FACTS:")[1].split("\n")[1]  # the focus is the first fact

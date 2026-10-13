@@ -33,14 +33,14 @@ export function AskProvider({ children }: { children: ReactNode }) {
   }, [turns]);
 
   const ask = useCallback(
-    async (question: string) => {
+    async (question: string, node?: string) => {
       const text = question.trim();
       if (!text || busy) return;
       setBusy(true);
       setQ("");
       setTurns((xs) => [...xs, { q: text }]);
       try {
-        const a = await api.reportAsk(pid, text, i18n.language);
+        const a = await api.reportAsk(pid, text, i18n.language, node);
         setTurns((xs) => xs.map((x, i) => (i === xs.length - 1 ? { ...x, a } : x)));
       } catch (e) {
         setTurns((xs) => xs.map((x, i) => (i === xs.length - 1 ? { ...x, err: (e as Error).message } : x)));
@@ -51,12 +51,28 @@ export function AskProvider({ children }: { children: ReactNode }) {
     [busy, pid, i18n.language],
   );
   const openAsk = useCallback(
-    (question?: string) => {
+    (question?: string, node?: string) => {
       setOpen(true);
-      if (question) void ask(question);
+      if (question) void ask(question, node);
     },
     [ask],
   );
+  // the Evidence Lens asks for a plain-words explanation of one number (it sits above this provider,
+  // so it learns that the panel exists from a flag on <html>)
+  useEffect(() => {
+    document.documentElement.dataset.ask = "1";
+    return () => {
+      delete document.documentElement.dataset.ask;
+    };
+  }, []);
+  useEffect(() => {
+    const f = (e: Event) => {
+      const d = (e as CustomEvent<{ q: string; node: string }>).detail;
+      if (d?.q) openAsk(d.q, d.node);
+    };
+    window.addEventListener("pramaan:ask", f);
+    return () => window.removeEventListener("pramaan:ask", f);
+  }, [openAsk]);
 
   return (
     <AskCtx.Provider value={openAsk}>

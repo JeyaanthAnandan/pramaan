@@ -110,3 +110,15 @@ def test_private_project_takes_supplier_uploads_through_the_link_only(client: Te
     v = stranger.get(f"/api/supplier/{tok}").json()
     assert len(v["documents"]) == 1 and v["status"] == "received"
     assert v["failed"]  # no Gemini in tests and not a bundled sample: left for the owner, said plainly
+
+
+def test_the_buyer_link_names_who_verified_the_supplier_data(client: TestClient) -> None:
+    def statuses() -> dict[str, str]:
+        tok = client.post(f"/api/projects/{PID}/share").json()["token"]
+        return {g["cn"]: g["precursor_data"][0]["status"] for g in client.get(f"/api/share/{tok}").json()["summary"]["goods"]}
+
+    s = statuses()
+    assert "Kestrel Assurance" in s["7318 15 82"] and "KA-VR-2026-0147" in s["7318 15 82"]
+    assert s["7318 15 75"].startswith("EU default")
+    client.post(f"/api/supplier/{_link(client)['token']}/sample")
+    assert "KA-VR-2026-0233" in statuses()["7318 15 75"]  # the supplier's own verification, now on the buyer link

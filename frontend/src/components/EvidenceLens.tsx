@@ -26,6 +26,12 @@ export function LensProvider({ children }: { children: ReactNode }) {
     setIsOpen(true);
   }, []);
   const value = useMemo(() => ({ open }), [open]);
+  // "Explain in plain words" hands the number to the Ask panel: the lens steps aside
+  useEffect(() => {
+    const f = () => setIsOpen(false);
+    window.addEventListener("pramaan:ask", f);
+    return () => window.removeEventListener("pramaan:ask", f);
+  }, []);
   return (
     <Ctx.Provider value={value}>
       {children}
@@ -153,7 +159,16 @@ function NodeView({ node, push }: { node: CalcNode; push: (id: string) => void }
       {(src?.kind === "refdata" || src?.kind === "assumption") && <RefView node={node} />}
       {node.formula && (
         <section>
-          <div className="eyebrow mb-1.5">{t("lens.formula")}</div>
+          <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+            <div className="eyebrow">{t("lens.formula")}</div>
+            {document.documentElement.dataset.ask === "1" && <button
+              type="button"
+              className="btn-quiet min-h-[32px] px-2 text-[12px] text-accent"
+              onClick={() => window.dispatchEvent(new CustomEvent("pramaan:ask", { detail: { node: node.id, q: t("ask.explain_q", { label: node.label, value: `${node.display ?? ""} ${node.unit ?? ""}`.trim() }) } }))}
+            >
+              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {t("lens.explain")}
+            </button>}
+          </div>
           <code className="block rounded-lg border border-line bg-surface px-3 py-2 font-mono text-[13px] text-ink">{node.formula}</code>
         </section>
       )}

@@ -6,10 +6,23 @@ from decimal import Decimal
 from typing import Any
 
 from app.cbam.tree import q
-from app.evidence.models import Project
+from app.evidence.models import Evidence, Project
 
 
-def buyer_summary(project: Project, result: dict[str, Any]) -> dict[str, Any]:
+def _verified_by(pid: str, evidence: list[Evidence] | None) -> str:
+    """'verified by <verifier>, report <ref>' from the supplier statement's own (two-reader) values."""
+    if not evidence:
+        return ""
+    pick = {
+        e.field_key: e.value_text
+        for e in evidence
+        if e.process == pid and e.field_key in {"verifier", "verification_ref"} and e.status in {"VERIFIED_2R", "APPROVED"}
+    }
+    who, ref = pick.get("verifier"), pick.get("verification_ref")
+    return ", ".join(x for x in (f"verified by {who}" if who else "", f"verification report {ref}" if ref else "") if x)
+
+
+def buyer_summary(project: Project, result: dict[str, Any], evidence: list[Evidence] | None = None) -> dict[str, Any]:
     goods = []
     for p in result.get("processes", []):
         if "see" not in p:
@@ -27,7 +40,7 @@ def buyer_summary(project: Project, result: dict[str, Any]) -> dict[str, Any]:
                 "precursor_data": [
                     {
                         "precursor": f"{pre['name']} (CN {pre['cn_display']})",
-                        "status": "actual, verified by supplier's verifier"
+                        "status": ("actual — " + (_verified_by(p["id"], evidence) or "verified by the supplier's verifier"))
                         if pre["data"] == "ACTUAL_VERIFIED"
                         else "EU default value with mark-up (supplier data requested)",
                     }

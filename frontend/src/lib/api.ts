@@ -226,7 +226,7 @@ export const api = {
   getShare: (token: string) => req<{ summary: BuyerSummary; created_at: string }>(`/api/share/${token}`),
   letter: (pid: string, process_id: string, lang: string) => req<{ text: string; lang: string; supplier: string; facts: Record<string, string>; link: { token: string; url: string } }>(`/api/projects/${pid}/supplier-letter`, { method: "POST", body: JSON.stringify({ process_id, lang }) }),
   explanations: (pid: string, lang: string) => req<{ lang: string; sections: Result["explanations"] }>(`/api/projects/${pid}/explanations?lang=${encodeURIComponent(lang)}`),
-  reportAsk: (pid: string, question: string, lang: string) => req<ReportAnswer>(`/api/projects/${pid}/ask`, { method: "POST", body: JSON.stringify({ question, lang }) }),
+  reportAsk: (pid: string, question: string, lang: string, node?: string) => req<ReportAnswer>(`/api/projects/${pid}/ask`, { method: "POST", body: JSON.stringify({ question, lang, node }) }),
   supplierLink: (pid: string, process_id: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/supplier-link`, { method: "POST", body: JSON.stringify({ process_id }) }),
   supplier: (token: string) => req<SupplierView>(`/api/supplier/${token}`),
   supplierSample: (token: string) => req<{ run_id: string; mode: string; status: string }>(`/api/supplier/${token}/sample`, { method: "POST" }),

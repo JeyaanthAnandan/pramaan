@@ -746,6 +746,7 @@ def monitoring_plan(pid: str, lang: str = "en") -> dict[str, Any]:
 class Ask(BaseModel):
     question: str
     lang: str = "en"
+    node: str | None = None  # "explain this number": a calculation-tree node from the Evidence Lens
 
 
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
@@ -797,7 +798,7 @@ async def report_ask(pid: str, request: Request, body: Ask) -> dict[str, Any]:
     q = body.question.strip()
     if not q or len(q) > 500:
         raise HTTPException(422, "question must be 1-500 characters")
-    return await answer(_project(pid), _result(pid), q, body.lang)
+    return await answer(_project(pid), _result(pid), q, body.lang, node=body.node)
 
 
 @router.get("/copilot/examples")

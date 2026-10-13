@@ -9,6 +9,16 @@ copilot · 3 energy-efficiency insights (theme: industrial efficiency) · 4 guid
 5 phone flow · 6 i18n + cost receipt · 7 live-run robustness · 8 accessibility/performance · 9 docs
 and visuals · 10 final judging.
 
+### Iteration 11 — trust and explainability
+* Judge: the Evidence Lens showed *how* a number is made (formula, inputs, photo) but not *what it means*;
+  the buyer link said "actual, verified" without saying by whom.
+* Built: **Explain in plain words** in the Evidence Lens: the number, its formula and its direct inputs
+  (with where each was read) go to *Ask about this report* as the first facts; Gemini explains the formula
+  step by step under the same numbers guard; the lens steps aside and the answer's chips reopen it. The
+  buyer link now names the verifier and the verification report of the supplier's data (from the
+  statement's own two-reader values, no plant data). Unlock attempts were already capped (20/h/address).
+* Tests: lens explanation (focus first, cited, prompt), buyer link verifier before/after the supplier upload.
+
 ### Iteration 10 — judging pass after nine iterations
 * Sweep of every page (desktop light/dark, 390 px phone; landing, report, gaps, capture, plan, proof,
   metrics, architecture, copilot, buyer link, supplier link): no page errors, no failed API calls, no

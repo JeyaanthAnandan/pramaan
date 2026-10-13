@@ -243,12 +243,46 @@ def _check(text: str, fs: list[dict[str, Any]], tree: dict[str, Any], pages: lis
     return cited, bad
 
 
-async def answer(project: Project, result: dict[str, Any], question: str, lang: str = "en") -> dict[str, Any]:
+def focus(result: dict[str, Any], node: str) -> list[dict[str, Any]]:
+    """One number from the Evidence Lens with its formula and its direct inputs, as citable facts."""
+    tree = result["calc_tree"]
+    n = tree.get(node)
+    if not n:
+        return []
+    out = [
+        {
+            "id": node,
+            "label": n["label"] + (f" (formula: {n['formula']})" if n.get("formula") else ""),
+            "value": str(n.get("display") or ""),
+            "unit": n.get("unit") or "",
+            "node": node,
+        }
+    ]
+    for ch in n.get("children", [])[:12]:
+        c = tree.get(ch)
+        if c and c.get("display") not in (None, ""):
+            src = c.get("source") or {}
+            where = (
+                f" (read from {src['doc_title']})"
+                if src.get("kind") == "evidence" and src.get("doc_title")
+                else f" ({src.get('locator')})"
+                if src.get("locator")
+                else ""
+            )
+            out.append({"id": ch, "label": c["label"] + where, "value": str(c["display"]), "unit": c.get("unit") or "", "node": ch})
+    return out
+
+
+async def answer(project: Project, result: dict[str, Any], question: str, lang: str = "en", node: str | None = None) -> dict[str, Any]:
     from app.copilot.service import _validate, retrieve
 
     fs = facts(project, result)
-    passages = retrieve(question, k=4)
     near = relevant(question, fs)
+    if node and (fc := focus(result, node)):  # "explain this number": its formula and inputs come first
+        ids = {x["id"] for x in fc}
+        fs = fc + [f for f in fs if f["id"] not in ids]
+        near = fc + [f for f in near if f["id"] not in ids][: max(0, 8 - len(fc))]
+    passages = retrieve(question, k=4)
     base = {"facts": fs, "relevant": [f["id"] for f in near], "passages": passages[:3]}
     if not settings().gemini_configured:
         return {
@@ -267,7 +301,9 @@ async def answer(project: Project, result: dict[str, Any], question: str, lang: 
         "Cite every number with its fact id in brackets, e.g. [F:P2.see], and method claims as [Guidance N, p. X]. Copy numbers "
         "exactly as written in FACTS: never compute, convert, round or add up numbers yourself. If the facts do not answer the "
         "question, say which document or data is missing. Plain words for a factory owner; keep SEE, SEFA, CBAM and CN in English. "
-        "At most 110 words. " + lang_line
+        "At most 110 words. "
+        + lang_line
+        + (" Explain how the first fact is worked out from its formula and inputs, step by step." if node else "")
     )
     fact_lines = "\n".join(f"- [F:{f['id']}] {f['label']}: {f['value']}{(' ' + f['unit']) if f['unit'] else ''}" for f in fs)
     ctx = "\n\n".join(f'<page doc="{p["doc"]}" page="{p["page"]}">\n{p["text"]}\n</page>' for p in passages)

@@ -175,7 +175,7 @@ def recalculate(project_id: str, lang: str = "en") -> dict[str, Any]:
     result["mode"] = prev.get("mode")
     from app.exports.summary import buyer_summary
 
-    result["buyer_summary"] = buyer_summary(project, result)
+    result["buyer_summary"] = buyer_summary(project, result, ev)
     st.put_result(project_id, f"recalc-{time.time_ns()}", result)
     return result
 
@@ -531,7 +531,7 @@ async def reporter(node_input: dict[str, Any]) -> Event:
     result["explainer_meta"] = c.stats.get("explainer_meta", {})
     result["run_id"] = c.run.id
     result["mode"] = c.mode
-    result["buyer_summary"] = buyer_summary(c.project, result)
+    result["buyer_summary"] = buyer_summary(c.project, result, store().list_evidence(c.project.id))
     store().put_result(c.project.id, c.run.id, result)
     c.emit(
         "Reporter",
