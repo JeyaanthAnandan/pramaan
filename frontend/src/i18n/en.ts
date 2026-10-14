@@ -62,6 +62,7 @@ const en = {
       scrap: { t: "Scrap and cut-offs — {{process}}", q: "Used for the mass-balance check (scrap carries zero embedded emissions)." },
       scrap_unbalanced: { t: "Scrap and cut-offs — {{process}}", q: "Rod − scrap does not match the tonnes produced in {{months}}. Check the scrap log and the production register for those months." },
       precursor_see: { t: "Emissions of the bought {{precursor}}", q_actual: "{{supplier}} sent verified data: SEE {{see}} t CO2/t.", q_default: "No verified data from {{supplier}}. EU default {{default_value}} t CO2/t + 10 % mark-up is used. Ask the supplier — this is your biggest lever." },
+      precursor_unverified: { t: "Emissions of the bought {{precursor}}", q: "{{supplier}} sent a statement (SEE {{see_sent}} t CO2/t), but no verification report number was found on it. The EU default stays until the data is verified: ask {{supplier}} for the verification report, or send a clearer photo of that part of the statement." },
       precursor_sefa: { t: "Free allocation of the {{precursor}} (SEFA)", q_actual: "Verified SEFA {{sefa}} t CO2/t from the supplier.", q_default: "Default benchmark (column B) used until the supplier sends actual SEFA." },
       exports: { t: "Exports to the EU — {{process}}", q: "{{tonnes}} t exported in {{quarters}}." },
       fuel_gas: { t: "Natural gas bills", q: "{{months_found}} of {{months_total}} monthly bills read." },

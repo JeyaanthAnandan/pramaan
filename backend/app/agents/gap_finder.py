@@ -140,23 +140,36 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
             )
         pre = pr.get("precursor", {})
         actual = pre.get("data") == "ACTUAL_VERIFIED"
+        # the supplier sent a statement, but no verification report number was read from it: say so
+        # instead of "no verified data from the supplier" (a live reply, 2026-10-14, was read without
+        # its verification section and the line stayed on the default with no reason given)
+        sent = [
+            x
+            for x in evidence
+            if x.field_key == "see"
+            and x.process == p.id
+            and (d := docs.get(x.doc_id)) is not None
+            and d.doc_type == "supplier_emissions_statement"
+        ]
+        unverified = bool(sent) and not actual
         gaps.append(
             {
                 "id": f"precursor_see.{p.id}",
                 "process": p.id,
                 "group": "precursor",
-                "kind": "precursor_see",
-                "status": "green" if actual and pre.get("status") in GOOD else ("amber" if actual else "red"),
+                "kind": "precursor_unverified" if unverified else "precursor_see",
+                "status": "green" if actual and pre.get("status") in GOOD else ("amber" if actual or unverified else "red"),
                 "params": {
                     "process": p.name,
                     "precursor": p.precursor_name,
                     "supplier": p.precursor_supplier,
                     "default_value": pre.get("default_value"),
                     "see": pre.get("see"),
+                    "see_sent": (sent[0].value_num or sent[0].value_text) if sent else None,
                     "data": pre.get("data"),
                     "locator": pre.get("default_locator"),
                 },
-                "evidence_ids": [],
+                "evidence_ids": [x.id for x in sent] if unverified else [],
                 "suggested_doc": "supplier_emissions_statement",
                 "ask": "supplier",
                 "node": pre.get("see_node"),

@@ -64,6 +64,7 @@ const vi = {
       scrap: { t: "Phế liệu và đầu mẩu — {{process}}", q: "Dùng cho kiểm tra cân bằng khối lượng (phế liệu có phát thải hàm chứa bằng không)." },
       scrap_unbalanced: { t: "Phế liệu và đầu mẩu — {{process}}", q: "Thép cuộn − phế liệu không khớp với sản lượng trong {{months}}. Hãy kiểm tra sổ phế liệu và sổ sản xuất của các tháng đó." },
       precursor_see: { t: "Phát thải của {{precursor}} mua vào", q_actual: "{{supplier}} đã gửi dữ liệu đã thẩm định: SEE {{see}} t CO2/t.", q_default: "Chưa có dữ liệu đã thẩm định từ {{supplier}}. Dùng mặc định EU {{default_value}} t CO2/t + 10 % mark-up. Hãy hỏi nhà cung cấp — đây là đòn bẩy lớn nhất." },
+      precursor_unverified: { t: "Phát thải của {{precursor}} mua vào", q: "{{supplier}} đã gửi bản kê (SEE {{see_sent}} t CO2/t), nhưng không tìm thấy số báo cáo thẩm định trên đó. Giá trị mặc định của EU vẫn được dùng cho đến khi dữ liệu được thẩm định: hãy xin {{supplier}} báo cáo thẩm định, hoặc gửi ảnh rõ hơn phần đó của bản kê." },
       precursor_sefa: { t: "Hạn ngạch miễn phí của {{precursor}} (SEFA)", q_actual: "SEFA đã thẩm định từ nhà cung cấp: {{sefa}} t CO2/t.", q_default: "Dùng benchmark mặc định (cột B) cho đến khi nhà cung cấp gửi SEFA thực tế." },
       exports: { t: "Xuất khẩu sang EU — {{process}}", q: "Đã xuất {{tonnes}} t trong {{quarters}}." },
       fuel_gas: { t: "Hóa đơn khí thiên nhiên", q: "Đã đọc {{months_found}}/{{months_total}} hóa đơn tháng." },

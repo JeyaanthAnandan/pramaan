@@ -89,16 +89,32 @@ def untagged(data: Any, doc_type: str, need_line: bool = True) -> float:
     return sum(1 for r in need if not r.get("period") or (need_line and not r.get("process"))) / len(need)
 
 
+# Values the engine cannot do without, on document types that always print them. A live supplier reply
+# (2026-10-14) came back with its SEE but without SEFA, verifier and report number (the same layout was
+# read in full an hour earlier): the product line stayed on the EU default and nothing said why.
+KEY_FIELDS: dict[str, tuple[str, ...]] = {
+    "supplier_emissions_statement": ("see", "sefa", "verifier", "verification_ref"),
+    "gas_invoice": ("mmbtu",),
+    "precursor_invoice": ("tonnes",),
+}
+
+
+def missing_keys(data: Any, doc_type: str) -> list[str]:
+    rows = data.get("fields", []) if isinstance(data, dict) else []
+    got = {str(r.get("field_key")) for r in rows if isinstance(r, dict) and str(r.get("value_text") or "").strip()}
+    return [k for k in KEY_FIELDS.get(doc_type, ()) if k not in got]
+
+
 async def extract(image: bytes, mime: str, doc_type: str, project: Project) -> LLMResult:
     spec = FIELDS.get(doc_type, {})
     lines = "\n".join(f"- {k}: {desc} [unit: {unit or 'text'}; scope: {scope}]" for k, (desc, unit, scope) in spec.items())
     prompt = f"Document type: {doc_type}.\nFields to extract (field_key: meaning):\n{lines}\nReturn JSON only."
 
-    async def once() -> LLMResult:
+    async def once(ask: str = prompt) -> LLMResult:
         return await gemini().json(
             settings().model_flash,
             _extract_system(project),
-            [text_part(prompt), image_part(image, mime, "high")],
+            [text_part(ask), image_part(image, mime, "high")],
             extraction_schema(),
             thinking_level="medium",
         )
@@ -115,6 +131,28 @@ async def extract(image: bytes, mime: str, doc_type: str, project: Project) -> L
         again = await once()
         if not degenerate(again.data) and untagged(again.data, doc_type, line) < untagged(r.data, doc_type, line):
             r = again
+    gone = missing_keys(r.data, doc_type)
+    if gone:
+        # read again for just those fields and add what the second reading finds; the first reading's
+        # values stay as they are (each value is still re-read blind from its crop afterwards)
+        log.warning("Extractor returned no %s for a %s; reading the page again for them", ", ".join(gone), doc_type)
+        focus = "\n".join(f"- {k}: {spec[k][0]} [unit: {spec[k][1] or 'text'}; scope: {spec[k][2]}]" for k in gone)
+        again = await once(
+            f"Document type: {doc_type}.\nA first reading of this page did not return these fields. Look for them carefully and "
+            f"return only these:\n{focus}\nReturn JSON only."
+        )
+        rows = again.data.get("fields", []) if isinstance(again.data, dict) and not degenerate(again.data) else []
+        add = [x for x in rows if isinstance(x, dict) and x.get("field_key") in gone and str(x.get("value_text") or "").strip()]
+        if add:
+            first = r.data.get("fields", []) if isinstance(r.data, dict) else []
+            r = LLMResult(
+                {**(r.data if isinstance(r.data, dict) else {}), "fields": [*first, *add]},
+                r.model,
+                (r.tokens_in or 0) + (again.tokens_in or 0),
+                (r.tokens_out or 0) + (again.tokens_out or 0),
+                r.duration_ms + again.duration_ms,
+                r.raw_text,
+            )
     return r
 
 

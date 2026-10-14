@@ -226,3 +226,54 @@ def test_the_verifier_pack_names_the_months_too(kaveri: Any) -> None:
     assert m["note"].startswith("Out of balance: 2026-03 (125.0 vs 130.0 t)") and len(m["evidence_ids"].split()) == 6
     plan = z.read("monitoring_plan_en.md").decode("utf-8")
     assert "Kaveri Precision Fasteners" in plan and "bolt" not in plan.lower()
+
+
+def test_the_carbon_rod_supplier_replies(kaveri: Any) -> None:
+    """Cauvery answers the request with a verified statement (BF-BOF, SEE 1.567, SEFA 1.242). Read live on
+    14 Oct 2026 without its verification section, the line rightly stayed on the default, but the checklist
+    said only "no verified data"; it now says the statement came without a verification report number.
+    Read in full, the line moves to the independent calculator's figures: SEE 2.005563, EUR 42.30/t."""
+    _, pid, _ = kaveri
+    stmt = Document(project_id=pid, filename="stmt-CWR-2026-H1.jpg", uri="file:///independent/stmt-CWR-2026-H1.jpg")
+    stmt.doc_type, stmt.state = "supplier_emissions_statement", "extracted"
+    store().put_document(stmt)
+
+    def put(rows: list[tuple[str, str, str | None]]) -> None:
+        store().put_evidence(
+            [
+                Evidence(
+                    project_id=pid,
+                    doc_id=stmt.id,
+                    field_key=k,
+                    value_text=v,
+                    value_num=n,
+                    process="P1",
+                    box_2d=[100, 100, 120, 300],
+                    status="VERIFIED_2R",
+                    second_reading=SecondReading(reading_value=v, agrees=True),
+                )
+                for k, v, n in rows
+            ]
+        )
+
+    put([("product_cn", "7213 91 49", None), ("period", "01-01-2026 to 30-06-2026", None), ("see", "1.567 t CO2e / t", "1.567")])
+    res = recalculate(pid)
+    assert line(res, "P1")["precursor"]["data"] == "DEFAULT_USED"  # an unverified figure is not declared
+    gap = next(g for g in res["gaps"] if g["id"] == "precursor_see.P1")
+    assert gap["kind"] == "precursor_unverified" and gap["status"] == "amber" and gap["params"]["see_sent"] == "1.567"
+
+    put(
+        [
+            ("sefa", "1.242 t CO2e / t", "1.242"),
+            ("verifier", "Meridian Verification Services GmbH (TEST)", None),
+            ("verification_ref", "MVS-VR-2026-0533", None),
+        ]
+    )
+    res = recalculate(pid)
+    p1 = line(res, "P1")
+    assert p1["precursor"]["data"] == "ACTUAL_VERIFIED"
+    assert near(p1["see"], "2.005563", "0.000001") and near(p1["sefa"], "1.480963", "0.000001")
+    assert near(p1["buyer"]["actual_eur_t"], "42.30", "0.01") and p1["buyer"]["basis_2026"] == "actual"
+    assert near(p1["buyer"]["annual_gap_eur"], "221035", "2")  # (325.68 - 42.30) x 780 t a year
+    assert res["readiness"]["lines_ready"] == 2 and set(res["money"]["what_if"]) == set()
+    assert next(g for g in res["gaps"] if g["id"] == "precursor_see.P1")["status"] == "green"

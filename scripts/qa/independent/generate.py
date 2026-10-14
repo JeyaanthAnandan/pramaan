@@ -13,7 +13,7 @@ from playwright.sync_api import sync_playwright
 
 import factory as F
 
-OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "out")
+OUT = Path(next((a for a in sys.argv[1:] if not a.startswith("--")), "out"))
 OUT.mkdir(exist_ok=True)
 FONTS = str(Path(__file__).resolve().parents[3] / "demo" / "fonts")
 import base64 as _b64
@@ -167,10 +167,10 @@ def export_html(x: dict) -> str:
 def statement_html(s: dict) -> str:
     return page(f"""
 <div style="border-left:8px solid #2c4a6e;padding-left:16px"><div style="font:700 24px Georgia;color:#2c4a6e">{s['supplier']}</div>
-<div class="small">EAF melt shop & wire rod mill · Salem (TEST)</div></div>
+<div class="small">{s.get('works', 'EAF melt shop & wire rod mill · Salem (TEST)')}</div></div>
 <h2 style="margin-top:26px">Communication of embedded emissions to the operator (EU CBAM)</h2>
 <p>To: {F.COMPANY} · Reference <b>{s['doc_no']}</b> · Issued 24-07-2026</p>
-<table><tr><td style="width:44%">Product (CN code)</td><td>Stainless-steel wire rod, CN {s['cn']}</td></tr>
+<table><tr><td style="width:44%">Product (CN code)</td><td>{s.get('product', 'Stainless-steel wire rod')}, CN {s['cn']}</td></tr>
 <tr><td>Reporting period covered</td><td>{s['period']}</td></tr>
 <tr><td>Production route</td><td>{s['route']}</td></tr>
 <tr><td><b>Specific embedded emissions (SEE), direct</b></td><td><b>{s['see']} t CO2e / t</b></td></tr>
@@ -235,6 +235,8 @@ DOCS.append(("scrap-2026-01-to-06", scrap_html()))
 for x in F.EXPORTS:
     DOCS.append((x["file"], export_html(x)))
 DOCS.append((F.STATEMENT["file"], statement_html(F.STATEMENT)))
+if "--supplier-reply" in sys.argv:  # only the carbon rod supplier's later reply (seed 1016: after the 16 above)
+    DOCS = [(F.STATEMENT_CARBON["file"], statement_html(F.STATEMENT_CARBON))]
 
 with sync_playwright() as p:
     br = p.chromium.launch()
@@ -244,6 +246,6 @@ with sync_playwright() as p:
         pg.wait_for_timeout(250)
         png = pg.screenshot(full_page=True)
         (OUT / f"{name}.flat.png").write_bytes(png)
-        photo(png, 1000 + k).save(OUT / f"{name}.jpg", quality=84)
+        photo(png, 1016 if "--supplier-reply" in sys.argv else 1000 + k).save(OUT / f"{name}.jpg", quality=84)
         print(name)
     br.close()

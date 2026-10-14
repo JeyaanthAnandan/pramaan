@@ -360,3 +360,60 @@ def test_a_page_read_without_product_lines_is_not_read_again(monkeypatch: pytest
     assert r.data == dated and len(calls) == 1
     assert readers.untagged(dated, "scrap_log", need_line=False) == 0.0 and readers.untagged(dated, "scrap_log") == 1.0
     assert readers.untagged({"fields": [{"field_key": "scrap_t", "value_text": "15.4"}]}, "scrap_log", need_line=False) == 1.0
+
+
+def test_a_statement_missing_its_verification_is_read_again_for_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A live supplier reply (14 Oct 2026) came back with its SEE but no SEFA, verifier or report number,
+    so the product line stayed on the EU default. The page is read again for just those fields; the
+    first reading's values stay, and a field that was not asked for is not taken from the second."""
+    from app.agents import readers
+
+    partial = {
+        "fields": [
+            {"field_key": "see", "value_text": "1.567 t CO2e / t", "value_num": "1.567", "process": "P1"},
+            {"field_key": "route", "value_text": "Blast furnace + basic oxygen furnace (BF-BOF)", "process": "P1"},
+        ]
+    }
+    rest = {
+        "fields": [
+            {"field_key": "sefa", "value_text": "1.242 t CO2e / t", "value_num": "1.242", "process": "P1"},
+            {"field_key": "verifier", "value_text": "Meridian Verification Services GmbH (TEST)", "process": "P1"},
+            {"field_key": "verification_ref", "value_text": "MVS-VR-2026-0533", "process": "P1"},
+            {"field_key": "see", "value_text": "1.576", "value_num": "1.576", "process": "P1"},
+        ]
+    }
+    answers = iter([partial, rest])
+    asks: list[str] = []
+
+    class Fake:
+        async def json(self, model: str, system: str, parts: list[dict[str, Any]], *a: Any, **k: Any) -> Any:
+            asks.append(parts[0]["text"])
+            return llm.LLMResult(next(answers), "gemini-3.8-flash", 100, 50, 10, "")
+
+    monkeypatch.setattr(readers, "gemini", lambda: Fake())
+    r = asyncio.run(readers.extract(b"", "image/jpeg", "supplier_emissions_statement", loader.demo_project()))
+    assert [f["field_key"] for f in r.data["fields"]] == ["see", "route", "sefa", "verifier", "verification_ref"]
+    assert r.data["fields"][0]["value_num"] == "1.567" and r.tokens_in == 200
+    assert len(asks) == 2 and "- sefa:" in asks[1] and "- route:" not in asks[1]
+    assert readers.missing_keys(r.data, "supplier_emissions_statement") == []
+
+
+def test_a_complete_statement_is_read_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.agents import readers
+
+    full = {
+        "fields": [
+            {"field_key": k, "value_text": v}
+            for k, v in (("see", "2.150"), ("sefa", "0.880"), ("verifier", "M"), ("verification_ref", "R-1"))
+        ]
+    }
+    calls: list[int] = []
+
+    class Fake:
+        async def json(self, *a: Any, **k: Any) -> Any:
+            calls.append(1)
+            return llm.LLMResult(full, "gemini-3.8-flash", 1, 1, 1, "")
+
+    monkeypatch.setattr(readers, "gemini", lambda: Fake())
+    r = asyncio.run(readers.extract(b"", "image/jpeg", "supplier_emissions_statement", loader.demo_project()))
+    assert r.data == full and len(calls) == 1

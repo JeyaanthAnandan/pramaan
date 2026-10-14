@@ -87,3 +87,12 @@ STATEMENT = {"file": "stmt-NSR-2026-H1", "supplier": "Nilgiri Stainless Rods Ltd
              "reducing_agent": "None (scrap-based EAF)", "scrap_per_t": D("0.96"), "pre_consumer_pct": D("35"),
              "verifier": "Meridian Verification Services GmbH (TEST — fictional verifier)", "verification_ref": "MVS-VR-2026-0412",
              "opinion": "Positive opinion with reasonable assurance"}
+
+# The carbon rod supplier's reply to the request letter, sent through its upload link (a separate test,
+# after the first run): verified BF-BOF figures like EC Guidance 5d Example 1.
+STATEMENT_CARBON = {"file": "stmt-CWR-2026-H1", "supplier": "Cauvery Wire Rods Pvt Ltd (TEST)", "product": "Carbon-steel wire rod",
+                    "works": "Blast furnace, BOF & wire rod mill · Tiruchirappalli (TEST)", "doc_no": "CWR-CBAM-2026-H1-007",
+                    "cn": "7213 91 49", "period": "01-01-2026 to 30-06-2026", "route": "Blast furnace + basic oxygen furnace (BF-BOF)",
+                    "see": D("1.567"), "sefa": D("1.242"), "reducing_agent": "Coke (blast furnace)", "scrap_per_t": D("0.12"),
+                    "pre_consumer_pct": D("40"), "verifier": "Meridian Verification Services GmbH (TEST — fictional verifier)",
+                    "verification_ref": "MVS-VR-2026-0533", "opinion": "Positive opinion with reasonable assurance"}

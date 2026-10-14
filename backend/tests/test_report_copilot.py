@@ -119,3 +119,24 @@ def test_explaining_a_lens_number_puts_its_formula_and_inputs_first(client: Test
         llm.set_gemini(None)
     assert g["mode"] == "grounded" and g["cited"] == ["ref.dv.72210010", "y2026.default_markup", "P2.rod.see"]
     assert "[F:P2.rod.see]" in fake.prompts[0].split("FACTS:")[1].split("\n")[1]  # the focus is the first fact
+
+
+def test_numbers_inside_a_product_name_are_not_figures() -> None:
+    """A live Tamil answer about a nut maker (14 Oct 2026) named the line "stainless steel A2-70, ISO 4032 M8"
+    in full and was withheld for "70". Numbers printed inside the report's own facts are allowed; a figure
+    the model worked out itself still is not."""
+    from app.copilot.report import _check
+
+    fs = [
+        {
+            "id": "P2.product",
+            "label": "Product line P2",
+            "value": "Hexagon nuts, stainless steel A2-70, ISO 4032 M8, CN 7318 16 39",
+            "unit": "",
+        },
+        {"id": "P2.y2026.cost_actual", "label": "Buyer's cost per t, 2026, your data", "value": "121.54", "unit": "EUR/t"},
+    ]
+    _, bad = _check("P2 (A2-70 நட்டுகள், ISO 4032 M8): 121.54 EUR/t [F:P2.y2026.cost_actual]", fs, {}, [])
+    assert bad == []
+    _, bad = _check("P2: 121.54 EUR/t, about 13,175 INR [F:P2.y2026.cost_actual]", fs, {}, [])
+    assert bad == ["13175"]

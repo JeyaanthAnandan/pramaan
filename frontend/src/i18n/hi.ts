@@ -63,6 +63,7 @@ const hi = {
       scrap: { t: "स्क्रैप और कटिंग — {{process}}", q: "mass-balance जाँच के लिए (स्क्रैप के embedded emissions शून्य होते हैं)।" },
       scrap_unbalanced: { t: "स्क्रैप और कटिंग — {{process}}", q: "{{months}} में रॉड − स्क्रैप उत्पादन के टन से मेल नहीं खाता। उन महीनों का स्क्रैप लॉग और उत्पादन रजिस्टर जाँचें।" },
       precursor_see: { t: "खरीदी गई {{precursor}} के उत्सर्जन", q_actual: "{{supplier}} ने सत्यापित डेटा भेजा: SEE {{see}} t CO2/t।", q_default: "{{supplier}} से सत्यापित डेटा नहीं मिला। EU default {{default_value}} t CO2/t + 10 % mark-up लगाया गया। सप्लायर से माँगें — यही आपका सबसे बड़ा लीवर है।" },
+      precursor_unverified: { t: "खरीदी गई {{precursor}} के उत्सर्जन", q: "{{supplier}} ने वक्तव्य भेजा है (SEE {{see_sent}} t CO2/t), लेकिन उसमें verification report नंबर नहीं मिला। डेटा सत्यापित होने तक EU default ही लगेगा: {{supplier}} से verification report माँगें, या वक्तव्य के उस हिस्से की साफ़ फ़ोटो भेजें।" },
       precursor_sefa: { t: "{{precursor}} का free allocation (SEFA)", q_actual: "सप्लायर से सत्यापित SEFA {{sefa}} t CO2/t।", q_default: "सप्लायर का वास्तविक SEFA मिलने तक default benchmark (column B) लगाया गया।" },
       exports: { t: "EU को निर्यात — {{process}}", q: "{{quarters}} में {{tonnes}} टन निर्यात।" },
       fuel_gas: { t: "प्राकृतिक गैस के बिल", q: "{{months_total}} में से {{months_found}} मासिक बिल पढ़े गए।" },

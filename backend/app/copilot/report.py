@@ -238,6 +238,9 @@ def _check(text: str, fs: list[dict[str, Any]], tree: dict[str, Any], pages: lis
     cited = [m for m in FACT_RX.findall(text) if m in ids]
     pseudo = {f["id"]: {"value": f["value"].replace(",", ""), "display": f["value"].replace(",", ""), "unit": f["unit"] or "x"} for f in fs}
     allowed = _allowed_numbers({**tree, **pseudo}, [str(p) for p in pages])
+    # a number printed inside a fact counts too: a product line named "stainless steel A2-70, ISO 4032 M8"
+    # carries 70 and 4032 (a live Tamil answer, 2026-10-14, named the line in full and was withheld for "70")
+    allowed |= {abs(n) for f in fs for n in numbers_in(str(f["value"]))}
     clean = FACT_RX.sub(" ", text)
     bad = [str(n) for n in numbers_in(_strip_refs(clean)) if n not in allowed and n.normalize() not in allowed]
     return cited, bad

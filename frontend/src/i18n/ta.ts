@@ -63,6 +63,7 @@ const ta = {
       scrap: { t: "ஸ்கிராப் மற்றும் வெட்டுக்கழிவு — {{process}}", q: "mass-balance சரிபார்ப்புக்கு (ஸ்கிராப்பின் embedded emissions பூஜ்ஜியம்)." },
       scrap_unbalanced: { t: "ஸ்கிராப் மற்றும் வெட்டுக்கழிவு — {{process}}", q: "{{months}} மாதங்களில் ராடு − ஸ்கிராப் உற்பத்தி டன்னுடன் பொருந்தவில்லை. அந்த மாதங்களின் ஸ்கிராப் பதிவையும் உற்பத்திப் பதிவேட்டையும் சரிபார்க்கவும்." },
       precursor_see: { t: "வாங்கிய {{precursor}}-இன் உமிழ்வுகள்", q_actual: "{{supplier}} சரிபார்த்த தரவை அனுப்பினார்: SEE {{see}} t CO2/t.", q_default: "{{supplier}} சரிபார்த்த தரவை அனுப்பவில்லை. EU default {{default_value}} t CO2/t + 10 % mark-up பயன்படுத்தப்பட்டது. சப்ளையரிடம் கேளுங்கள் — இதுவே உங்கள் பெரிய நெம்புகோல்." },
+      precursor_unverified: { t: "வாங்கிய {{precursor}}-இன் உமிழ்வுகள்", q: "{{supplier}} ஒரு அறிக்கையை அனுப்பியுள்ளது (SEE {{see_sent}} t CO2/t), ஆனால் அதில் verification report எண் கிடைக்கவில்லை. தரவு சரிபார்க்கப்படும் வரை EU default தொடரும்: {{supplier}}-இடம் verification report கேளுங்கள், அல்லது அறிக்கையின் அந்தப் பகுதியின் தெளிவான புகைப்படத்தை அனுப்புங்கள்." },
       precursor_sefa: { t: "{{precursor}}-இன் free allocation (SEFA)", q_actual: "சப்ளையரிடமிருந்து சரிபார்த்த SEFA {{sefa}} t CO2/t.", q_default: "சப்ளையரின் உண்மையான SEFA வரும் வரை default benchmark (column B)." },
       exports: { t: "EU-க்கு ஏற்றுமதி — {{process}}", q: "{{quarters}}-இல் {{tonnes}} டன் ஏற்றுமதி." },
       fuel_gas: { t: "இயற்கை எரிவாயு பில்கள்", q: "{{months_total}} மாத பில்களில் {{months_found}} படிக்கப்பட்டன." },

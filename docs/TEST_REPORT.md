@@ -21,7 +21,12 @@ for a non-sample factory were incomplete in 9 ways, for example:
 * months out of balance were not named;
 * the text said "bolts" for a nut maker.
 
-All 9 are fixed in 45dd60c.
+All 9 are fixed in 45dd60c. Two more failures came from live Gemini:
+* A supplier's reply was read without its verification section, so the report silently stayed on the
+  default.
+* A correct Tamil answer was withheld by the number guard.
+
+Both are fixed in the commit after 93e95c4.
 
 Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not on live until the redeploy · – not run on live
 
@@ -131,6 +136,10 @@ test (`backend/tests/test_independent_factory.py`).
 | Plant pulse | March +20.7 %, 118.8 GJ, ₹1,76,194; best April | same | ✅ |
 | Control checks | monthly balance off in Mar and May; supplier data missing for the carbon rod | warns on both; the months were not named before the fix | ✅ |
 | Live run time | under 2 min target | **345 s**: two Gemini calls stalled (167 s, 260 s) and were retried | ⚠️ |
+| Supplier replies through its upload link (live): verified statement for the carbon rod, BF-BOF, SEE 1.567, SEFA 1.242 | carbon nuts SEE 2.005563, €42.30/t, €221,035 a year on that line (€289,099 in all), 2 of 2 lines ready | read in 61 s, but **only 6 of 13 values** (no SEFA, verifier or report number): the line stayed on the default, and the checklist still said "no verified data" | ❌ → fixed |
+| The same statement read in full (engine, CI test) | as above | SEE 2.005563, SEFA 1.480963, €42.30/t, €221,035, 2 of 2 lines | ✅ |
+| Ask about this report (live Gemini) | €305.78 and €121.54 per t; why carbon is higher | English: right figures with citations, 5.2 s. **Tamil: withheld** by the number guard for "70", from the product name "A2-70" | ⚠️ → fixed |
+| Buyer link, Excel, operations levers (local) | SEE 5.642 / 2.624, no plant data; levers from first principles | all match (rod EC Ex. 1 €42.30/t; electric 5.4570; gas 3.0 GJ/t 5.6253; scrap 10 % €292.92/t) | ✅ |
 
 **Found and fixed** (45dd60c, CI green):
 
@@ -145,11 +154,15 @@ test (`backend/tests/test_independent_factory.py`).
 | PDF: "Mode: None · run None" after a recalculation; "-0 %" in the pulse | Fixed |
 | Second reader: "53.15 per SCM" vs INR/SCM, and the buyer's name vs name + address, sent 4 correctly read values to a person | Unit aliases; a leading part of the second reading may match |
 | A next step called a hand-corrected value one that "the two AI readers could not settle" | Reworded |
+| **Live supplier reply read in part** (SEE but no SEFA, verifier or report number): the line stayed on the default with no reason given | A page missing an essential value (statement: SEE, SEFA, verifier, report number; gas bill: MMBtu; rod invoice: tonnes) is read again for just those values. The first reading's values are kept. The checklist says when a statement arrived without a verification report number (4 languages) |
+| A correct **Tamil** answer was withheld: "A2-70" in the product name read as an invented 70 | Numbers printed inside the report's own facts (names included) are allowed; a figure the model works out itself is still withheld |
 
 **How the fixes were checked:**
-* 10 tests in `tests/test_independent_factory.py` and 2 in `tests/test_two_reader.py`. The 8 that
-  cover these fixes fail on the previous code; the engine-accuracy tests pass on both.
-* The full suite (229 tests), the Firestore emulator test, ruff, mypy and the refdata rebuild.
+* 11 tests in `tests/test_independent_factory.py`, including the supplier reply, plus 5 more: 2 in
+  `test_two_reader.py`, 2 for the re-read in `test_normalize.py`, and 1 for the guard in
+  `test_report_copilot.py`. The tests that cover these fixes fail on the previous code; the
+  engine-accuracy tests pass on both.
+* The full suite (233 tests), the Firestore emulator test, ruff, mypy and the refdata rebuild.
 * i18n, `check:format`, the build, the UI smoke test, and `api_check.py` (224 checks, 0 failed).
 * The factory in a browser on a local server: 25 of 25 checks with no console errors. This covered the
   report, the checklist with the Tamil crop on the review card, Hindi, Tamil and Vietnamese, a 390 px
@@ -157,7 +170,9 @@ test (`backend/tests/test_independent_factory.py`).
 
 **Still open:**
 * The 4 alloy values Gemini missed on one invoice are not flagged. The average then uses the invoices
-  that have them.
+  that have them. Alloy % is not on the re-read list, because many rod invoices do not print it.
+* Gemini sometimes returns only part of a page; the same layout was read in full an hour earlier. The
+  re-read covers the values the engine cannot do without, not every field.
 * Live run time depends on Gemini's slowest call. Each call times out at 75 s, has a hedge at 30 s and
   gets 3 attempts.
 * The live service has none of these fixes until the redeploy.

@@ -40,6 +40,7 @@ cd scripts/qa/independent
 ../../../backend/.venv/bin/python generate.py out        # 16 photos
 ../../../backend/.venv/bin/python run_live.py https://<service>.run.app   # live Gemini, about 6 min
 ../../../backend/.venv/bin/python compare_fields.py      # reading accuracy
+../../../backend/.venv/bin/python generate.py reply --supplier-reply   # the carbon rod supplier's verified statement, for its upload link
 ```
 
 `backend/tests/test_independent_factory.py` runs in CI. It replays the live readings through the
