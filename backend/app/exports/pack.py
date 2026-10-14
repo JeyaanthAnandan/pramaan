@@ -143,7 +143,7 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
         z.writestr("spot_check.csv", s.getvalue())
         s = io.StringIO()
         w = SafeWriter(s)
-        w.writerow(["id", "name", "formula", "inputs", "result", "tolerance", "status", "evidence_ids", "reference"])
+        w.writerow(["id", "name", "formula", "inputs", "result", "tolerance", "status", "evidence_ids", "reference", "note"])
         for c in result.get("checks", []):
             w.writerow(
                 [
@@ -156,6 +156,7 @@ def render(project: Project, result: dict[str, Any], evidence: list[Evidence], d
                     c["status"],
                     " ".join(c["evidence_ids"]),
                     c["reference"],
+                    c.get("note", ""),  # e.g. which months are out of balance, with their figures
                 ]
             )
         z.writestr("control_checks.csv", s.getvalue())

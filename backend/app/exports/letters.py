@@ -47,9 +47,9 @@ Dear {supplier} team,
 
 We buy {precursor} from you ({tonnes} t consumed in {period}) to manufacture {product} (CN {product_cn}), which we export to the European Union.
 
-Since 1 January 2026 the EU Carbon Border Adjustment Mechanism (CBAM) is in its definitive phase: our EU buyer must declare the emissions embedded in our goods and buy CBAM certificates for them. Your rod accounts for about {share}% of the embedded emissions of our bolts.
+Since 1 January 2026 the EU Carbon Border Adjustment Mechanism (CBAM) is in its definitive phase: our EU buyer must declare the emissions embedded in our goods and buy CBAM certificates for them. Your rod accounts for about {share}% of the embedded emissions of these goods.
 
-Because we do not yet have your verified data, we must use the EU default value for India: {default_value} t CO2e per tonne of rod, increased by the 2026 mark-up to {default_with_markup} t CO2e/t. On this basis our buyer currently faces about EUR {cost_actual} per tonne of bolts with our data, against EUR {cost_default} per tonne on full EU default values. Verified data from you would replace the default.
+Because we do not yet have your verified data, we must use the EU default value for India: {default_value} t CO2e per tonne of rod, increased by the 2026 mark-up to {default_with_markup} t CO2e/t. On this basis our buyer currently faces about EUR {cost_actual} per tonne of these goods with our data, against EUR {cost_default} per tonne on full EU default values. Verified data from you would replace the default.
 
 Could you please send us, for the rod delivered to us in 2026:
 1. The specific embedded emissions (SEE) of the rod in t CO2e/t and the production route (for example BF-BOF or scrap-EAF).
@@ -73,9 +73,9 @@ HI = """विषय: सत्यापित CBAM embedded-emissions डेट
 
 हम आपसे {precursor} खरीदते हैं ({period} में {tonnes} टन उपयोग) और इससे {product} (CN {product_cn}) बनाकर यूरोपीय संघ (EU) को निर्यात करते हैं।
 
-1 जनवरी 2026 से EU का Carbon Border Adjustment Mechanism (CBAM) अपने definitive चरण में है: हमारे EU खरीदार को हमारे माल में निहित उत्सर्जन (embedded emissions) घोषित करने होते हैं और उनके लिए CBAM certificates खरीदने होते हैं। हमारे बोल्ट के embedded emissions में आपकी रॉड का हिस्सा लगभग {share}% है।
+1 जनवरी 2026 से EU का Carbon Border Adjustment Mechanism (CBAM) अपने definitive चरण में है: हमारे EU खरीदार को हमारे माल में निहित उत्सर्जन (embedded emissions) घोषित करने होते हैं और उनके लिए CBAM certificates खरीदने होते हैं। इस माल के embedded emissions में आपकी रॉड का हिस्सा लगभग {share}% है।
 
-आपका सत्यापित डेटा अभी हमारे पास नहीं है, इसलिए हमें भारत के लिए EU default value लेनी पड़ रही है: रॉड के प्रति टन {default_value} t CO2e, जो 2026 के mark-up के साथ {default_with_markup} t CO2e/t हो जाती है। इस आधार पर हमारे खरीदार की लागत हमारे डेटा के साथ लगभग EUR {cost_actual} प्रति टन बोल्ट है, जबकि पूरी तरह EU default values पर EUR {cost_default} प्रति टन। आपका सत्यापित डेटा default value की जगह लेगा।
+आपका सत्यापित डेटा अभी हमारे पास नहीं है, इसलिए हमें भारत के लिए EU default value लेनी पड़ रही है: रॉड के प्रति टन {default_value} t CO2e, जो 2026 के mark-up के साथ {default_with_markup} t CO2e/t हो जाती है। इस आधार पर हमारे खरीदार की लागत हमारे डेटा के साथ लगभग EUR {cost_actual} प्रति टन माल है, जबकि पूरी तरह EU default values पर EUR {cost_default} प्रति टन। आपका सत्यापित डेटा default value की जगह लेगा।
 
 कृपया 2026 में हमें भेजी गई रॉड के लिए निम्न जानकारी भेजें:
 1. रॉड के specific embedded emissions (SEE), t CO2e/t में, और उत्पादन मार्ग (जैसे BF-BOF या scrap-EAF)।

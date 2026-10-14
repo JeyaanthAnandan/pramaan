@@ -414,6 +414,30 @@ def _year_params(c: Ctx, year: int) -> dict[str, tuple[str, Decimal]]:
     return out
 
 
+# Steel inputs with stainless chemistry (CN 7218-7223); the rest are carbon or alloy steel.
+STAINLESS_CN = ("7218", "7219", "7220", "7221", "7222", "7223")
+
+
+def default_what_if(p: Any) -> dict[str, str]:
+    """What the buyer would pay if the rod supplier sent verified data, for a line still on the rod's
+    default value: the realistic verified figure is the Commission's own worked example for that kind of
+    steel (EC Guidance 5d Example 1, BF-BOF bars; Example 2 / Table 4-14, stainless via EAF). Without
+    this only the bundled sample had a Precursor Lever saving, "More within reach" and the "ask your
+    supplier" step; every other factory showed none."""
+    who = p.precursor_supplier or "the supplier"
+    if (p.precursor_cn or "").replace(" ", "").startswith(STAINLESS_CN):
+        return {
+            "see": "1.783",
+            "sefa": "0.919",
+            "source": f"If {who} sends verified data like EC Guidance 5d Example 2 (SEE 1.783) and Table 4-14 (SEFA 0.919)",
+        }
+    return {
+        "see": "1.567",
+        "sefa": "1.242",
+        "source": f"If {who} sends verified data like EC Guidance 5d Example 1 (SEE 1.567, SEFA 1.242)",
+    }
+
+
 def compute(project: Project, evidence: list[Evidence], documents: list[Document]) -> dict[str, Any]:
     tree = Tree()
     c = Ctx(project, tree, [x for x in evidence], {d.id: d for d in documents}, set())
@@ -853,8 +877,9 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
             "supplier_saving_annual_eur": None,
         }
 
-        # ---- what-if: supplier sends verified data (Precursor Lever)
-        wi = project.what_if.get(pid)
+        # ---- what-if: supplier sends verified data (Precursor Lever); a line whose rod is on its default
+        # gets the Commission's worked-example figure unless the owner set a scenario of their own
+        wi = project.what_if.get(pid) or (None if actual else default_what_if(p))
         if wi:
             wi_see, wi_sefa = D(str(wi["see"])), D(str(wi["sefa"]))
             tree.leaf(
@@ -936,8 +961,17 @@ def compute(project: Project, evidence: list[Evidence], documents: list[Document
             xs = c.pick(field, pid, doc_type="precursor_invoice")
             if not xs:
                 return {"value": None, "status": MISSING, "evidence": []}
-            v = sum((_num(x) for x in xs), D(0)) / len(xs)
-            return {"value": q(v, 2), "status": _worst([x.status for x in xs]), "evidence": [x.id for x in xs]}
+            # weighted by the tonnes on each invoice: the good is made from all of that rod, and a plain
+            # mean let a small delivery count as much as a large one (an independent test factory's
+            # 160 t at 8.05 % Ni and 150 t at 8.10 % gave 8.08 % instead of 8.07 %)
+            tonnes = {t.doc_id: t for t in c.pick("tonnes", pid, doc_type="precursor_invoice")}
+            ws = [tonnes[x.doc_id] for x in xs if x.doc_id in tonnes and _num(tonnes[x.doc_id]) > 0]
+            if len(ws) == len(xs):
+                v = sum((_num(x) * _num(t) for x, t in zip(xs, ws, strict=True)), D(0)) / sum((_num(t) for t in ws), D(0))
+            else:
+                v, ws = sum((_num(x) for x in xs), D(0)) / len(xs), []
+            items = xs + ws
+            return {"value": q(v, 2), "status": _worst([x.status for x in items]), "evidence": [x.id for x in items]}
 
         ra = c.pick("reducing_agent", pid, doc_type="supplier_emissions_statement")
         route = c.pick("route", pid, doc_type="supplier_emissions_statement")

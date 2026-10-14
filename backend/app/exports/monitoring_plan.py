@@ -83,14 +83,15 @@ def build(project: Project, result: dict[str, Any], documents: list[Document], l
     passed = sum(1 for c in result.get("checks", []) if c["status"] == "pass")
     n_checks = len(result.get("checks", []))
     gas_doc = sum(1 for d in documents if d.doc_type == "gas_invoice")
+    n_procs = {1: "One", 2: "Two", 3: "Three", 4: "Four"}.get(len(procs), str(len(procs)))
     body = [
         f"Version 0.1 (DRAFT), generated {result['computed_at'][:10]} by Pramaan from the evidence of {project.period_label}.",
         (
-            f"{project.company}, {project.city}. Cold heading, thread rolling and gas-fired heat treatment of purchased wire rod into bolts. "
-            f"Two production processes, one per CN group (Guidance 5d, Example 3 approach)."
+            f"{project.company}, {project.city}. Cold forming, threading and gas-fired heat treatment of purchased wire rod into the goods "
+            f"in element 3. {n_procs} production process{'' if len(procs) == 1 else 'es'}, one per CN group (Guidance 5d, Example 3 approach)."
         ),
         goods,
-        "; ".join(f"{p['id']}: wire rod → cold heading → threading → heat treatment (natural gas) → {p['name']}" for p in procs),
+        "; ".join(f"{p['id']}: wire rod → cold forming → threading → heat treatment (natural gas) → {p['name']}" for p in procs),
         "None reported. Cut-offs and turnings are scrap (zero embedded emissions) and are sold to a dealer.",
         bms,
         (
@@ -104,7 +105,7 @@ def build(project: Project, result: dict[str, Any], documents: list[Document], l
         "Natural gas — calculation-based standard method (Methodology Act Annex II point B.3.4); commercial standard fuel, quantities from supplier invoices.",
         na + " — no continuous emission measurement.",
         na + " — no aluminium production.",
-        "System boundary: bolt shop (receipt of rod to dispatch). Gas attributed to processes by tonnes produced (equal specific consumption, Guidance 5d Table 4-12). Mass balance: rod − scrap = product.",
+        "System boundary: the shop floor, from receipt of rod to dispatch. Gas attributed to processes by tonnes produced (equal specific consumption, Guidance 5d Table 4-12). Mass balance: rod − scrap = product.",
         precs,
         na + " — no biomass fuels.",
         na + " — no measurable heat imported or exported.",

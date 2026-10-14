@@ -47,6 +47,7 @@ const PATTERNS: [RegExp, string][] = [
   [/^(\d+)\/(\d+) months$/, "r_months"],
   [/^([\d.]+) kWh recorded$/, "r_kwh"],
   [/^(±[\d.]+ %) per month$/, "t_per_month"],
+  [/^Out of balance: (.+)$/, "n_off_months"],
   [/^Missing months: (.+)$/, "n_missing_months"],
   [/^Missing: (.+)$/, "n_missing"],
 ];
@@ -72,6 +73,7 @@ export function localizeCheck<C extends CheckLike>(c: C, t: TFunction): C {
     formula: FORMULA[c.formula] ? t(`checks.${FORMULA[c.formula]}`) : c.formula,
     result: phrase(c.result, t),
     tolerance: phrase(c.tolerance, t),
-    note: c.note ? phrase(c.note, t) : c.note,
+    // a note can hold two parts ("Out of balance: … | Missing months: …"): each is translated on its own
+    note: c.note ? c.note.split(" | ").map((part) => phrase(part, t)).join(" · ") : c.note,
   };
 }

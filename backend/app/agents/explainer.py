@@ -80,7 +80,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "default": "{supplier} has not sent verified data, so the precursor is valued at the default {rod_see} t CO2/t (country "
         "default with the 2026 mark-up, Guidance 3 section 4.10.1). This is the Precursor Lever: verified supplier data replaces the default.",
         "main": "Specific embedded emissions are {see} t CO2/t: own process {direct} t CO2/t from natural gas and {contrib} t CO2/t "
-        "from the wire rod (m = {m} t rod per t of bolts, because cut-offs carry zero embedded emissions). The own process is only "
+        "from the wire rod (m = {m} t rod per t of product, because cut-offs carry zero embedded emissions). The own process is only "
         "{own}% of the total. {pre} Electricity is recorded but not counted: for iron and steel goods only direct emissions count.",
     },
     "hi": {
@@ -89,7 +89,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "default": "{supplier} ने सत्यापित डेटा नहीं भेजा है, इसलिए precursor का मान default {rod_see} t CO2/t लिया गया है (2026 के "
         "mark-up सहित देश का default, Guidance 3 section 4.10.1)। यही Precursor Lever है: सप्लायर का सत्यापित डेटा default की जगह लेता है।",
         "main": "Specific embedded emissions {see} t CO2/t हैं: प्राकृतिक गैस से अपनी प्रक्रिया के {direct} t CO2/t और वायर रॉड से "
-        "{contrib} t CO2/t (m = प्रति टन बोल्ट {m} टन रॉड, क्योंकि कटे टुकड़ों में embedded emissions शून्य होते हैं)। अपनी प्रक्रिया "
+        "{contrib} t CO2/t (m = प्रति टन उत्पाद {m} टन रॉड, क्योंकि कटे टुकड़ों में embedded emissions शून्य होते हैं)। अपनी प्रक्रिया "
         "कुल का केवल {own}% है। {pre} बिजली दर्ज होती है पर गिनी नहीं जाती: लोहा और इस्पात के माल के लिए केवल direct emissions गिने जाते हैं।",
     },
     "ta": {
@@ -99,7 +99,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "பயன்படுத்தப்படுகிறது (2026 mark-up உடன் நாட்டின் default, Guidance 3 section 4.10.1). இதுவே Precursor Lever: சப்ளையரின் "
         "சரிபார்க்கப்பட்ட தரவு default-ஐ மாற்றுகிறது.",
         "main": "Specific embedded emissions {see} t CO2/t: இயற்கை எரிவாயுவிலிருந்து சொந்த செயல்முறை {direct} t CO2/t, வயர் "
-        "ராடிலிருந்து {contrib} t CO2/t (m = ஒரு டன் போல்ட்டுக்கு {m} டன் ராட், ஏனெனில் வெட்டுத் துண்டுகளுக்கு embedded emissions "
+        "ராடிலிருந்து {contrib} t CO2/t (m = ஒரு டன் பொருளுக்கு {m} டன் ராட், ஏனெனில் வெட்டுத் துண்டுகளுக்கு embedded emissions "
         "பூஜ்யம்). சொந்த செயல்முறை மொத்தத்தில் {own}% மட்டுமே. {pre} மின்சாரம் பதிவு செய்யப்படுகிறது, ஆனால் கணக்கில் சேர்க்கப்படுவதில்லை: "
         "இரும்பு மற்றும் எஃகுப் பொருட்களுக்கு direct emissions மட்டுமே கணக்கிடப்படும்.",
     },
@@ -110,7 +110,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "định quốc gia kèm mức cộng thêm năm 2026, Guidance 3 section 4.10.1). Đây là Precursor Lever: dữ liệu đã kiểm định của nhà "
         "cung cấp sẽ thay thế giá trị mặc định.",
         "main": "Phát thải hàm chứa riêng (SEE) là {see} t CO2/t: quy trình của bạn {direct} t CO2/t từ khí tự nhiên và {contrib} t "
-        "CO2/t từ thép cuộn (m = {m} tấn thép cuộn cho mỗi tấn bu lông, vì phần cắt bỏ có phát thải hàm chứa bằng không). Quy trình của "
+        "CO2/t từ thép cuộn (m = {m} tấn thép cuộn cho mỗi tấn sản phẩm, vì phần cắt bỏ có phát thải hàm chứa bằng không). Quy trình của "
         "bạn chỉ chiếm {own}% tổng số. {pre} Điện được ghi nhận nhưng không tính: với hàng sắt thép chỉ tính phát thải trực tiếp.",
     },
 }

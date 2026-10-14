@@ -1,0 +1,2569 @@
+{
+"note": "Independent test factory (TEST - fictional), 14 Oct 2026: 16 documents in new layouts read by live Gemini (158 values) plus 4 values the reader missed, from the generator's ground truth. Expected results in tests/test_independent_factory.py come from an independent calculator, not the app's engine.",
+"company": "Kaveri Precision Fasteners Pvt Ltd (TEST — fictional)",
+"city": "Coimbatore",
+"months_to": 6,
+"lines": [
+{
+"name": "Hexagon nuts, carbon steel, ISO 4032 M10, zinc plated",
+"cn": "73181692",
+"precursor_name": "Low-carbon steel wire rod, hot rolled, in coils",
+"precursor_cn": "72139149",
+"precursor_supplier": "Cauvery Wire Rods Pvt Ltd (TEST)"
+},
+{
+"name": "Hexagon nuts, stainless steel A2-70, ISO 4032 M8",
+"cn": "73181639",
+"precursor_name": "Stainless steel wire rod, hot rolled, in coils, Ni ≥ 2.5 %",
+"precursor_cn": "72210010",
+"precursor_supplier": "Nilgiri Stainless Rods Ltd (TEST)"
+}
+],
+"documents": [
+{
+"doc": "elec-2026-03",
+"doc_type": "electricity_bill",
+"width": 1391,
+"height": 1900,
+"title": "Electricity bill March 2026"
+},
+{
+"doc": "export-2026-Q1",
+"doc_type": "export_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Commercial Export Invoice - Lindqvist Fästelement AB"
+},
+{
+"doc": "export-2026-Q2",
+"doc_type": "export_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Commercial Export Invoice June 2026"
+},
+{
+"doc": "gas-2026-01",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG bill January 2026"
+},
+{
+"doc": "gas-2026-02",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG Bill - February 2026"
+},
+{
+"doc": "gas-2026-03",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG bill March 2026"
+},
+{
+"doc": "gas-2026-04",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG Bill April 2026"
+},
+{
+"doc": "gas-2026-05",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG Bill May 2026 - Kongu City Gas Distribution"
+},
+{
+"doc": "gas-2026-06",
+"doc_type": "gas_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Industrial PNG bill June 2026"
+},
+{
+"doc": "rod-CWR-0042",
+"doc_type": "precursor_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Cauvery Wire Rods Tax Invoice - Low-carbon steel wire rod"
+},
+{
+"doc": "rod-CWR-0187",
+"doc_type": "precursor_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Cauvery Wire Rods wire rod purchase invoice January 2026"
+},
+{
+"doc": "rod-NSR-1109",
+"doc_type": "precursor_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Tax Invoice for Stainless Steel Wire Rod from Nilgiri Stainless Rods Ltd"
+},
+{
+"doc": "rod-NSR-1473",
+"doc_type": "precursor_invoice",
+"width": 1391,
+"height": 1900,
+"title": "Tax invoice for stainless steel wire rod from Nilgiri Stainless Rods Ltd"
+},
+{
+"doc": "register-2026-01-to-06",
+"doc_type": "production_register",
+"width": 1391,
+"height": 1900,
+"title": "Production register Jan-Jun 2026"
+},
+{
+"doc": "scrap-2026-01-to-06",
+"doc_type": "scrap_log",
+"width": 1391,
+"height": 1900,
+"title": "Scrap & cut-offs log Jan-Jun 2026"
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"doc_type": "supplier_emissions_statement",
+"width": 1391,
+"height": 1900,
+"title": "Supplier Embedded Emissions Statement - Nilgiri Stainless Rods Ltd H1 2026"
+}
+],
+"evidence": [
+{
+"doc": "export-2026-Q1",
+"field_key": "net_mass_kg",
+"value_text": "70,000",
+"value_num": "70000",
+"unit": "kg",
+"period": "2026-Q1",
+"process": "P2",
+"box_2d": [
+341,
+719,
+353,
+762
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "45.0",
+"value_num": "45.0",
+"unit": "t",
+"period": "2026-06",
+"process": "P2",
+"box_2d": [
+414,
+357,
+428,
+402
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2606/70596",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+166,
+686,
+178,
+822
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "period_start",
+"value_text": "01-05-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+209,
+689,
+220,
+758
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "buyer",
+"value_text": "Lindqvist Fästelement AB (TEST)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+220,
+108,
+234,
+309
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "bill_date",
+"value_text": "05-03-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+187,
+685,
+196,
+755
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "cn_code",
+"value_text": "7318 16 39",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+333,
+479,
+342,
+546
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,495",
+"value_num": "9495",
+"unit": "kcal/SCM",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+348,
+620,
+359,
+657
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,502",
+"value_num": "9502",
+"unit": "kcal/SCM",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+348,
+620,
+358,
+657
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2602/70448",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+167,
+686,
+178,
+822
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "net_mass_kg",
+"value_text": "180,000",
+"value_num": "180000",
+"unit": "kg",
+"period": "2026-Q1",
+"process": "P1",
+"box_2d": [
+320,
+715,
+332,
+764
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "period_end",
+"value_text": "31-01-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+193,
+735,
+202,
+803
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "tonnes",
+"value_text": "400.000",
+"value_num": "400.000",
+"unit": "t",
+"period": null,
+"process": "P1",
+"box_2d": [
+204,
+632,
+213,
+680
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "6.4",
+"value_num": "6.4",
+"unit": "t",
+"period": "2026-05",
+"process": "P2",
+"box_2d": [
+347,
+469,
+363,
+504
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,510",
+"value_num": "9510",
+"unit": "kcal/SCM",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+346,
+618,
+357,
+653
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "128.0",
+"value_num": "128.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P1",
+"box_2d": [
+202,
+540,
+216,
+598
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "closing_stock_t",
+"value_text": "73.5",
+"value_num": "73.5",
+"unit": "t",
+"period": "2026-06",
+"process": "P1",
+"box_2d": [
+526,
+483,
+541,
+527
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "rate_inr_per_scm",
+"value_text": "54.20",
+"value_num": "54.20",
+"unit": "INR/SCM",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+465,
+663,
+475,
+699
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "mn_pct",
+"value_text": "0.45",
+"value_num": "0.45",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+299,
+180,
+309,
+206
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "cn_code",
+"value_text": "7213 91 49",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": "P1",
+"box_2d": [
+202,
+423,
+212,
+488
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "scm",
+"value_text": "14,817",
+"value_num": "14817",
+"unit": "SCM",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+327,
+622,
+339,
+659
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "cn_code",
+"value_text": "7221 00\n10",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+215,
+427,
+240,
+476
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "ni_pct",
+"value_text": "0.02",
+"value_num": "0.02",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+304,
+473,
+312,
+500
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "bill_date",
+"value_text": "04-05-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+186,
+686,
+196,
+753
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2601/70411",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+151,
+649,
+163,
+780
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "bill_date",
+"value_text": "05-07-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+186,
+684,
+196,
+755
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "151.0",
+"value_num": "151.0",
+"unit": "t",
+"period": "2026-03",
+"process": "P1",
+"box_2d": [
+288,
+535,
+303,
+593
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "supplier",
+"value_text": "Nilgiri Stainless Rods Ltd (TEST)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+96,
+106,
+119,
+458
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "mmbtu",
+"value_text": "729.829",
+"value_num": "729.829",
+"unit": "MMBtu",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+368,
+603,
+378,
+652
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "invoice_no",
+"value_text": "NSR/2026/1473",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+105,
+772,
+115,
+866
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "bill_date",
+"value_text": "04-02-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+174,
+650,
+184,
+717
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "125.0",
+"value_num": "125.0",
+"unit": "t",
+"period": "2026-04",
+"process": "P1",
+"box_2d": [
+324,
+212,
+337,
+272
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "opening_stock_t",
+"value_text": "60.0",
+"value_num": "60.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P1",
+"box_2d": [
+521,
+277,
+534,
+326
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "period_start",
+"value_text": "01-02-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+207,
+684,
+218,
+754
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "cn_code",
+"value_text": "7318 16 92",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P1",
+"box_2d": [
+312,
+478,
+321,
+545
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "120.0",
+"value_num": "120.0",
+"unit": "t",
+"period": "2026-02",
+"process": "P1",
+"box_2d": [
+236,
+218,
+249,
+276
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "verification_ref",
+"value_text": "MVS-VR-2026-0412",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+414,
+464,
+426,
+581
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "pre_consumer_pct",
+"value_text": "35 %",
+"value_num": "35",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+332,
+468,
+342,
+497
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "56.8",
+"value_num": "56.8",
+"unit": "t",
+"period": "2026-03",
+"process": "P2",
+"box_2d": [
+291,
+675,
+307,
+720
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "scm",
+"value_text": "14,417",
+"value_num": "14417",
+"unit": "SCM",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+327,
+617,
+338,
+655
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2605/70559",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+168,
+693,
+180,
+826
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "supplier",
+"value_text": "Cauvery Wire Rods Pvt Ltd (TEST)",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+97,
+103,
+119,
+471
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "period_start",
+"value_text": "01-03-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+206,
+679,
+215,
+746
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "51.0",
+"value_num": "51.0",
+"unit": "t",
+"period": "2026-02",
+"process": "P2",
+"box_2d": [
+247,
+676,
+262,
+723
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "mmbtu",
+"value_text": "545.223",
+"value_num": "545.223",
+"unit": "MMBtu",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+369,
+605,
+380,
+654
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "120.0",
+"value_num": "120.0",
+"unit": "t",
+"period": "2026-06",
+"process": "P1",
+"box_2d": [
+410,
+208,
+424,
+267
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "invoice_date",
+"value_text": "06-04-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+126,
+814,
+136,
+881
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "invoice_date",
+"value_text": "08-01-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+111,
+784,
+120,
+851
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "cr_pct",
+"value_text": "0.03",
+"value_num": "0.03",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+305,
+414,
+313,
+440
+]
+},
+{
+"doc": "elec-2026-03",
+"field_key": "period_start",
+"value_text": "01-03-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+176,
+268,
+185,
+335
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "139.5",
+"value_num": "139.5",
+"unit": "t",
+"period": "2026-02",
+"process": "P1",
+"box_2d": [
+245,
+537,
+260,
+595
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "invoice_no",
+"value_text": "NSR/2026/1109",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+100,
+760,
+109,
+853
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "45.0",
+"value_num": "45.0",
+"unit": "t",
+"period": "2026-02",
+"process": "P2",
+"box_2d": [
+238,
+366,
+253,
+411
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "54.4",
+"value_num": "54.4",
+"unit": "t",
+"period": "2026-05",
+"process": "P2",
+"box_2d": [
+377,
+670,
+394,
+716
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "mn_pct",
+"value_text": "0.42",
+"value_num": "0.42",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+313,
+163,
+321,
+191
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "invoice_no",
+"value_text": "KPF/EXP/2026/007",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+138,
+532,
+153,
+648
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "scm",
+"value_text": "14,527",
+"value_num": "14527",
+"unit": "SCM",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+327,
+614,
+338,
+658
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "scm",
+"value_text": "19,339",
+"value_num": "19339",
+"unit": "SCM",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+325,
+611,
+336,
+654
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "5.5",
+"value_num": "5.5",
+"unit": "t",
+"period": "2026-01",
+"process": "P2",
+"box_2d": [
+199,
+473,
+215,
+506
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "closing_stock_t",
+"value_text": "63.7",
+"value_num": "63.7",
+"unit": "t",
+"period": "2026-06",
+"process": "P2",
+"box_2d": [
+562,
+479,
+576,
+525
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "tonnes",
+"value_text": "450.000",
+"value_num": "450.000",
+"unit": "t",
+"period": null,
+"process": "P1",
+"box_2d": [
+198,
+610,
+206,
+657
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "invoice_date",
+"value_text": "12-02-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+113,
+786,
+121,
+853
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "20.0",
+"value_num": "20.0",
+"unit": "t",
+"period": "2026-04",
+"process": "P1",
+"box_2d": [
+308,
+264,
+323,
+312
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "6.8",
+"value_num": "6.8",
+"unit": "t",
+"period": "2026-03",
+"process": "P2",
+"box_2d": [
+274,
+470,
+289,
+506
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "net_mass_kg",
+"value_text": "85,000",
+"value_num": "85000",
+"unit": "kg",
+"period": "2026-Q2",
+"process": "P2",
+"box_2d": [
+329,
+699,
+338,
+742
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "rate_inr_per_scm",
+"value_text": "53.15 per SCM",
+"value_num": "53.15",
+"unit": "INR/SCM",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+463,
+654,
+474,
+742
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "invoice_no",
+"value_text": "CWR/26-27/0042",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+113,
+780,
+123,
+882
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "supplier",
+"value_text": "Cauvery Wire Rods Pvt Ltd (TEST)",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+92,
+136,
+110,
+502
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "period_end",
+"value_text": "28-02-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+209,
+768,
+221,
+838
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "period",
+"value_text": "01-01-2026 to 30-06-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+207,
+472,
+217,
+624
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "cn_code",
+"value_text": "7213 91 49",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": "P1",
+"box_2d": [
+203,
+399,
+213,
+463
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "country_of_origin",
+"value_text": "India",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+214,
+526,
+226,
+560
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "48.0",
+"value_num": "48.0",
+"unit": "t",
+"period": "2026-05",
+"process": "P2",
+"box_2d": [
+370,
+360,
+384,
+404
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "mmbtu",
+"value_text": "552.596",
+"value_num": "552.596",
+"unit": "MMBtu",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+369,
+604,
+380,
+656
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "other_alloy_pct",
+"value_text": "0.15",
+"value_num": "0.15",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+300,
+595,
+308,
+622
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "rate_inr_per_scm",
+"value_text": "52.40 per SCM",
+"value_num": "52.40",
+"unit": "INR/SCM",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+453,
+660,
+464,
+747
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "invoice_date",
+"value_text": "25-06-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+134,
+614,
+145,
+683
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,530",
+"value_num": "9530",
+"unit": "kcal/SCM",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+348,
+620,
+359,
+655
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "bill_date",
+"value_text": "05-06-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+188,
+690,
+199,
+760
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "6.0",
+"value_num": "6.0",
+"unit": "t",
+"period": "2026-06",
+"process": "P2",
+"box_2d": [
+383,
+468,
+398,
+503
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "grade",
+"value_text": "SAE 1010, 5.5 mm",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+200,
+480,
+210,
+587
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "period_start",
+"value_text": "01-06-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+207,
+684,
+217,
+753
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "42.0",
+"value_num": "42.0",
+"unit": "t",
+"period": "2026-04",
+"process": "P2",
+"box_2d": [
+327,
+361,
+341,
+407
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "other_alloy_pct",
+"value_text": "0.14",
+"value_num": "0.14",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+303,
+612,
+314,
+639
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "110.0",
+"value_num": "110.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P1",
+"box_2d": [
+191,
+220,
+206,
+278
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "tonnes",
+"value_text": "160.000",
+"value_num": "160.000",
+"unit": "t",
+"period": null,
+"process": "P2",
+"box_2d": [
+210,
+618,
+220,
+666
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "period_end",
+"value_text": "31-03-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+207,
+762,
+216,
+831
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "product_cn",
+"value_text": "7221 00 10",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+188,
+615,
+200,
+702
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "mn_pct",
+"value_text": "1.62",
+"value_num": "1.62",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+337,
+165,
+346,
+193
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "country_of_origin",
+"value_text": "India",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+215,
+495,
+224,
+526
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "invoice_no",
+"value_text": "KPF/EXP/2026/019",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+137,
+492,
+149,
+606
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "period_end",
+"value_text": "31-05-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+212,
+773,
+224,
+843
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "verifier",
+"value_text": "Meridian Verification Services GmbH (TEST — fictional verifier)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+394,
+465,
+410,
+827
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "19.5",
+"value_num": "19.5",
+"unit": "t",
+"period": "2026-06",
+"process": "P1",
+"box_2d": [
+382,
+263,
+397,
+310
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "rate_inr_per_scm",
+"value_text": "54.20",
+"value_num": "54.20",
+"unit": "INR/SCM",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+466,
+663,
+477,
+698
+]
+},
+{
+"doc": "elec-2026-03",
+"field_key": "period_end",
+"value_text": "31-03-2026",
+"value_num": null,
+"unit": "text",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+176,
+348,
+185,
+415
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "115.0",
+"value_num": "115.0",
+"unit": "t",
+"period": "2026-05",
+"process": "P1",
+"box_2d": [
+367,
+211,
+381,
+269
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "doc_no",
+"value_text": "NSR-CBAM-2026-H1-031",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+159,
+529,
+171,
+677
+]
+},
+{
+"doc": "elec-2026-03",
+"field_key": "invoice_no",
+"value_text": "TNP/CBE/0326/55821",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+155,
+268,
+164,
+395
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2603/70485",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+164,
+680,
+175,
+814
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "145.0",
+"value_num": "145.0",
+"unit": "t",
+"period": "2026-04",
+"process": "P1",
+"box_2d": [
+331,
+533,
+346,
+591
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "sefa",
+"value_text": "0.880 t CO2e / t",
+"value_num": "0.880",
+"unit": "t CO2e/t",
+"period": null,
+"process": "P2",
+"box_2d": [
+269,
+470,
+280,
+563
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "grade",
+"value_text": "AISI 304, 5.5 mm",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+213,
+513,
+236,
+589
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "cn_code",
+"value_text": "7318 16 92",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P1",
+"box_2d": [
+312,
+498,
+323,
+566
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "scrap_per_t",
+"value_text": "0.96 t/t",
+"value_num": "0.96",
+"unit": "t/t",
+"period": null,
+"process": "P2",
+"box_2d": [
+311,
+469,
+321,
+508
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "cn_code",
+"value_text": "7221 00 10",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": "P2",
+"box_2d": [
+214,
+436,
+237,
+485
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "grade",
+"value_text": "AISI 304, 5.5\nmm",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+213,
+502,
+237,
+580
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "reducing_agent",
+"value_text": "None (scrap-based EAF)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+290,
+469,
+303,
+612
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "other_alloy_pct",
+"value_text": "0.70",
+"value_num": "0.70",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+327,
+598,
+335,
+626
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "mmbtu",
+"value_text": "505.513",
+"value_num": "505.513",
+"unit": "MMBtu",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+362,
+590,
+372,
+639
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "grade",
+"value_text": "SAE 1010, 5.5 mm",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+203,
+504,
+213,
+612
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "cn_code",
+"value_text": "7318 16 39",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+334,
+497,
+345,
+565
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "139.5",
+"value_num": "139.5",
+"unit": "t",
+"period": "2026-06",
+"process": "P1",
+"box_2d": [
+419,
+529,
+434,
+586
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "rate_inr_per_scm",
+"value_text": "53.15",
+"value_num": "53.15",
+"unit": "INR/SCM",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+466,
+663,
+475,
+698
+]
+},
+{
+"doc": "elec-2026-03",
+"field_key": "kwh",
+"value_text": "41,860",
+"value_num": "41860",
+"unit": "kWh",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+252,
+839,
+262,
+881
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "19.5",
+"value_num": "19.5",
+"unit": "t",
+"period": "2026-02",
+"process": "P1",
+"box_2d": [
+235,
+267,
+249,
+314
+]
+},
+{
+"doc": "gas-2026-03",
+"field_key": "bill_date",
+"value_text": "06-04-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+184,
+680,
+194,
+747
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "26.0",
+"value_num": "26.0",
+"unit": "t",
+"period": "2026-03",
+"process": "P1",
+"box_2d": [
+272,
+265,
+286,
+313
+]
+},
+{
+"doc": "export-2026-Q2",
+"field_key": "net_mass_kg",
+"value_text": "210,000",
+"value_num": "210000",
+"unit": "kg",
+"period": "2026-Q2",
+"process": "P1",
+"box_2d": [
+308,
+693,
+317,
+742
+]
+},
+{
+"doc": "elec-2026-03",
+"field_key": "md_kva",
+"value_text": "182",
+"value_num": "182",
+"unit": "kVA",
+"period": "2026-03",
+"process": null,
+"box_2d": [
+273,
+858,
+283,
+881
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "scm",
+"value_text": "13,381",
+"value_num": "13381",
+"unit": "SCM",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+319,
+595,
+330,
+635
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "ni_pct",
+"value_text": "0.02",
+"value_num": "0.02",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+300,
+489,
+311,
+516
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "13.5",
+"value_num": "13.5",
+"unit": "t",
+"period": "2026-05",
+"process": "P1",
+"box_2d": [
+346,
+264,
+360,
+310
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "supplier",
+"value_text": "Nilgiri Stainless Rods Ltd (TEST)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+76,
+149,
+100,
+506
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "6.0",
+"value_num": "6.0",
+"unit": "t",
+"period": "2026-02",
+"process": "P2",
+"box_2d": [
+236,
+471,
+252,
+506
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "period_end",
+"value_text": "30-06-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+208,
+768,
+220,
+838
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "see",
+"value_text": "2.150 t CO2e / t",
+"value_num": "2.150",
+"unit": "t CO2e/t",
+"period": null,
+"process": "P2",
+"box_2d": [
+249,
+471,
+260,
+565
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "rate_inr_per_scm",
+"value_text": "52.40",
+"value_num": "52.40",
+"unit": "INR/SCM",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+464,
+662,
+476,
+699
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "51.0",
+"value_num": "51.0",
+"unit": "t",
+"period": "2026-06",
+"process": "P2",
+"box_2d": [
+422,
+667,
+437,
+714
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "47.6",
+"value_num": "47.6",
+"unit": "t",
+"period": "2026-04",
+"process": "P2",
+"box_2d": [
+334,
+674,
+350,
+718
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "130.0",
+"value_num": "130.0",
+"unit": "t",
+"period": "2026-03",
+"process": "P1",
+"box_2d": [
+280,
+214,
+294,
+274
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,520",
+"value_num": "9520",
+"unit": "kcal/SCM",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+340,
+604,
+351,
+638
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "133.5",
+"value_num": "133.5",
+"unit": "t",
+"period": "2026-05",
+"process": "P1",
+"box_2d": [
+375,
+531,
+390,
+588
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "invoice_date",
+"value_text": "27-03-2026",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+143,
+655,
+156,
+725
+]
+},
+{
+"doc": "rod-CWR-0042",
+"field_key": "cr_pct",
+"value_text": "0.04",
+"value_num": "0.04",
+"unit": "%",
+"period": null,
+"process": "P1",
+"box_2d": [
+299,
+429,
+310,
+457
+]
+},
+{
+"doc": "export-2026-Q1",
+"field_key": "buyer",
+"value_text": "Lindqvist Fästelement AB (TEST)",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": null,
+"box_2d": [
+201,
+140,
+219,
+493
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "route",
+"value_text": "Electric arc furnace + AOD, scrap-based",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+228,
+472,
+242,
+704
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "opening_stock_t",
+"value_text": "60.0",
+"value_num": "60.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P2",
+"box_2d": [
+556,
+276,
+570,
+324
+]
+},
+{
+"doc": "gas-2026-02",
+"field_key": "mmbtu",
+"value_text": "547.366",
+"value_num": "547.366",
+"unit": "MMBtu",
+"period": "2026-02",
+"process": null,
+"box_2d": [
+369,
+604,
+380,
+656
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "50.0",
+"value_num": "50.0",
+"unit": "t",
+"period": "2026-03",
+"process": "P2",
+"box_2d": [
+283,
+362,
+297,
+408
+]
+},
+{
+"doc": "rod-CWR-0187",
+"field_key": "invoice_no",
+"value_text": "CWR/25-26/0187",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+96,
+750,
+108,
+850
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "produced_t",
+"value_text": "40.0",
+"value_num": "40.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P2",
+"box_2d": [
+196,
+368,
+210,
+413
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "invoice_no",
+"value_text": "KCG/CBE/2604/70522",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+166,
+686,
+178,
+819
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "18.0",
+"value_num": "18.0",
+"unit": "t",
+"period": "2026-01",
+"process": "P1",
+"box_2d": [
+198,
+266,
+213,
+314
+]
+},
+{
+"doc": "gas-2026-05",
+"field_key": "mmbtu",
+"value_text": "557.881",
+"value_num": "557.881",
+"unit": "MMBtu",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+369,
+607,
+381,
+655
+]
+},
+{
+"doc": "gas-2026-01",
+"field_key": "period_start",
+"value_text": "01-01-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-01",
+"process": null,
+"box_2d": [
+195,
+652,
+205,
+719
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "period_start",
+"value_text": "01-04-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+207,
+684,
+218,
+750
+]
+},
+{
+"doc": "gas-2026-06",
+"field_key": "scm",
+"value_text": "14,655",
+"value_num": "14655",
+"unit": "SCM",
+"period": "2026-06",
+"process": null,
+"box_2d": [
+327,
+614,
+338,
+657
+]
+},
+{
+"doc": "scrap-2026-01-to-06",
+"field_key": "scrap_t",
+"value_text": "5.6",
+"value_num": "5.6",
+"unit": "t",
+"period": "2026-04",
+"process": "P2",
+"box_2d": [
+310,
+464,
+327,
+552
+],
+"corrected_from": "5.9"
+},
+{
+"doc": "gas-2026-05",
+"field_key": "gcv_kcal_per_scm",
+"value_text": "9,488",
+"value_num": "9488",
+"unit": "kcal/SCM",
+"period": "2026-05",
+"process": null,
+"box_2d": [
+348,
+622,
+360,
+658
+]
+},
+{
+"doc": "gas-2026-04",
+"field_key": "period_end",
+"value_text": "30-04-2026",
+"value_num": null,
+"unit": "",
+"period": "2026-04",
+"process": null,
+"box_2d": [
+208,
+768,
+220,
+836
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "cr_pct",
+"value_text": "18.12",
+"value_num": "18.12",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+332,
+414,
+340,
+448
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "invoice_date",
+"value_text": "11-05-2026",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+118,
+799,
+127,
+866
+]
+},
+{
+"doc": "register-2026-01-to-06",
+"field_key": "rod_consumed_t",
+"value_text": "45.5",
+"value_num": "45.5",
+"unit": "t",
+"period": "2026-01",
+"process": "P2",
+"box_2d": [
+204,
+680,
+219,
+725
+]
+},
+{
+"doc": "rod-NSR-1109",
+"field_key": "ni_pct",
+"value_text": "8.05",
+"value_num": "8.05",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+329,
+477,
+338,
+505
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "supplier",
+"value_text": "Nilgiri Stainless Rods Ltd (TEST)",
+"value_num": null,
+"unit": "",
+"period": null,
+"process": null,
+"box_2d": [
+95,
+117,
+112,
+471
+]
+},
+{
+"doc": "stmt-NSR-2026-H1",
+"field_key": "opinion",
+"value_text": "Positive opinion with reasonable assurance",
+"value_num": null,
+"unit": "text",
+"period": null,
+"process": "P2",
+"box_2d": [
+436,
+464,
+450,
+711
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "tonnes",
+"value_text": "150.000",
+"value_num": "150.000",
+"unit": "t",
+"period": null,
+"process": "P2",
+"box_2d": [
+213,
+627,
+222,
+674
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "mn_pct",
+"value_text": "1.58",
+"value_num": "1.58",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+600,
+100,
+620,
+200
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "cr_pct",
+"value_text": "18.20",
+"value_num": "18.20",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+600,
+100,
+620,
+200
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "ni_pct",
+"value_text": "8.10",
+"value_num": "8.10",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+600,
+100,
+620,
+200
+]
+},
+{
+"doc": "rod-NSR-1473",
+"field_key": "other_alloy_pct",
+"value_text": "0.68",
+"value_num": "0.68",
+"unit": "%",
+"period": null,
+"process": "P2",
+"box_2d": [
+600,
+100,
+620,
+200
+]
+}
+]
+}

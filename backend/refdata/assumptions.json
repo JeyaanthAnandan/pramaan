@@ -26,15 +26,15 @@
     "gas_allocation_key": {
       "value": "production_mass",
       "status": "assumption",
-      "citation": "EC Guidance No. 5d, Example 3, Table 4-12 (p. 53): one average specific gas consumption (3.5 GJ/t) for both product groups",
+      "citation": "EC Guidance No. 5d, Example 3, Table 4-12 (p. 53): one average specific gas consumption for all product groups (the example's 3.5 GJ/t; here the plant's own gas bills ÷ tonnes produced)",
       "why": "The factory has one gas meter for both production processes; gas is attributed in proportion to tonnes produced."
     },
     "carbon_price_paid_eur_per_t": {
       "value": "0",
       "unit": "EUR/t CO2",
       "status": "assumption",
-      "citation": "Regulation (EU) 2023/956 Art. 9: deduction only for a carbon price effectively paid in the country of origin; none is claimed for the sample factory",
-      "why": "No carbon price paid in India is claimed in the demo."
+      "citation": "Regulation (EU) 2023/956 Art. 9: deduction only for a carbon price effectively paid in the country of origin; none is claimed in this report",
+      "why": "No carbon price paid in the country of origin is claimed; a declarant who paid one deducts it separately."
     },
     "q4_2026_price_eur": {
       "value": "82.32",

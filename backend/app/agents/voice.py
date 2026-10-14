@@ -24,7 +24,7 @@ VOCAB = {
 }
 FIELD_DESC = {
     "scrap_t": "tonnes of scrap / cut-offs",
-    "produced_t": "tonnes of bolts produced",
+    "produced_t": "tonnes of finished goods produced",
     "rod_consumed_t": "tonnes of wire rod consumed",
 }
 

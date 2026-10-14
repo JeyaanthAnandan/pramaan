@@ -43,6 +43,27 @@ def _check(
     }
 
 
+def _per_month(evidence: list[Evidence], field: str, process: str) -> dict[str, Evidence]:
+    out: dict[str, Evidence] = {}
+    for x in evidence:
+        if x.field_key == field and x.process == process and x.period and x.period not in out:
+            out[x.period] = x
+    return out
+
+
+def unbalanced_months(months: list[str], evidence: list[Evidence], process: str) -> list[dict[str, Any]]:
+    """Months that have all three figures but whose rod − scrap misses the tonnes produced by more than
+    2 %, with the values behind each (the monthly check and the gaps checklist name them)."""
+    prod, rod, scr = (_per_month(evidence, f, process) for f in ("produced_t", "rod_consumed_t", "scrap_t"))
+    off: list[dict[str, Any]] = []
+    for m in months:
+        if m in prod and m in rod and m in scr:
+            lhs, made = _num(rod[m]) - _num(scr[m]), _num(prod[m])
+            if not e.within(lhs, made, D("0.02")):
+                off.append({"month": m, "rod_minus_scrap_t": lhs, "produced_t": made, "evidence_ids": [rod[m].id, scr[m].id, prod[m].id]})
+    return off
+
+
 def run_checks(project: Project, evidence: list[Evidence], documents: list[Document]) -> list[dict[str, Any]]:
     docs = {d.id: d for d in documents}
 
@@ -83,24 +104,32 @@ def run_checks(project: Project, evidence: list[Evidence], documents: list[Docum
                 [x.id for v in (prod, rod, scr) for x in v.values()],
             )
         )
-        months_ok = [
-            m
-            for m in project.months
-            if m in prod and m in rod and m in scr and e.within(_num(rod[m]) - _num(scr[m]), _num(prod[m]), two_pct)
-        ]
+        # a month that does not balance is named with its figures and linked to its values: "4/6 months"
+        # alone (with an empty "Missing months:") gave the owner and the verifier nothing to act on
+        off = unbalanced_months(project.months, evidence, p.id)
+        missing_m = [m for m in project.months if m not in prod or m not in rod or m not in scr]
+        n_ok = len(project.months) - len(off) - len(missing_m)
+        parts = []
+        if off:
+            parts.append("Out of balance: " + ", ".join(f"{o['month']} ({o['rod_minus_scrap_t']} vs {o['produced_t']} t)" for o in off))
+        if missing_m:
+            parts.append("Missing months: " + ", ".join(missing_m))
         checks.append(
             _check(
                 f"mass_balance_monthly.{p.id}",
                 f"Monthly mass balance — {p.name}",
                 "per month: rod − scrap ≈ produced",
-                {"months_checked": len(project.months)},
-                f"{len(months_ok)}/{len(project.months)} months within tolerance",
+                {
+                    "months_checked": len(project.months),
+                    "out_of_balance": {
+                        o["month"]: {"rod_minus_scrap_t": str(o["rod_minus_scrap_t"]), "produced_t": str(o["produced_t"])} for o in off
+                    },
+                },
+                f"{n_ok}/{len(project.months)} months within tolerance",
                 "±2 % per month",
-                "pass" if len(months_ok) == len(project.months) else ("warn" if months_ok else "fail"),
-                [],
-                note="Missing months: " + ", ".join(m for m in project.months if m not in prod or m not in rod or m not in scr)
-                if len(months_ok) < len(project.months)
-                else "",
+                "pass" if n_ok == len(project.months) else ("warn" if n_ok else "fail"),
+                [i for o in off for i in o["evidence_ids"]],
+                note=" | ".join(parts),
             )
         )
         purchases = pick("tonnes", p.id, "precursor_invoice")

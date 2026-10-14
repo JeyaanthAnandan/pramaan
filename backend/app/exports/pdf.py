@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from jinja2 import Environment, select_autoescape
@@ -30,7 +30,7 @@ tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: a
 <div class="muted small">EU CBAM · definitive period · iron & steel · {{ result.period_label }}</div>
 <h1>CBAM embedded-emissions report</h1>
 <div><b>{{ project.company }}</b> — {{ project.city }}, {{ project.country }}</div>
-<div class="banner"><b>PROVISIONAL.</b> Year-to-date data, not yet verified by an accredited verifier. Pramaan is not a substitute for an accredited verifier. Mode: {{ result.mode }} · run {{ result.run_id }} · computed {{ result.computed_at }}.</div>
+<div class="banner"><b>PROVISIONAL.</b> Year-to-date data, not yet verified by an accredited verifier. Pramaan is not a substitute for an accredited verifier. {% if result.mode %}Mode: {{ result.mode }} · run {{ result.run_id }} · {% endif %}computed {{ result.computed_at }}.</div>
 <div class="verdict">
  {% if secured %}<div class="good"><span class="small">Your data saves your buyer</span><b>EUR {{ secured }}</b><span class="small">INR {{ secured_inr }} a year at current volumes</span></div>{% endif %}
  {% if reach %}<div class="reach"><span class="small">More within reach</span><b>+EUR {{ reach }}</b><span class="small">a year if rod suppliers send verified data</span></div>{% endif %}
@@ -41,9 +41,9 @@ tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: a
  {% for p in procs %}<div class="kpi"><span class="muted small">SEE · CN {{ p.cn_display }}</span><b>{{ p.see3 }} t CO2/t</b><span class="small">{{ p.name }}</span></div>{% endfor %}
 </div>
 <h2>1. Specific embedded emissions per CN group</h2>
-<table><thead><tr><th>CN</th><th>Good</th><th class="n">AL (t)</th><th class="n">Own process</th><th class="n">m (t/t)</th><th class="n">Precursor</th><th class="n">SEE</th><th>Precursor data</th></tr></thead>
+<table><thead><tr><th>CN</th><th>Good</th><th class="n">AL (t)</th><th class="n">Own process</th><th class="n">m (t/t)</th><th class="n">Precursor (m × SEE)</th><th class="n">SEE</th><th>Precursor data</th></tr></thead>
 {% for p in procs %}<tr><td class="cn">{{ p.cn_display }}</td><td>{{ p.name }}</td><td class="n">{{ p.al }}</td><td class="n">{{ p.direct3 }}</td><td class="n">{{ p.m3 }}</td><td class="n">{{ p.pre3 }}</td><td class="n"><b>{{ p.see3 }}</b></td>
-<td>{% if p.precursor.data == "ACTUAL_VERIFIED" %}<span class="ok">actual, verified</span>{% else %}<span class="bad">default + mark-up</span>{% endif %}<br><span class="small muted">{{ p.precursor.supplier }}{% if p.verified_by %} · {{ p.verified_by }}{% endif %}</span></td></tr>{% endfor %}
+<td>{% if p.precursor.data == "ACTUAL_VERIFIED" %}<span class="ok">actual, verified</span>{% else %}<span class="bad">default + mark-up</span>{% endif %} <span class="small">(SEE {{ p.rod_see3 }})</span><br><span class="small muted">{{ p.precursor.supplier }}{% if p.verified_by %} · {{ p.verified_by }}{% endif %}</span></td></tr>{% endfor %}
 </table>
 <p class="small muted">t CO2/t of good. Direct emissions only (iron & steel); electricity recorded and excluded. Formula: SEE = AttrEm/AL + Σ m_i × SEE_i (EC Guidance No. 3; Guidance 5d Example 3, p. 53). Scrap and cut-offs carry zero embedded emissions.</p>
 {% for p in procs %}<div class="small">{{ p.name }} — contribution: own process {{ p.own_pct }}% · precursor {{ 100 - p.own_pct }}%</div>
@@ -70,7 +70,7 @@ tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: a
 <p class="small">Median month {{ pulse.median }} GJ/t; best month {{ pulse.best }}.{% if pulse.excess_inr %} <b>{{ pulse.hot }} ran hot: INR {{ pulse.excess_inr }} of gas above the median month</b> ({{ pulse.excess_gj }} GJ, {{ pulse.excess_tco2 }} t CO2), at the bill's own rate.{% endif %} Operations insight from the same bills and register; it does not change SEE.</p>{% endif %}
 <h2>{{ 5 if pulse else 4 }}. Control checks (EC Guidance No. 2, Step 7)</h2>
 <table><thead><tr><th>Check</th><th>Result</th><th>Tolerance</th><th>Status</th></tr></thead>
-{% for c in result.checks %}<tr><td>{{ c.name }}<br><span class="small muted">{{ c.formula }}</span></td><td>{{ c.result }}</td><td>{{ c.tolerance }}</td><td class="{{ {'pass':'ok','fail':'bad','warn':'warn'}.get(c.status,'muted') }}">{{ c.status }}</td></tr>{% endfor %}
+{% for c in result.checks %}<tr><td>{{ c.name }}<br><span class="small muted">{{ c.formula }}</span></td><td>{{ c.result }}{% if c.note and c.status != 'pass' %}<br><span class="small">{{ c.note }}</span>{% endif %}</td><td>{{ c.tolerance }}</td><td class="{{ {'pass':'ok','fail':'bad','warn':'warn'}.get(c.status,'muted') }}">{{ c.status }}</td></tr>{% endfor %}
 </table>
 <h2>{{ 6 if pulse else 5 }}. Extra parameters (EC Guidance No. 5d, Table 3-1)</h2>
 <table><thead><tr><th>CN</th><th>Reducing agent (precursor)</th><th class="n">Mn %</th><th class="n">Cr %</th><th class="n">Ni %</th><th class="n">Other %</th><th class="n">Scrap t/t</th><th>Pre-consumer</th></tr></thead>
@@ -80,6 +80,12 @@ tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: a
 <ul class="small">{% for a in result.assumptions_used %}<li>{{ a }}</li>{% endfor %}</ul>
 <p class="small muted">Reference data parsed from official EC files (default values 10 Aug 2026; benchmarks 13 Feb 2026; Guidance 3/4/5d of 14 Aug 2026; certificate prices page) with SHA-256 manifest. Every number in this report opens in the Evidence Lens of the Pramaan app with its source region or reference.</p>
 </body></html>"""
+
+
+def _signed_pct(v: Decimal) -> str:
+    """+21 %, -3 %, and 0 % (never "-0 %" for a month a fraction of a percent below the median)."""
+    r = v.quantize(Decimal(1), rounding=ROUND_HALF_UP)
+    return "0 %" if r == 0 else f"{r:+} %"
 
 
 def _fmt(v: str | Decimal, places: int) -> str:
@@ -101,6 +107,7 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
                 "direct3": q(Decimal(p["direct"]), 3),
                 "m3": q(Decimal(p["m"]), 3),
                 "pre3": q(Decimal(tree[f"{p['id']}.rod.contrib"]["value"]), 3),
+                "rod_see3": q(Decimal(p["precursor"]["see"]), 3),
                 "al": _fmt(p["al_t"], 1),
                 "sefa3": q(Decimal(p["sefa"]), 3),
                 "sefay3": q(Decimal(p["sefa_y"]), 3),
@@ -149,7 +156,10 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
             )
     review = sum(1 for g in result.get("gaps", []) if g.get("group") == "review")
     if review:
-        steps.append(f"Approve {review} value{'s' if review > 1 else ''} the two AI readers could not settle (Close gaps).")
+        steps.append(
+            f"Confirm {review} value{'s' if review > 1 else ''} that need{'' if review > 1 else 's'} a person: the two AI readers "
+            "disagree, or the figure was corrected by hand on the page (Close gaps)."
+        )
     for x in procs:
         if x["buyer"]["basis_2026"] == "actual" and Decimal(x["buyer"].get("gap_vs_default_eur_t") or 0) > 0:
             steps.append(
@@ -166,7 +176,7 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
         hot = [m for m in gp["months"] if m["hot"]]
         pulse = {
             "months": [
-                {"label": label(m["month"]), "v": q(Decimal(m["gj_per_t"]), 2), "d": f"{Decimal(m['delta_pct']):+.0f} %", "hot": m["hot"]}
+                {"label": label(m["month"]), "v": q(Decimal(m["gj_per_t"]), 2), "d": _signed_pct(Decimal(m["delta_pct"])), "hot": m["hot"]}
                 for m in gp["months"]
             ],
             "median": q(Decimal(gp["median"]), 2),

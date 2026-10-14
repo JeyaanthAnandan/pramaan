@@ -49,6 +49,25 @@ def test_text_fields_compare_normalised() -> None:
     assert compare("SF/EXP/2627/009", None, "", {"value_text": "SF EXP 2627 009", "legible": True}, "m", [0, 0, 1, 1]).agrees
 
 
+def test_a_rate_printed_per_scm_agrees() -> None:
+    # independent test bills (2026-10-14) print "53.15 per SCM": both readers read 53.15, the second kept
+    # "per SCM" as the unit and the value went to review as "units differ: INR/SCM vs per SCM"
+    assert norm_unit("per SCM") == norm_unit("₹ per SCM") == norm_unit("/SCM") == "INR/SCM"
+    for second in ({"value_text": "53.15 per SCM", "unit": "per SCM"}, {"value_text": "52.40", "unit": "per SCM"}):
+        n = second["value_text"].split()[0]
+        assert compare(f"{n} per SCM", n, "INR/SCM", {**second, "legible": True}, "m", [0, 0, 1, 1]).agrees
+    assert not compare("53.15", "53.15", "INR/SCM", {"value_text": "53.15", "unit": "kg", "legible": True}, "m", [0, 0, 1, 1]).agrees
+
+
+def test_a_name_read_with_its_address_agrees() -> None:
+    # the second reader's padded crop takes in the address after the buyer's name, whole or cut off
+    name = "Lindqvist Fästelement AB (TEST)"
+    for r2 in (f"{name}, Importgatan 14, 417 05 Göteborg, Sweden", f"{name}, Imp"):
+        assert compare(name, None, "text", {"value_text": r2, "legible": True}, "m", [0, 0, 1, 1]).agrees
+    for r1 in ("Importgatan 14", "Lindqvist AB (TEST)"):  # a later part, or another name, still differs
+        assert not compare(r1, None, "text", {"value_text": f"{name}, Importgatan 14", "legible": True}, "m", [0, 0, 1, 1]).agrees
+
+
 def test_illegible_crop_needs_review() -> None:
     assert not compare("12", "12", "t", {"value_text": "12", "legible": False}, "m", [0, 0, 1, 1]).agrees
 

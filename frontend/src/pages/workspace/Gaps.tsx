@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, ChevronDown, Loader2, PackagePlus, Pencil, Scale, ScanSearch, UserRound } from "lucide-react";
 import { api, imageUrl, type Gap } from "@/lib/api";
-import { parseQuantity } from "@/lib/format";
+import { monthList, parseQuantity } from "@/lib/format";
 import { useProject } from "@/lib/project";
 import { AnimatedNumber, Collapse, EASE, Stamp, rise, stagger, useAfter } from "@/lib/motion";
 import { useToast } from "@/components/Toast";
@@ -17,7 +17,7 @@ import { LoadError } from "@/components/ErrorBoundary";
 
 const GROUPS = ["review", "setup", "precursor", "activity", "energy", "exports", "extra", "control"];
 
-function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap, lines: Record<string, string> = {}) {
+function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap, lines: Record<string, string> = {}, lang = "en") {
   const params: Record<string, unknown> = { ...g.params };
   // a value to review is named by what it is and its product line, in the reader's language; the label
   // as printed on the page (Hindi on the sample's scrap log) stays the fallback
@@ -25,7 +25,8 @@ function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap, 
     const name = t(`field.${params.field_key}`, { defaultValue: "" });
     if (name) params.label = [name, g.process ? lines[g.process] : ""].filter(Boolean).join(" · ");
   }
-  if (Array.isArray(params.missing)) params.missing = (params.missing as string[]).join(", ");
+  if (Array.isArray(params.missing)) params.missing = monthList(params.missing as string[], lang);
+  if (Array.isArray(params.months)) params.months = monthList(params.months as string[], lang);
   if (Array.isArray(params.quarters)) params.quarters = (params.quarters as string[]).join(", ");
   const base = `gaps.kinds.${g.kind}`;
   const title = t(`${base}.t`, params);
@@ -36,10 +37,10 @@ function gapText(t: (k: string, o?: Record<string, unknown>) => string, g: Gap, 
 }
 
 function useGapText() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bundle } = useProject();
   const lines = useMemo(() => Object.fromEntries((bundle?.project.processes ?? []).map((p) => [p.id, p.name])), [bundle]);
-  return (g: Gap) => gapText(t, g, lines);
+  return (g: Gap) => gapText(t, g, lines, i18n.language);
 }
 
 export default function Gaps() {
@@ -180,7 +181,7 @@ function GapRow({ g }: { g: Gap }) {
         {g.lever && <div className="mt-1 text-[12px] font-semibold text-accent">{t("lever.title")} →</div>}
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
-        {["al", "rod_mass", "scrap"].includes(g.kind) && g.process && <VoiceAnswer kind={g.kind} process={g.process} missing={(g.params.missing as string[]) ?? []} />}
+        {["al", "rod_mass", "scrap", "scrap_unbalanced"].includes(g.kind) && g.process && <VoiceAnswer kind={g.kind === "scrap_unbalanced" ? "scrap" : g.kind} process={g.process} missing={(g.params.missing as string[]) ?? []} />}
         {g.ask && (
           <span className="chip">
             <UserRound className="h-3 w-3" /> {t(`gaps.ask.${g.ask}`)}

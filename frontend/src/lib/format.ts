@@ -72,6 +72,12 @@ export function periodLabel(months: string[] | undefined, serverLabel: string, l
   return `${span} ${year}${/provisional/i.test(serverLabel) ? ` (${ytd})` : ""}`;
 }
 
+/** Months of the period ("2026-03") as the reader says them: "Mar 2026, May 2026". */
+export function monthList(months: string[], lang: string): string {
+  const loc = locales[lang] || lang;
+  return months.map((m) => (/^\d{4}-\d{2}$/.test(m) ? new Date(`${m}-15T00:00:00`).toLocaleDateString(loc, { month: "short", year: "numeric" }) : m)).join(", ");
+}
+
 /** A quantity as a person types it on a phone, as the plain decimal the API stores, or null when it is not
  *  a usable number. Grouping commas go ("1,234.5", Indian "1,23,456"); a lone decimal comma counts as a
  *  point ("15,4" is 15.4, never 154); a unit or currency sign around it is ignored ("15.4 t", "₹ 21,192").

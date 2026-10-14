@@ -3,7 +3,7 @@
   "json/assumptions.json": {
    "parser": "copy_assumptions",
    "parser_version": "1.0.0",
-   "sha256": "a4d886fff85dd4f159424c507ef8d4cb7218678bff4ab6717ee52dda1d8f8c0a",
+   "sha256": "38b14c0262da7907feda661fa925bb21ccecde26558086d2a964b8785e7b95cc",
    "sources": [],
    "status": "assumption"
   },
@@ -64,7 +64,7 @@
    "status": "official"
   }
  },
- "generated_at": "2026-10-11",
+ "generated_at": "2026-10-14",
  "parser_version": "1.0.0",
  "sources": {
   "bm_xlsx": {

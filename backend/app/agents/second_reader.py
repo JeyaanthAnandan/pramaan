@@ -52,6 +52,18 @@ UNIT_ALIASES = {
     "inr/scm": "INR/SCM",
     "rs/scm": "INR/SCM",
     "rs./scm": "INR/SCM",
+    # the rate as a bill prints it: an independent test bill (2026-10-14) said "53.15 per SCM", the second
+    # reader kept "per SCM" and a value both readers read the same went to review as "units differ"
+    "per scm": "INR/SCM",
+    "/scm": "INR/SCM",
+    "₹ per scm": "INR/SCM",
+    "rs per scm": "INR/SCM",
+    "inr per scm": "INR/SCM",
+    "rupees per scm": "INR/SCM",
+    "டன்": "t",
+    "tấn": "t",
+    "किलो": "kg",
+    "கிலோ": "kg",
     "₹/scm": "INR/SCM",
     "rupees/scm": "INR/SCM",
 }
@@ -132,7 +144,11 @@ def compare(first_text: str, first_num: str | None, first_unit: str, second: dic
         # the crop is padded, so the second reader may also read a neighbouring line (an address
         # under a name): one of its lines must match the first reading exactly
         first = norm_text(first_text)
-        agrees = first == norm_text(r2_text) or (bool(first) and first in {norm_text(ln) for ln in r2_text.splitlines()})
+        lines = [ln for ln in r2_text.splitlines() if ln.strip()]
+        # or on one line, a name followed by its address ("Lindqvist Fästelement AB (TEST), Importgatan
+        # 14, ..." for a buyer read as "Lindqvist Fästelement AB (TEST)"): a leading part up to a comma
+        heads = {norm_text(", ".join(r2_text.split(",")[:k])) for k in range(1, r2_text.count(",") + 1)}
+        agrees = first == norm_text(r2_text) or (bool(first) and (first in {norm_text(ln) for ln in lines} or first in heads))
         delta = None
         if not agrees:
             reason = "text differs"

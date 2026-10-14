@@ -12,6 +12,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from app.agents.second_reader import parse_num
+from app.cbam.checks import unbalanced_months
 from app.cbam.engine import within
 from app.evidence.models import Document, Evidence, Project
 
@@ -106,20 +107,31 @@ def find_gaps(project: Project, evidence: list[Evidence], documents: list[Docume
             ("scrap_t", "scrap", "scrap_log"),
         ]:
             xs, missing = monthly(field, p.id)
+            status = _colour([x.status for x in xs], bool(missing))
+            params: dict[str, Any] = {
+                "process": p.name,
+                "precursor": p.precursor_name,
+                "months_found": len(xs),
+                "months_total": len(project.months),
+                "missing": missing,
+            }
+            # months whose rod − scrap misses the tonnes produced: the scrap line asks for a look at them
+            # (it showed "OK" while the monthly mass balance check warned)
+            off = unbalanced_months(project.months, evidence, p.id) if kind == "scrap" else []
+            if off:
+                kind_shown = "scrap_unbalanced"
+                status = "amber" if status == "green" else status
+                params["months"] = [o["month"] for o in off]
+            else:
+                kind_shown = kind
             gaps.append(
                 {
                     "id": f"{kind}.{p.id}",
                     "process": p.id,
                     "group": "activity" if kind != "scrap" else "control",
-                    "kind": kind,
-                    "status": _colour([x.status for x in xs], bool(missing)),
-                    "params": {
-                        "process": p.name,
-                        "precursor": p.precursor_name,
-                        "months_found": len(xs),
-                        "months_total": len(project.months),
-                        "missing": missing,
-                    },
+                    "kind": kind_shown,
+                    "status": status,
+                    "params": params,
                     "evidence_ids": [x.id for x in xs],
                     "suggested_doc": doc_hint,
                     "ask": "production_supervisor",

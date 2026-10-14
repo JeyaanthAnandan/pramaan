@@ -21,7 +21,7 @@ const TRY = ["try_save", "try_why", "try_show", "try_left"] as const;
 // Punjabi is a call language but not a UI language, so its examples live here.
 const PA_TRY: Record<(typeof TRY)[number], string> = {
   try_save: "ਮੇਰਾ ਡਾਟਾ ਮੇਰੇ ਖਰੀਦਦਾਰ ਦਾ ਸਾਲ ਵਿੱਚ ਕਿੰਨਾ ਬਚਾਉਂਦਾ ਹੈ?",
-  try_why: "ਮੇਰੇ ਸਟੇਨਲੈਸ ਬੋਲਟਾਂ ਦਾ SEE ਇੰਨਾ ਜ਼ਿਆਦਾ ਕਿਉਂ ਹੈ?",
+  try_why: "ਮੇਰੇ ਖਰੀਦਦਾਰ ਨੂੰ ਕਿਹੜੀ ਪ੍ਰੋਡਕਟ ਲਾਈਨ ਸਭ ਤੋਂ ਮਹਿੰਗੀ ਪੈਂਦੀ ਹੈ, ਅਤੇ ਕਿਉਂ?",
   try_show: "ਗੈਸ ਵਾਲਾ ਅੰਕੜਾ ਕਿੱਥੋਂ ਆਇਆ, ਦਿਖਾਓ।",
   try_left: "ਹੁਣ ਮੈਨੂੰ ਹੋਰ ਕੀ ਕਰਨਾ ਬਾਕੀ ਹੈ?",
 };
