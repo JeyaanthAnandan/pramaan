@@ -12,8 +12,14 @@ import re
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-NUM_RX = re.compile(r"(?<![\w.])[-+]?\d[\d,]*(?:\.\d+)?")
+# Only a Latin letter, digit or dot before a number makes it part of a name (P1, A2-70, M8): a number
+# written straight after a Hindi or Tamil word is still a number.
+NUM_RX = re.compile(r"(?<![A-Za-z0-9_.])[-+]?\d[\d,]*(?:\.\d+)?")
 ALWAYS_OK = {Decimal(x) for x in ["0", "1", "2", "3", "4", "5", "100"]} | {Decimal(y) for y in range(2020, 2041)}
+# Devanagari, Gurmukhi, Gujarati, Bengali, Tamil, Telugu, Kannada, Malayalam, Arabic-Indic and Thai digits:
+# an answer that writes "२.०४०" is checked like "2.040", never skipped
+_SCRIPT_ZEROS = (0x0966, 0x0A66, 0x0AE6, 0x09E6, 0x0BE6, 0x0C66, 0x0CE6, 0x0D66, 0x0660, 0x06F0, 0x0E50)
+DIGITS = str.maketrans({chr(z + i): str(i) for z in _SCRIPT_ZEROS for i in range(10)})
 
 
 def _allowed_numbers(tree: dict[str, Any], extra: list[str] | None = None) -> set[Decimal]:
@@ -40,7 +46,7 @@ def _allowed_numbers(tree: dict[str, Any], extra: list[str] | None = None) -> se
 
 def numbers_in(text: str) -> list[Decimal]:
     nums = []
-    for m in NUM_RX.finditer(text):
+    for m in NUM_RX.finditer(text.translate(DIGITS)):
         raw = m.group(0).replace(",", "")
         try:
             nums.append(Decimal(raw))
@@ -67,6 +73,17 @@ def guard(text: str, tree: dict[str, Any], citations_pages: list[int] | None = N
     """True if every number in ``text`` exists in the calc tree (or is a page/year/small integer)."""
     allowed = _allowed_numbers(tree, [str(p) for p in (citations_pages or [])])
     bad = [str(n) for n in numbers_in(_strip_refs(text)) if n not in allowed and n.normalize() not in allowed]
+    return (not bad), bad
+
+
+def same_numbers(rewrite: str, source: str, must_keep: list[str], pages: list[int]) -> tuple[bool, list[str]]:
+    """A rewrite may use only its source's own numbers, and must keep the ones that matter. Checking
+    against the whole tree is not enough: it holds 380 figures, and one product line's SEE said as the
+    other's would pass (2026-10-14 review)."""
+    allowed = set(ALWAYS_OK) | {Decimal(p) for p in pages} | {n.normalize() for n in numbers_in(_strip_refs(source))}
+    got = {n.normalize() for n in numbers_in(_strip_refs(rewrite))}
+    bad = sorted(str(n) for n in got if n not in allowed)
+    bad += [f"missing {k}" for k in must_keep if Decimal(k).normalize() not in got]
     return (not bad), bad
 
 
@@ -181,7 +198,9 @@ async def explain(result: dict[str, Any], lang: str = "en", live: bool = False) 
         r = await llm.text(
             settings().model_flash, "You explain EU CBAM results. Never introduce new numbers.", [text_part(prompt)], thinking_level="low"
         )
-        ok, bad = guard(str(r.data), tree, [c["page"] for c in s["citations"]])
+        node = next((p["see_node"] for p in result["processes"] if p["id"] == s["process"]), "")
+        see = str(tree.get(node, {}).get("display") or "")
+        ok, bad = same_numbers(str(r.data or ""), s["text"], [see] if see else [], [c["page"] for c in s["citations"]])
         if ok and r.data:
             out.append({**s, "text": str(r.data), "model": r.model})
         else:

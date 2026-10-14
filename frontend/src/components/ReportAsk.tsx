@@ -2,7 +2,7 @@ import { createContext, Fragment, useCallback, useContext, useEffect, useRef, us
 import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "motion/react";
-import { BookOpen, Loader2, MessageCircleQuestion, ScanSearch, SendHorizonal, Sparkles, X } from "lucide-react";
+import { BookOpen, Loader2, MessageCircleQuestion, ScanSearch, SendHorizonal, ShieldCheck, Sparkles, X } from "lucide-react";
 import { api, type ReportAnswer, type ReportFact } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { EASE, rise, stagger } from "@/lib/motion";
@@ -201,6 +201,13 @@ function Answer({ a }: { a: ReportAnswer }) {
         </p>
       ) : (
         <p className="text-[13px] text-ink2">{t(`ask.note_${a.note ?? "no_gemini"}`)}</p>
+      )}
+      {a.answer && a.guard && a.guard.numbers > 0 && (
+        <p className="flex items-center gap-1.5 text-[11px] text-muted">
+          <ShieldCheck className="h-3.5 w-3.5 text-good" aria-hidden />
+          {t("ask.checked", { count: a.guard.numbers })}
+          {a.guard.repaired.length > 0 && <> · {t("ask.repaired")}</>}
+        </p>
       )}
       {used.length > 0 && (
         <div>

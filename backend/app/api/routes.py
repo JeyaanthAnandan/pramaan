@@ -724,6 +724,10 @@ async def voice_note(
         num = None
     if num is None:
         return {"document": d.model_dump(), "transcript": transcript, "evidence": None, "note": "No quantity found in the voice note."}
+    # the quote must be words of the transcript: a value the transcript does not carry is flagged to
+    # the person who reviews it (every voice-note value goes to review anyway)
+    quote = str(v.get("quote") or "").strip()
+    grounded = bool(quote) and " ".join(quote.split()).casefold() in " ".join(transcript.split()).casefold()
     unit = str(v.get("unit") or "t").strip().lower()
     if unit in {"kg", "kgs", "किलो", "ਕਿਲੋ", "கிலோ"}:
         num, unit = str(Decimal(num) / 1000), "t"
@@ -742,7 +746,8 @@ async def voice_note(
         process=process,
         extractor_model=f"{t.model} + {r.model}",
         status="NEEDS_REVIEW",
-        notes=f"Transcript ({lang}): {transcript}\nQuote: {v.get('quote', '')}",
+        notes=f"Transcript ({lang}): {transcript}\nQuote: {quote}"
+        + ("" if grounded else "\nCheck: the quoted words are not in the transcript; listen to the note before approving."),
     )
     store().put_evidence([ev])
     recalculate(pid)

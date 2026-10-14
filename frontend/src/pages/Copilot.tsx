@@ -104,7 +104,7 @@ function Answer({ a }: { a: any }) {
           <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{a.answer}</p>
         </div>
       ) : (
-        <p className="text-[13px] text-muted">{t("copilot.retrieval")}</p>
+        <p className="text-[13px] text-muted">{t(a.guard?.withheld?.length ? "copilot.withheld" : "copilot.retrieval")}</p>
       )}
       {a.citations?.length > 0 && (
         <motion.div className="mt-3 flex flex-wrap gap-1.5" variants={stagger(0.06, 0.2)} initial="hidden" animate="show">

@@ -112,7 +112,8 @@ def _say(text: str, done: bool = True) -> types.LiveServerMessage:
 
 
 class ScriptedSession:
-    """Answers the greeting, then the first question: asks to open the lens, then says a figure."""
+    """Answers the greeting, then the first question: asks to open the lens, then says a figure and a
+    number that is not in the report; corrects itself when the checker says so."""
 
     def __init__(self) -> None:
         self.turns: asyncio.Queue[list[types.LiveServerMessage]] = asyncio.Queue()
@@ -124,6 +125,8 @@ class ScriptedSession:
         self.sent.append(kw)
         if "text" in kw and kw["text"].startswith("(The call has just started"):
             await self.turns.put([_say("Namaste, main Pramaan hoon.")])
+        elif "text" in kw and kw["text"].startswith("(Automatic numbers check: you just said 99999"):
+            await self.turns.put([_say("Sudhaar: sahi aankda 409,545 EUR hai.")])
         elif "audio" in kw and not self.asked:
             self.asked = True
             await self.turns.put(
@@ -187,6 +190,9 @@ def test_a_call_end_to_end_over_the_websocket(monkeypatch: pytest.MonkeyPatch, m
             assert action["node"] == "P1.see"
             turn = until("turn")
             assert [f["value"] for f in turn["figures"]] == ["409,545"] and turn["unverified"] == ["99999"]
+            assert until("correcting")["numbers"] == ["99999"]  # the agent is told, and corrects itself aloud
+            fixed = until("turn")
+            assert fixed["correction"] is True and fixed["unverified"] == [] and fixed["figures"][0]["value"] == "409,545"
             ws.send_text(json.dumps({"type": "hangup"}))
     assert ("audio", 960) in events
     assert {"type": "caption", "who": "caller", "text": "मेरे खरीदार को कितनी बचत?"} in events
@@ -206,3 +212,14 @@ def test_a_call_needs_the_projects_passcode_and_a_report(monkeypatch: pytest.Mon
         demo = c.post("/api/demo/load", json={}).json()["project_id"]
         with c.websocket_connect(f"/api/projects/{demo}/call", headers={"origin": "https://evil.example"}) as ws:
             assert ws.receive_json() == {"type": "error", "code": "origin"}
+
+
+def test_a_spoken_number_must_be_a_figure_of_the_report_or_a_tools_answer(ctx: call.CallContext) -> None:
+    """2026-10-14 review: any rounding of any of the 380 tree nodes passed, so a made-up "37 %" usually did."""
+    assert call.check_spoken("About 37 % of it comes from gas.", ctx)[1] == ["37"]
+    assert call.check_spoken("The stainless rod is 7.128 t CO2/t.", ctx)[1] == []  # a fact
+    assert call.check_spoken("The mark-up is 0.100.", ctx)[1] == ["0.100"]  # not a figure of the report...
+    r, _ = call.run_tool("explain_number", {"fact_id": "P2.rod.see"}, ctx)
+    assert r["inputs"][1]["value"] == "0.100"  # ...until a tool gives it to the agent
+    assert call.check_spoken("The mark-up is 0.100.", ctx)[1] == []
+    assert "Automatic numbers check: you just said 37" in call.correction(["37"], "hi") and "Hindi" in call.correction(["37"], "hi")

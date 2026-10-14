@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { AlertTriangle, Keyboard, Loader2, Mic, MicOff, Phone, PhoneOff, ScanSearch, SendHorizonal, X } from "lucide-react";
+import { AlertTriangle, Keyboard, Loader2, Mic, MicOff, Phone, PhoneOff, RotateCcw, ScanSearch, SendHorizonal, X } from "lucide-react";
 import { useProject } from "@/lib/project";
 import { CALL_LANGS, CallClient, callSupported, type CallEvent, type CallFigure } from "@/lib/call";
 import { EASE, rise, stagger } from "@/lib/motion";
@@ -11,7 +11,7 @@ import { useLens } from "./EvidenceLens";
 import { useReturnFocus } from "@/lib/focus";
 
 type Phase = "idle" | "connecting" | "live" | "ended" | "error";
-interface Turn { who: "caller" | "agent"; text: string; open: boolean; figures?: CallFigure[]; unverified?: string[]; cut?: boolean }
+interface Turn { who: "caller" | "agent"; text: string; open: boolean; figures?: CallFigure[]; unverified?: string[]; cut?: boolean; correction?: boolean }
 
 const CallCtx = createContext<() => void>(() => {});
 /** Open the "Call Pramaan" panel. */
@@ -30,6 +30,7 @@ const TOOL_KEY: Record<string, string> = {
   open_evidence: "tool_show",
   search_guidance: "tool_guidance",
   open_items: "tool_items",
+  correcting: "correcting",
 };
 
 /** Call Pramaan: talk to your report like a phone call, in English, Hindi, Punjabi, Tamil or
@@ -93,12 +94,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
           const i = [...xs].reverse().findIndex((x) => x.who === "agent" && !x.figures);
           if (i < 0) return xs;
           const k = xs.length - 1 - i;
-          return xs.map((x, j) => (j === k ? { ...x, open: false, figures: e.figures, unverified: e.unverified } : x));
+          return xs.map((x, j) => (j === k ? { ...x, open: false, figures: e.figures, unverified: e.unverified, correction: e.correction } : x));
         });
       } else if (e.type === "interrupted") {
         setTurns((xs) => xs.map((x, j) => (j === xs.length - 1 && x.who === "agent" ? { ...x, cut: true, open: false } : x)));
       } else if (e.type === "tool") {
         setTool(e.name);
+      } else if (e.type === "correcting") {
+        setTool("correcting"); // the checker caught a number; the agent corrects itself next
       } else if (e.type === "action" && e.name === "open_evidence") {
         lens.open(e.node);
       } else if (e.type === "ended") {
@@ -358,6 +361,7 @@ function TurnView({ turn }: { turn: Turn }) {
   return (
     <motion.div className="space-y-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: EASE }}>
       <div className="w-fit max-w-[92%] rounded-2xl rounded-bl-md border border-line bg-surface px-3.5 py-2 text-[14px] leading-relaxed shadow-card">
+        {turn.correction && <span className="mr-1.5 inline-flex items-center gap-1 rounded border border-good/40 bg-goodbg px-1.5 align-[1px] text-[11px] font-semibold text-goodink"><RotateCcw className="h-3 w-3" aria-hidden />{t("call.correction")}</span>}
         {turn.text}
         {turn.cut && <span className="ml-1 text-[12px] text-muted">({t("call.cut")})</span>}
       </div>

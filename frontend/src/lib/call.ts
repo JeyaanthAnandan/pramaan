@@ -6,7 +6,8 @@ export interface CallFigure { id: string; label: string; value: string; unit: st
 export type CallEvent =
   | { type: "ready"; model: string; lang: string; max_seconds: number }
   | { type: "caption"; who: "caller" | "agent"; text: string }
-  | { type: "turn"; said: string; figures: CallFigure[]; unverified: string[] }
+  | { type: "turn"; said: string; figures: CallFigure[]; unverified: string[]; correction?: boolean }
+  | { type: "correcting"; numbers: string[] }
   | { type: "tool"; name: string }
   | { type: "action"; name: "open_evidence"; node: string; label: string }
   | { type: "interrupted" }

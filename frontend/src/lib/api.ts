@@ -283,6 +283,8 @@ export interface ReportAnswer {
   cited?: string[];
   citations: { doc: string; page: number }[];
   model?: string;
+  /** the numbers guard: how many numbers were checked, which a first draft got wrong (then rewritten) */
+  guard?: { numbers: number; repaired: string[]; withheld: string[] };
 }
 
 /** Plant pulse: gas per tonne by month against the plant's own median month (every figure has a lens node). */
