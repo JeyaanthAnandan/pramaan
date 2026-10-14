@@ -16,6 +16,7 @@ import hashlib
 import random
 from typing import Any
 
+from app.evidence.ledger import changed_by_hand
 from app.evidence.models import Document, Evidence, Project
 
 SIZE = 12
@@ -53,7 +54,11 @@ def sample(project: Project, evidence: list[Evidence], documents: list[Document]
             picked.append((why, e))
             seen.add(e.id)
 
-    take("manual", [e for e in boxed if e.status == "APPROVED" or e.approved_by], MANUAL_CAP)
+    # values a person changed come first (a verifier asks about every manual correction), then approvals
+    manual = [e for e in boxed if e.status == "APPROVED" or e.approved_by]
+    changed = [e for e in manual if changed_by_hand(e)]
+    take("manual", changed, MANUAL_CAP)
+    take("manual", manual, MANUAL_CAP - len(picked))
     for why, n, keys, types in STRATA:
         take(why, [e for e in boxed if e.field_key in keys and (types is None or doc_type.get(e.doc_id) in types)], n)
     if len(picked) < size:  # a factory without some of these documents: fill from the other inputs

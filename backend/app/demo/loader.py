@@ -152,6 +152,16 @@ def restore_cached(project_id: str = DEMO_ID) -> dict[str, Any] | None:
     result = recalculate(p.id)
     result["run_id"], result["mode"] = run.id, run.mode
     st.put_result(p.id, run.id, result)
+    from app.evidence import ledger
+
+    evidence = st.list_evidence(p.id)
+    ledger.append(
+        p.id,
+        "values_read",
+        "Pramaan agents (captured run)" if snap.get("mode") == "live" else "Pramaan (bundled sample)",
+        subject=run.id,
+        after={"mode": snap.get("mode"), "values": len(evidence), "values_sha256": ledger.values_digest(evidence)},
+    )
     source = "cached live Gemini run" if snap.get("mode") == "live" else "replay of bundled ground truth (Gemini not used)"
     return {"project_id": p.id, "run_id": run.id, "source": source, "captured_at": snap.get("captured_at")}
 

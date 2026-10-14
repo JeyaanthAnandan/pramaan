@@ -1,8 +1,8 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { AnimatedNumber, rise, stagger } from "@/lib/motion";
 import { Logo, LangSwitch } from "@/components/Layout";
@@ -56,6 +56,11 @@ export default function Share() {
                 <div><dt className="inline text-muted">{t("buyer.generated")}: </dt><dd className="inline">{dateTime(s.generated_at, i18n.language)}</dd></div>
               </dl>
               <p className="mt-1 text-[12px] text-muted">{s.method}</p>
+              {q.data?.receipt_id && (
+                <Link to={`/r/${q.data.receipt_id}`} className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-good/40 bg-goodbg px-3 py-1 text-[12px] font-semibold text-goodink hover:underline">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> {t("receipt.badge")} · <span className="font-mono">{q.data.receipt_id}</span>
+                </Link>
+              )}
             </div>
             <motion.div className="mt-6 space-y-4" variants={stagger(0.1, 0.1)} initial="hidden" animate="show">
               {s.goods.map((g) => (

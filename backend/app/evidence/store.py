@@ -3,7 +3,9 @@
 Firestore layout (brief 7.4):
     projects/{pid}
       documents/{doc_id} · evidence/{eid} · runs/{run_id} · results/{run_id}
+      ledger/{seq:08d}        (the change log: a hash chain, see ledger.py)
     share_links/{token}       (top level so a buyer link resolves without the project id)
+    attestations/{id}         (signed report receipts: top level, checked by anyone holding the id)
 """
 
 from __future__ import annotations
@@ -39,6 +41,11 @@ class Store(Protocol):
     def get_latest_result(self, pid: str) -> dict[str, Any] | None: ...
     def put_share(self, s: ShareLink) -> None: ...
     def get_share(self, token: str) -> ShareLink | None: ...
+    def append_ledger(self, pid: str, entry: dict[str, Any]) -> bool: ...
+    def ledger_head(self, pid: str) -> dict[str, Any] | None: ...
+    def list_ledger(self, pid: str) -> list[dict[str, Any]]: ...
+    def put_attestation(self, a: dict[str, Any]) -> None: ...
+    def get_attestation(self, aid: str) -> dict[str, Any] | None: ...
 
 
 class MemoryStore:
@@ -52,6 +59,8 @@ class MemoryStore:
         self.runs: dict[str, dict[str, Run]] = {}
         self.results: dict[str, list[tuple[str, dict[str, Any]]]] = {}
         self.shares: dict[str, ShareLink] = {}
+        self.ledger: dict[str, list[dict[str, Any]]] = {}
+        self.attestations: dict[str, dict[str, Any]] = {}
         self.snapshot = snapshot
         self._timer: threading.Timer | None = None
         if snapshot and snapshot.exists():
@@ -83,6 +92,8 @@ class MemoryStore:
             "runs": {k: [r.model_dump() for r in v.values()] for k, v in self.runs.items()},
             "results": {k: v[-3:] for k, v in self.results.items()},
             "shares": [s.model_dump() for s in self.shares.values()],
+            "ledger": self.ledger,
+            "attestations": list(self.attestations.values()),
         }
         tmp = self.snapshot.with_suffix(".tmp")
         tmp.write_text(json.dumps(data))
@@ -100,6 +111,8 @@ class MemoryStore:
         self.runs = {k: {r["id"]: Run(**r) for r in v} for k, v in data.get("runs", {}).items()}
         self.results = {k: [tuple(x) for x in v] for k, v in data.get("results", {}).items()}  # type: ignore[misc]
         self.shares = {s["token"]: ShareLink(**s) for s in data.get("shares", [])}
+        self.ledger = data.get("ledger", {})
+        self.attestations = {a["id"]: a for a in data.get("attestations", [])}
 
     # ---- projects
     def put_project(self, p: Project) -> None:
@@ -115,9 +128,10 @@ class MemoryStore:
 
     def delete_project(self, pid: str) -> None:
         with self._lock:
-            for d in (self.projects, self.documents, self.evidence, self.runs, self.results):
+            for d in (self.projects, self.documents, self.evidence, self.runs, self.results, self.ledger):
                 d.pop(pid, None)
             self.shares = {k: v for k, v in self.shares.items() if v.project_id != pid}
+            self.attestations = {k: v for k, v in self.attestations.items() if v.get("project_id") != pid}
             self._save()
 
     # ---- documents
@@ -198,6 +212,31 @@ class MemoryStore:
     def get_share(self, token: str) -> ShareLink | None:
         return self.shares.get(token)
 
+    # ---- change log and signed receipts
+    def append_ledger(self, pid: str, entry: dict[str, Any]) -> bool:
+        with self._lock:
+            chain = self.ledger.setdefault(pid, [])
+            if entry["seq"] != len(chain) + 1:
+                return False
+            chain.append(entry)
+            self._save()
+            return True
+
+    def ledger_head(self, pid: str) -> dict[str, Any] | None:
+        chain = self.ledger.get(pid) or []
+        return chain[-1] if chain else None
+
+    def list_ledger(self, pid: str) -> list[dict[str, Any]]:
+        return list(self.ledger.get(pid) or [])
+
+    def put_attestation(self, a: dict[str, Any]) -> None:
+        with self._lock:
+            self.attestations[a["id"]] = a
+            self._save()
+
+    def get_attestation(self, aid: str) -> dict[str, Any] | None:
+        return self.attestations.get(aid)
+
 
 def valid_id(*ids: str) -> bool:
     """False for an id Firestore rejects outright (empty, "." or "..", a "/", a reserved __name__, more than
@@ -234,8 +273,10 @@ class FirestoreStore:
 
     def delete_project(self, pid: str) -> None:
         # batched: a sample copy is ~250 records, and deleting them one call at a time took ~2 s per copy
-        refs = [s.reference for sub in ["documents", "evidence", "runs", "results"] for s in self._p(pid).collection(sub).stream()]
+        subs = ["documents", "evidence", "runs", "results", "ledger"]
+        refs = [s.reference for sub in subs for s in self._p(pid).collection(sub).stream()]
         refs += [s.reference for s in self.db.collection("share_links").where("project_id", "==", pid).stream()]  # buyer + supplier links
+        refs += [s.reference for s in self.db.collection("attestations").where("project_id", "==", pid).stream()]
         refs.append(self._p(pid))
         batch = self.db.batch()
         for n, ref in enumerate(refs, 1):
@@ -328,6 +369,34 @@ class FirestoreStore:
             return None
         s = self.db.collection("share_links").document(token).get()
         return ShareLink(**(s.to_dict() or {})) if s.exists else None
+
+    def append_ledger(self, pid: str, entry: dict[str, Any]) -> bool:
+        """create() fails if the number is taken: of two writers at once, one appends and one retries."""
+        from google.api_core.exceptions import AlreadyExists
+
+        try:
+            self._p(pid).collection("ledger").document(f"{entry['seq']:08d}").create(entry)
+            return True
+        except AlreadyExists:
+            return False
+
+    def ledger_head(self, pid: str) -> dict[str, Any] | None:
+        docs = list(self._p(pid).collection("ledger").order_by("seq", direction="DESCENDING").limit(1).stream())
+        return docs[0].to_dict() if docs else None
+
+    def list_ledger(self, pid: str) -> list[dict[str, Any]]:
+        if not valid_id(pid):
+            return []
+        return [s.to_dict() or {} for s in self._p(pid).collection("ledger").order_by("seq").stream()]
+
+    def put_attestation(self, a: dict[str, Any]) -> None:
+        self.db.collection("attestations").document(a["id"]).set(a)
+
+    def get_attestation(self, aid: str) -> dict[str, Any] | None:
+        if not valid_id(aid):
+            return None
+        s = self.db.collection("attestations").document(aid).get()
+        return s.to_dict() if s.exists else None
 
 
 _store: Store | None = None

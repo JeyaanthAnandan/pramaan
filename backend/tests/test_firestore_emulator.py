@@ -34,13 +34,25 @@ def test_full_flow_on_firestore() -> None:
             assert c.get(f"/api/projects/demo-shivalik/runs/{run_id}/events").text.count("event: timeline") > 100
             tok = c.post("/api/projects/demo-shivalik/share").json()["token"]
             assert c.get(f"/api/share/{tok}").status_code == 200
+            # the change log is a hash chain in Firestore; a receipt is signed, kept and checked there too
+            from app.evidence import ledger
+
+            chain = st.store().list_ledger("demo-shivalik")
+            assert [e["action"] for e in chain] == ["values_read", "approve", "report_issued"] and ledger.verify("demo-shivalik")["ok"]
+            assert st.store().append_ledger("demo-shivalik", {**chain[-1], "seq": chain[-1]["seq"]}) is False  # a number is taken once
+            aid = c.get("/api/projects/demo-shivalik/export/pdf").headers["x-pramaan-receipt"]
+            rec = c.get(f"/api/receipts/{aid}").json()
+            assert rec["signature_valid"] and rec["now"]["values_match"] and rec["now"]["log"]["ok"]
             # the owner's delete removes an own project and its links from Firestore too
             from app.evidence.models import ShareLink
 
             own = c.post("/api/projects", json={"name": "x", "company": "Delete Me (SAMPLE)"}).json()["id"]
             st.store().put_share(ShareLink(token=f"t-{own}", project_id=own, summary_snapshot={}))
+            st.store().put_attestation({"id": f"PR-{own}", "project_id": own})
+            ledger.append(own, "approve", "test")
             assert c.delete(f"/api/projects/{own}").status_code == 200
             assert st.store().get_project(own) is None and st.store().get_share(f"t-{own}") is None
+            assert st.store().get_attestation(f"PR-{own}") is None and st.store().list_ledger(own) == []
             assert st.store().get_share(tok) is not None  # another project's link stays
             # ids Firestore cannot hold (reserved __names__, over 1,500 bytes) are not found, never a 500
             for bad in ("__x__", "a" * 1600):

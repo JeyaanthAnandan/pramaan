@@ -222,14 +222,46 @@ flowchart LR
 ### Google Cloud services
 Cloud Run (asia-southeast1, CPU boost, min-instances 1 during judging) · Gemini Enterprise Agent Platform (`global`;
 Gemini 3.8 Flash, Gemini 3.5 Flash-Lite; Gemini 3.8 Live in `us-central1` for voice calls) · Agent Development Kit 2.x · Firestore (Native) · Cloud
-Storage · Cloud Build / Artifact Registry · Cloud Logging & Trace · IAM (dedicated least-privilege
-service account, no API keys).
+Storage · Cloud KMS (EC P-256 key that signs every report's receipt) · Cloud Build / Artifact Registry · Cloud
+Logging & Trace · IAM (dedicated least-privilege service account, no API keys).
 
 ### Two-reader check, precisely
 1. The Extractor returns every required field with `value`, `unit`, `box_2d = [ymin, xmin, ymax, xmax]` (0–1000), page and label.
 2. For each field the region is cropped with 15 % padding, and **only the crop** goes to Gemini 3.5 Flash-Lite with the kind of value expected — never the first reading.
 3. Readings are normalised (Indian digit grouping, decimal commas, unit aliases). Numbers must agree within **0.5 %**, and units must match after normalisation when visible. Agreement → `VERIFIED_2R` (green). Otherwise `NEEDS_REVIEW` (amber) with both readings and the crop. A human tap → `APPROVED` with user and timestamp, followed by a deterministic recalculation.
 4. Readiness = share of SEE-relevant inputs that are `VERIFIED_2R` or `APPROVED`, shown next to how many product lines can be declared on actual data (the sample: 99 % of inputs, but 1 of 2 lines, because the stainless rod is still on its default).
+
+### Numbers the AI never invents, reports nobody can quietly change
+**Every number is tied to its own source.** The engine computes every figure; Gemini only reads documents and puts
+figures into words. Each AI answer is checked before anyone sees it:
+
+| Where | The check | When it fails |
+|---|---|---|
+| Ask about this report | each number sits in a sentence citing the fact `[F:id]` that shows that very number, or a guidance page that prints it; a page the model was not given is not a source | one repair with the failing numbers named, then the answer is withheld and the facts answer instead |
+| Rules copilot | each number, date or percentage is printed on the page cited in the same sentence | same: one repair, then the pages themselves |
+| Narrative | a rewrite may use only its template's numbers and must keep the SEE | the template text is shown |
+| Call Pramaan | each spoken number (from the transcript of its own audio, number words and Indian-script digits included) is one of the report's facts or something a tool just told it | flagged on screen, and the agent is told at once: it **corrects itself out loud** |
+
+Being *somewhere* in the report is not enough. A review on 14 Oct 2026 measured the earlier rule: 41 of the 94
+two-digit numbers were a rounding of one of the 380 nodes in the calculation tree, and the stainless line's SEE
+said as the carbon line's passed. Live, 12 questions in English, Hindi, Tamil and Vietnamese: 11 answers passed
+first time, 1 was repaired (two correct numbers cited to the wrong fact), none was withheld. Text that owners or
+suppliers typed, and text written on a document photo, goes into prompts as data, never as instructions.
+
+**Every change is on a hash chain, every report is signed.** Values read by a run, a value approved or changed by
+hand, a verifier's spot-check mark and each report issued are entries in a change log where each entry carries the
+SHA-256 of the one before (`app/evidence/ledger.py`): editing history breaks the chain. Each report that leaves
+Pramaan (PDF, verifier pack, buyer link) carries a receipt (`app/evidence/attest.py`): a statement of the headline
+figures, how each of the values behind them was confirmed (two readers / approved as read / **changed by hand** /
+waiting), and SHA-256 fingerprints of the calculation tree, the values, every source photo, the reference data,
+the change log's head and each file issued, signed with an EC P-256 key in **Cloud KMS** (the private key never
+leaves KMS). The receipt id is printed on the PDF; `/r/{id}` checks the signature *in the reader's own browser*
+(WebCrypto), compares a dropped-in PDF byte for byte with the one issued, and lists anything changed since. The
+verifier pack carries the statement, signature and public key, so a verifier checks it with no Pramaan at all:
+
+```bash
+openssl dgst -sha256 -verify receipt/public_key.pem -signature receipt/statement.sig receipt/statement.json   # Verified OK
+```
 
 ## Proof: EC examples reproduced (golden tests)
 
@@ -318,7 +350,7 @@ with `.venv/bin/python -I refdata/build_refdata.py`.
 ## Deploy (Cloud Run)
 
 ```bash
-scripts/gcp_setup.sh   # APIs, Firestore (asia-southeast1), private bucket, least-privilege service account, model check
+scripts/gcp_setup.sh   # APIs, Firestore (asia-southeast1), private bucket, least-privilege service account, KMS signing key, model check
 scripts/deploy.sh      # golden tests → gcloud run deploy --source . → smoke test (health, sample, buyer link, golden, UI)
 MIN_INSTANCES=0 scripts/deploy.sh   # same, but scale to zero between demos (the default 1 keeps it warm for judging)
 ```

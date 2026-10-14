@@ -11,7 +11,7 @@ from app.cbam.tree import q
 from app.evidence.models import Project
 
 TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
-@page { size: A4; margin: 18mm 16mm 20mm; @bottom-left { content: "Pramaan · {{ project.company }} · PROVISIONAL — not verified"; font-size: 8pt; color: #666; }
+@page { size: A4; margin: 18mm 16mm 20mm; @bottom-left { content: "Pramaan · {{ project.company }} · PROVISIONAL — not verified{% if seal %} · receipt {{ seal.id }}{% endif %}"; font-size: 8pt; color: #666; }
         @bottom-right { content: "page " counter(page) " / " counter(pages); font-size: 8pt; color: #666; } }
 body { font-family: "Noto Sans", "DejaVu Sans", sans-serif; color: #1c1c1a; font-size: 9.5pt; line-height: 1.45; }
 h1 { font-size: 20pt; margin: 0 0 2mm; letter-spacing: -0.3px; } h2 { font-size: 12.5pt; margin: 7mm 0 2mm; border-bottom: 1px solid #ccc; padding-bottom: 1mm; }
@@ -78,6 +78,8 @@ tr, .keep { break-inside: avoid; page-break-inside: avoid; } h2 { break-after: a
 </table>
 <h2>{{ 7 if pulse else 6 }}. Assumptions and reference data</h2>
 <ul class="small">{% for a in result.assumptions_used %}<li>{{ a }}</li>{% endfor %}</ul>
+{% if seal %}<div class="keep" style="margin-top:5mm;border:1px solid #bbb;padding:2.5mm 3mm"><b>Signed receipt {{ seal.id }}</b>
+<div class="small">This report's statement (headline figures, how each value was confirmed, SHA-256 of the calculation, of every value, of each source photo and of this PDF) is signed with {{ "a Google Cloud KMS key" if seal.trusted else "a DEVELOPMENT key (not trusted)" }}, fingerprint <span style="font-family:monospace">{{ seal.fingerprint }}</span>. Check that this file is genuine and unaltered at <b>{{ seal.url }}</b>: drop this PDF there, or verify the verifier pack's receipt offline with OpenSSL.</div></div>{% endif %}
 <p class="small muted">Reference data parsed from official EC files (default values 10 Aug 2026; benchmarks 13 Feb 2026; Guidance 3/4/5d of 14 Aug 2026; certificate prices page) with SHA-256 manifest. Every number in this report opens in the Evidence Lens of the Pramaan app with its source region or reference.</p>
 </body></html>"""
 
@@ -203,12 +205,13 @@ def context(project: Project, result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def html(project: Project, result: dict[str, Any]) -> str:
+def html(project: Project, result: dict[str, Any], seal: dict[str, Any] | None = None) -> str:
     env = Environment(autoescape=select_autoescape(default=True))
-    return env.from_string(TEMPLATE).render(**context(project, result))
+    return env.from_string(TEMPLATE).render(**context(project, result), seal=seal)
 
 
-def render(project: Project, result: dict[str, Any], lang: str = "en") -> bytes:
+def render(project: Project, result: dict[str, Any], lang: str = "en", seal: dict[str, Any] | None = None) -> bytes:
+    """``seal`` (id, url, fingerprint, trusted) prints the signed receipt's id and where to check it."""
     from weasyprint import HTML
 
-    return HTML(string=html(project, result)).write_pdf()  # type: ignore[no-any-return]
+    return HTML(string=html(project, result, seal)).write_pdf()  # type: ignore[no-any-return]

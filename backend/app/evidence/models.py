@@ -184,3 +184,4 @@ class ShareLink(BaseModel):
     process_id: str | None = None
     created_at: str = Field(default_factory=now)
     expires_at: str | None = None
+    receipt_id: str | None = None  # the signed receipt of the summary this link shows (attest.py)

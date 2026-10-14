@@ -6,6 +6,8 @@ REGION="${REGION:-asia-southeast1}"
 BUCKET="${BUCKET:-copilot-manufacturing-pramaan}"
 MIN_INSTANCES="${MIN_INSTANCES:-1}"   # 1 keeps the demo warm for judging; 0 scales to zero
 SA="pramaan-run@${PROJECT}.iam.gserviceaccount.com"
+# Cloud KMS key version that signs report receipts (created by gcp_setup.sh)
+SIGNING_KEY="${SIGNING_KEY:-projects/$PROJECT/locations/$REGION/keyRings/pramaan/cryptoKeys/report-signing/cryptoKeyVersions/1}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "== pre-deploy gate: golden EC tests + refdata manifest"
@@ -15,7 +17,7 @@ SHA="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo dev)"
 gcloud run deploy pramaan --source "$ROOT" --project "$PROJECT" --region "$REGION" \
   --service-account "$SA" --allow-unauthenticated \
   --cpu 2 --memory 2Gi --min-instances "$MIN_INSTANCES" --max-instances 3 --concurrency 60 --cpu-boost --session-affinity --timeout 900 \
-  --set-env-vars "STORE_BACKEND=firestore,PRAMAAN_BUCKET=$BUCKET,GOOGLE_CLOUD_PROJECT=$PROJECT,GEMINI_MODE=vertex,GEMINI_LOCATION=global,GIT_SHA=$SHA,MAX_RUNS_PER_HOUR=20"
+  --set-env-vars "STORE_BACKEND=firestore,PRAMAAN_BUCKET=$BUCKET,GOOGLE_CLOUD_PROJECT=$PROJECT,GEMINI_MODE=vertex,GEMINI_LOCATION=global,GIT_SHA=$SHA,MAX_RUNS_PER_HOUR=20,SIGNING_KEY=$SIGNING_KEY"
 
 URL="$(gcloud run services describe pramaan --project "$PROJECT" --region "$REGION" --format='value(status.url)')"
 echo "== smoke test $URL"
@@ -24,6 +26,7 @@ curl -fsS -X POST "$URL/api/demo/load" -H 'content-type: application/json' -d '{
 TOKEN="$(curl -fsS -X POST "$URL/api/projects/demo-shivalik/share" | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')"
 curl -fsS "$URL/api/share/$TOKEN" | head -c 200; echo
 curl -fsS "$URL/api/golden" | python3 -c 'import sys,json; d=json.load(sys.stdin); print("golden all_pass:", d["all_pass"])'
+curl -fsS "$URL/api/receipts/key" | python3 -c 'import sys,json; d=json.load(sys.stdin); assert d["trusted"], d["name"]; print("receipts signed by", d["name"], "·", d["fingerprint"])'
 if [ -x "$ROOT/backend/.venv/bin/python" ]; then
   echo "== logged-out UI smoke test (desktop + phone)"
   "$ROOT/backend/.venv/bin/python" "$ROOT/scripts/ui_smoke.py" "$URL"

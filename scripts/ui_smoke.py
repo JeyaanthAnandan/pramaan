@@ -90,6 +90,11 @@ def main() -> int:
                 body = buyer.content()
                 assert "MMBtu" not in body and "Doaba" not in body, "buyer link leaks plant-level inputs"
                 print(f"[{name}] buyer link OK (logged-out): {link}")
+                # the buyer checks the link's signed receipt, in their own browser
+                buyer.get_by_text("Signed by Pramaan").click()
+                expect(buyer.get_by_test_id("receipt-signature")).to_contain_text("Genuine", timeout=15_000)
+                expect(buyer.get_by_test_id("receipt-signature")).to_contain_text("checked in this browser")
+                print(f"[{name}] signed receipt verified in the buyer's browser: {buyer.url.rsplit('/', 1)[-1]}")
                 buyer.context.close()
                 # one buyer cost everywhere: the stainless bolts are on the EU default (EUR 402/t)
                 page.goto(f"{base}/p/{pid}/report", wait_until="networkidle")

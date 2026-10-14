@@ -531,8 +531,18 @@ async def reporter(node_input: dict[str, Any]) -> Event:
     result["explainer_meta"] = c.stats.get("explainer_meta", {})
     result["run_id"] = c.run.id
     result["mode"] = c.mode
-    result["buyer_summary"] = buyer_summary(c.project, result, store().list_evidence(c.project.id))
+    evidence = store().list_evidence(c.project.id)
+    result["buyer_summary"] = buyer_summary(c.project, result, evidence)
     store().put_result(c.project.id, c.run.id, result)
+    from app.evidence import ledger
+
+    ledger.append(
+        c.project.id,
+        "values_read",
+        "Pramaan agents",
+        subject=c.run.id,
+        after={"mode": c.mode, "values": len(evidence), "values_sha256": ledger.values_digest(evidence)},
+    )
     c.emit(
         "Reporter",
         "Report, workbook, verifier pack and buyer summary ready",

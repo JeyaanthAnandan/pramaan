@@ -20,7 +20,7 @@ from app.agents.workflow import BUS, RUNS, execute, recalculate
 from app.cbam.golden import run_all
 from app.config import settings
 from app.demo import loader
-from app.evidence import blobs
+from app.evidence import attest, blobs, ledger
 from app.evidence.models import DOC_TYPES, Document, Evidence, ProcessDef, Project, Run, ShareLink, now
 from app.evidence.store import store
 
@@ -184,6 +184,7 @@ def spotcheck_mark(pid: str, eid: str, body: SpotMark) -> dict[str, Any]:
     e.spot_check = mark
     e.history.append({"action": "spot_check", **mark})
     store().put_evidence([e])
+    ledger.append(pid, "spot_check", str(mark["by"]), subject=e.id, after={"match": body.match}, note=str(mark["note"]))
     return {"id": e.id, "mark": mark}
 
 
@@ -463,6 +464,15 @@ def patch_evidence(pid: str, eid: str, body: EvidencePatch) -> dict[str, Any]:
     x.notes = body.notes
     x.history.append({"at": x.approved_at, "by": x.approved_by, "action": body.action, "before": before})
     st.put_evidence([x])
+    ledger.append(
+        pid,
+        body.action,
+        x.approved_by,
+        subject=x.id,
+        before=before,
+        after={"value_text": x.value_text, "value_num": x.value_num, "status": x.status},
+        note=body.notes,
+    )
     result = recalculate(pid)
     return {"evidence": x.model_dump(), "readiness": result["readiness"]}
 
@@ -476,19 +486,35 @@ def results(pid: str) -> dict[str, Any]:
 # ------------------------------------------------------------------ exports & share
 
 
+def _base_url(request: Request) -> str:
+    base = settings().public_base_url
+    if base:
+        return base.rstrip("/")
+    proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    return f"{proto}://{request.headers.get('host', request.url.netloc)}"
+
+
+def _seal(request: Request, aid: str) -> dict[str, Any]:
+    k = attest.key()
+    return {"id": aid, "url": f"{_base_url(request)}/r/{aid}", "fingerprint": k.fingerprint, "trusted": k.trusted}
+
+
 @router.get("/projects/{pid}/export/{kind}")
-def export(pid: str, kind: str, lang: str = "en") -> Response:
+def export(pid: str, kind: str, request: Request, lang: str = "en") -> Response:
     p = _project(pid)
     r = _result(pid)
     st = store()
     from app.exports import pack, pdf, xlsx
 
     stamp = r["computed_at"][:10]
-    if kind == "pdf":
+    if kind == "pdf":  # every report that leaves Pramaan carries a signed receipt (attest.py)
+        aid = attest.new_id()
+        body = pdf.render(p, r, lang, seal=_seal(request, aid))
+        attest.issue(aid, "report.pdf", p, r, st.list_evidence(pid), st.list_documents(pid), {"report.pdf": body})
         return Response(
-            pdf.render(p, r, lang),
+            body,
             media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename="pramaan-cbam-report-{stamp}.pdf"'},
+            headers={"Content-Disposition": f'attachment; filename="pramaan-cbam-report-{stamp}.pdf"', "X-Pramaan-Receipt": aid},
         )
     if kind == "xlsx":
         return Response(
@@ -497,10 +523,18 @@ def export(pid: str, kind: str, lang: str = "en") -> Response:
             headers={"Content-Disposition": f'attachment; filename="pramaan-cbam-workbook-{stamp}.xlsx"'},
         )
     if kind == "pack":
+        aid = attest.new_id()
+        seal = _seal(request, aid)
+        evidence, documents = st.list_evidence(pid), st.list_documents(pid)
+
+        def receipt(files: dict[str, bytes]) -> dict[str, Any]:
+            rec = attest.issue(aid, "verifier-pack", p, r, evidence, documents, files)
+            return {**rec, "url": seal["url"], "public_key_pem": attest.key().pem}
+
         return Response(
-            pack.render(p, r, st.list_evidence(pid), st.list_documents(pid), st.list_runs(pid)),
+            pack.render(p, r, evidence, documents, st.list_runs(pid), seal=seal, receipt=receipt),
             media_type="application/zip",
-            headers={"Content-Disposition": f'attachment; filename="pramaan-verifier-pack-{stamp}.zip"'},
+            headers={"Content-Disposition": f'attachment; filename="pramaan-verifier-pack-{stamp}.zip"', "X-Pramaan-Receipt": aid},
         )
     raise HTTPException(404, "unknown export")
 
@@ -509,7 +543,17 @@ def export(pid: str, kind: str, lang: str = "en") -> Response:
 def share(pid: str) -> dict[str, Any]:
     p = _project(pid)
     r = _result(pid)
-    s = ShareLink(project_id=p.id, summary_snapshot=r["buyer_summary"])
+    aid = attest.new_id()
+    attest.issue(
+        aid,
+        "buyer-link",
+        p,
+        r,
+        store().list_evidence(pid),
+        store().list_documents(pid),
+        {"summary.json": ledger.canonical(r["buyer_summary"])},
+    )
+    s = ShareLink(project_id=p.id, summary_snapshot=r["buyer_summary"], receipt_id=aid)
     store().put_share(s)
     base = settings().public_base_url
     return {"token": s.token, "url": f"{base}/share/{s.token}" if base else f"/share/{s.token}"}
@@ -520,7 +564,27 @@ def get_share(token: str) -> dict[str, Any]:
     s = store().get_share(token)
     if s is None or s.kind != "buyer":
         raise HTTPException(404, "link not found or expired")
-    return {"summary": s.summary_snapshot, "created_at": s.created_at}
+    return {"summary": s.summary_snapshot, "created_at": s.created_at, "receipt_id": s.receipt_id}
+
+
+# ------------------------------------------------------------------ signed receipts (public: anyone holding a report checks it)
+
+
+@router.get("/receipts/key")
+def receipt_key() -> dict[str, Any]:
+    k = attest.key()
+    return {"name": k.name, "alg": attest.ALG, "pem": k.pem, "fingerprint": k.fingerprint, "trusted": k.trusted}
+
+
+@router.get("/receipts/{aid}")
+def receipt(aid: str, request: Request) -> dict[str, Any]:
+    """The statement, whether its signature holds, and whether the project still matches it."""
+    if not ai_allow(_client_ip(request), "receipt"):
+        raise HTTPException(429, "too many checks from this address; try again later")
+    out = attest.check(aid.strip().upper()[:20])
+    if out is None:
+        raise HTTPException(404, "No receipt with this id: the report was not issued by Pramaan, or its owner deleted it.")
+    return out
 
 
 # ------------------------------------------------------------------ product lines (own projects)
@@ -750,6 +814,13 @@ async def voice_note(
         + ("" if grounded else "\nCheck: the quoted words are not in the transcript; listen to the note before approving."),
     )
     store().put_evidence([ev])
+    ledger.append(
+        pid,
+        "value_added",
+        "owner (voice note)",
+        subject=ev.id,
+        after={"value_text": ev.value_text, "value_num": ev.value_num, "status": ev.status},
+    )
     recalculate(pid)
     return {"document": d.model_dump(), "transcript": transcript, "evidence": ev.model_dump()}
 
@@ -817,7 +888,7 @@ class Ask(BaseModel):
 _ai_log: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 # Gemini-backed endpoints are capped per address and hour (runs are capped per project), so a script
 # cannot run up the demo's bill; the caps sit well above what a room of judges asks.
-AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12, "call": 20, "try": 20}
+AI_CALLS_PER_HOUR = {"copilot": 120, "voice": 60, "suggest": 30, "supplier": 30, "run": 12, "call": 20, "try": 20, "receipt": 300}
 
 
 def ai_allow(ip: str, bucket: str) -> bool:

@@ -1,5 +1,7 @@
 // Typed client for the Pramaan API (all JSON under /api).
 
+import type { Receipt } from "@/lib/receipt";
+
 export type Status = "VERIFIED_2R" | "APPROVED" | "NEEDS_REVIEW" | "MISSING" | "DEFAULT_USED" | "ASSUMPTION" | "PENDING" | "REFDATA" | "CALCULATED" | "SCENARIO" | string;
 
 export interface CalcNode {
@@ -235,7 +237,8 @@ export const api = {
   patchEvidence: (pid: string, eid: string, body: { action: "approve" | "edit"; value_text?: string; value_num?: string; user?: string }) =>
     req<{ evidence: Evidence; readiness: Result["readiness"] }>(`/api/projects/${pid}/evidence/${eid}`, { method: "PATCH", body: JSON.stringify(body) }),
   share: (pid: string) => req<{ token: string; url: string }>(`/api/projects/${pid}/share`, { method: "POST" }),
-  getShare: (token: string) => req<{ summary: BuyerSummary; created_at: string }>(`/api/share/${token}`),
+  getShare: (token: string) => req<{ summary: BuyerSummary; created_at: string; receipt_id?: string | null }>(`/api/share/${token}`),
+  receipt: (id: string) => req<Receipt>(`/api/receipts/${encodeURIComponent(id)}`),
   letter: (pid: string, process_id: string, lang: string) => req<{ text: string; lang: string; supplier: string; facts: Record<string, string>; link: { token: string; url: string } }>(`/api/projects/${pid}/supplier-letter`, { method: "POST", body: JSON.stringify({ process_id, lang }) }),
   explanations: (pid: string, lang: string) => req<{ lang: string; sections: Result["explanations"] }>(`/api/projects/${pid}/explanations?lang=${encodeURIComponent(lang)}`),
   reportAsk: (pid: string, question: string, lang: string, node?: string) => req<ReportAnswer>(`/api/projects/${pid}/ask`, { method: "POST", body: JSON.stringify({ question, lang, node }) }),

@@ -21,6 +21,7 @@ const Supplier = lazy(() => import("@/pages/Supplier"));
 const Plan = lazy(() => import("@/pages/Plan"));
 const Try = lazy(() => import("@/pages/Try"));
 const Verify = lazy(() => import("@/pages/Verify"));
+const Receipt = lazy(() => import("@/pages/Receipt"));
 
 function Start() {
   const nav = useNavigate();
@@ -65,14 +66,15 @@ function Shell() {
   useEffect(() => {
     firstPageShown = true;
   }, []);
-  if (loc.pathname.startsWith("/share/") || loc.pathname.startsWith("/supplier/")) {
-    // links for people outside the factory (the EU buyer, the rod supplier): no workspace chrome
+  if (loc.pathname.startsWith("/share/") || loc.pathname.startsWith("/supplier/") || loc.pathname.startsWith("/r/")) {
+    // links for people outside the factory (the EU buyer, the rod supplier, anyone checking a report): no workspace chrome
     return (
       <Suspense fallback={<Fallback />}>
         <ErrorBoundary key={loc.pathname}>
           <Routes>
             <Route path="/share/:token" element={<Share />} />
             <Route path="/supplier/:token" element={<Supplier />} />
+            <Route path="/r/:id" element={<Receipt />} />
           </Routes>
         </ErrorBoundary>
       </Suspense>

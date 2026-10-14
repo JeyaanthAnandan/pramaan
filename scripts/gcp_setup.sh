@@ -16,7 +16,8 @@ gcloud billing projects describe "$PROJECT" --format="value(billingEnabled,billi
 
 echo "== APIs"
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com \
-  firestore.googleapis.com storage.googleapis.com secretmanager.googleapis.com logging.googleapis.com cloudtrace.googleapis.com iam.googleapis.com
+  firestore.googleapis.com storage.googleapis.com secretmanager.googleapis.com logging.googleapis.com cloudtrace.googleapis.com iam.googleapis.com \
+  cloudkms.googleapis.com
 
 echo "== Firestore (Native, $REGION)"
 gcloud firestore databases describe --database="(default)" >/dev/null 2>&1 || gcloud firestore databases create --location="$REGION" --type=firestore-native
@@ -30,6 +31,19 @@ for ROLE in roles/aiplatform.user roles/datastore.user roles/logging.logWriter r
   gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA" --role="$ROLE" --condition=None >/dev/null
 done
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" --member="serviceAccount:$SA" --role=roles/storage.objectAdmin >/dev/null
+
+echo "== Report signing key (Cloud KMS, EC P-256): signs every report's receipt; the private key never leaves KMS"
+KEYRING="${KEYRING:-pramaan}"
+KEY="${KEY:-report-signing}"
+gcloud kms keyrings describe "$KEYRING" --location="$REGION" >/dev/null 2>&1 || gcloud kms keyrings create "$KEYRING" --location="$REGION"
+gcloud kms keys describe "$KEY" --keyring="$KEYRING" --location="$REGION" >/dev/null 2>&1 || \
+  gcloud kms keys create "$KEY" --keyring="$KEYRING" --location="$REGION" --purpose=asymmetric-signing \
+    --default-algorithm=ec-sign-p256-sha256 --protection-level=software
+for ROLE in roles/cloudkms.signer roles/cloudkms.publicKeyViewer; do  # sign and read the public key: nothing else
+  gcloud kms keys add-iam-policy-binding "$KEY" --keyring="$KEYRING" --location="$REGION" \
+    --member="serviceAccount:$SA" --role="$ROLE" >/dev/null
+done
+echo "SIGNING_KEY=projects/$PROJECT/locations/$REGION/keyRings/$KEYRING/cryptoKeys/$KEY/cryptoKeyVersions/1"
 
 echo "== Gemini model availability (location global)"
 for M in gemini-3.8-flash gemini-3.5-flash-lite; do
