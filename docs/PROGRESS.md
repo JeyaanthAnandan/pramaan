@@ -1,6 +1,23 @@
 # Progress log (for the team and for resuming work)
 
-_Last updated: 2026-10-14 IST, early morning (overnight QA pass: every feature tested on main and on live; fixes pushed, **not deployed yet**)._
+_Last updated: 2026-10-14 IST, afternoon (independent new-factory test: numbers exact, report gaps for non-sample factories fixed; pushed, **not deployed yet**)._
+
+## 2026-10-14 (afternoon) — independent new-factory test
+
+The question was whether every function is right on new inputs, with outputs predicted independently.
+A new fictional factory was built for it: Kaveri, nuts not bolts, Tamil handwriting, Jan–Jun, two
+planted faults. Its expected results come from a separate calculator that reads the EC files directly.
+The factory then went through the live service with real Gemini. Details and the full table are in
+**[docs/TEST_REPORT.md](TEST_REPORT.md#independent-new-factory-test-14-oct-afternoon)**. Tools:
+`scripts/qa/independent/`.
+
+* **Numbers:** the engine matched the independent calculator to 6 decimals: SEE 5.642014 / 2.624069,
+  SEFA, costs, certificates, €83,586 a year, 2027–2034, plant pulse.
+* **Reading:** 158 of 162 values read right, none wrong.
+* **Reports:** a non-sample factory got incomplete ones. There was no supplier lever, months out of
+  balance were not named, and "bolts" appeared everywhere. All fixed in 45dd60c. Also: tonnes-weighted
+  alloy %, the PDF prints check notes and the rod SEE, and 4 false reviews from the second reader.
+* **Tests:** `backend/tests/test_independent_factory.py` (10 tests) replays the live readings in CI.
 
 ## 2026-10-14 (01:55–08:00) — overnight QA pass: every feature, as a tester
 

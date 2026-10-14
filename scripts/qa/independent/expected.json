@@ -1,0 +1,1051 @@
+{
+ "plant": {
+  "gas_gj_ncv": [
+   "480.010",
+   "519.752",
+   "693.009",
+   "517.717",
+   "529.736",
+   "524.718"
+  ],
+  "sec_gj_per_t": "3.2979",
+  "direct_t_per_t": "0.1850"
+ },
+ "lines": {
+  "P1": {
+   "name": "Carbon-steel hexagon nuts",
+   "cn": "7318 16 92",
+   "rod_cn": "7213 91 49",
+   "al_t": "720.0",
+   "rod_t": "836.5",
+   "m": "1.1618",
+   "see_rod": "4.6970",
+   "see_direct": "0.1850",
+   "see_precursor": "5.4570",
+   "see": "5.6420",
+   "sefa_rod": "1.364",
+   "sefa": "1.6227",
+   "sefa_2026": "1.5821",
+   "default_see_2026": "5.6540",
+   "default_sefa_2026": "1.3299",
+   "exported_t": "390",
+   "exports_by_quarter_t": {
+    "2026-Q1": "180",
+    "2026-Q2": "210"
+   },
+   "price_2026": "75.3169",
+   "cost_actual_eur_t": "305.78",
+   "cost_default_eur_t": "325.68",
+   "buyer_pays": "actual",
+   "saving_eur_t": "19.90",
+   "saving_eur_year": "15522",
+   "saving_inr_year": "1682558",
+   "precursor_basis": "EU default + 10 % mark-up"
+  },
+  "P2": {
+   "name": "Stainless-steel hexagon nuts",
+   "cn": "7318 16 39",
+   "rod_cn": "7221 00 10",
+   "al_t": "270.0",
+   "rod_t": "306.3",
+   "m": "1.1344",
+   "see_rod": "2.1500",
+   "see_direct": "0.1850",
+   "see_precursor": "2.4391",
+   "see": "2.6241",
+   "sefa_rod": "0.880",
+   "sefa": "1.0363",
+   "sefa_2026": "1.0104",
+   "default_see_2026": "5.6540",
+   "default_sefa_2026": "1.1252",
+   "exported_t": "155",
+   "exports_by_quarter_t": {
+    "2026-Q1": "70",
+    "2026-Q2": "85"
+   },
+   "price_2026": "75.3161",
+   "cost_actual_eur_t": "121.54",
+   "cost_default_eur_t": "341.10",
+   "buyer_pays": "actual",
+   "saving_eur_t": "219.56",
+   "saving_eur_year": "68064",
+   "saving_inr_year": "7377870",
+   "precursor_basis": "actual (verified supplier statement)"
+  }
+ },
+ "pulse": {
+  "gj_per_t": [
+   "3.200",
+   "3.150",
+   "3.850",
+   "3.100",
+   "3.250",
+   "3.180"
+  ],
+  "median": "3.190",
+  "hot": [
+   "2026-03"
+  ],
+  "best": "2026-04",
+  "hot_pct": [
+   "20.7"
+  ],
+  "hot_inr": [
+   "176194"
+  ],
+  "hot_excess_gj": [
+   "118.8"
+  ]
+ },
+ "checks": {
+  "mass_balance": {
+   "P1": {
+    "total_gap_t": "0.0",
+    "monthly_gaps_t": {
+     "2026-03": "-5.0",
+     "2026-05": "5.0"
+    }
+   },
+   "P2": {
+    "total_gap_t": "0.0",
+    "monthly_gaps_t": {}
+   }
+  },
+  "purchases_vs_consumption_gap_t": {
+   "carbon": "0.000",
+   "stainless": "0.000"
+  },
+  "gas_mmbtu_recomputed_minus_printed": [
+   "-0.0001",
+   "-0.0003",
+   "0.0002",
+   "0.0004",
+   "0.0001",
+   "-0.0002"
+  ],
+  "exports_le_production": {
+   "P1": "390 <= 720.0",
+   "P2": "155 <= 270.0"
+  },
+  "supplier": {
+   "P1": "no verified supplier data -> warn",
+   "P2": "verified, covers Jan-Jun -> pass"
+  },
+  "electricity_kwh": 41860
+ },
+ "verdict": {
+  "saving_eur_year": "83586",
+  "lines_on_actual": [
+   "P2"
+  ]
+ },
+ "fields": [
+  [
+   "gas-2026-01",
+   "invoice_no",
+   "KCG/CBE/2601/70411"
+  ],
+  [
+   "gas-2026-01",
+   "bill_date",
+   "04-02-2026"
+  ],
+  [
+   "gas-2026-01",
+   "period_start",
+   "01-01-2026"
+  ],
+  [
+   "gas-2026-01",
+   "period_end",
+   "31-01-2026"
+  ],
+  [
+   "gas-2026-01",
+   "scm",
+   "13381"
+  ],
+  [
+   "gas-2026-01",
+   "gcv_kcal_per_scm",
+   "9520"
+  ],
+  [
+   "gas-2026-01",
+   "mmbtu",
+   "505.513"
+  ],
+  [
+   "gas-2026-01",
+   "rate_inr_per_scm",
+   "52.40"
+  ],
+  [
+   "gas-2026-02",
+   "invoice_no",
+   "KCG/CBE/2602/70448"
+  ],
+  [
+   "gas-2026-02",
+   "bill_date",
+   "05-03-2026"
+  ],
+  [
+   "gas-2026-02",
+   "period_start",
+   "01-02-2026"
+  ],
+  [
+   "gas-2026-02",
+   "period_end",
+   "28-02-2026"
+  ],
+  [
+   "gas-2026-02",
+   "scm",
+   "14527"
+  ],
+  [
+   "gas-2026-02",
+   "gcv_kcal_per_scm",
+   "9495"
+  ],
+  [
+   "gas-2026-02",
+   "mmbtu",
+   "547.366"
+  ],
+  [
+   "gas-2026-02",
+   "rate_inr_per_scm",
+   "52.40"
+  ],
+  [
+   "gas-2026-03",
+   "invoice_no",
+   "KCG/CBE/2603/70485"
+  ],
+  [
+   "gas-2026-03",
+   "bill_date",
+   "06-04-2026"
+  ],
+  [
+   "gas-2026-03",
+   "period_start",
+   "01-03-2026"
+  ],
+  [
+   "gas-2026-03",
+   "period_end",
+   "31-03-2026"
+  ],
+  [
+   "gas-2026-03",
+   "scm",
+   "19339"
+  ],
+  [
+   "gas-2026-03",
+   "gcv_kcal_per_scm",
+   "9510"
+  ],
+  [
+   "gas-2026-03",
+   "mmbtu",
+   "729.829"
+  ],
+  [
+   "gas-2026-03",
+   "rate_inr_per_scm",
+   "53.15"
+  ],
+  [
+   "gas-2026-04",
+   "invoice_no",
+   "KCG/CBE/2604/70522"
+  ],
+  [
+   "gas-2026-04",
+   "bill_date",
+   "04-05-2026"
+  ],
+  [
+   "gas-2026-04",
+   "period_start",
+   "01-04-2026"
+  ],
+  [
+   "gas-2026-04",
+   "period_end",
+   "30-04-2026"
+  ],
+  [
+   "gas-2026-04",
+   "scm",
+   "14417"
+  ],
+  [
+   "gas-2026-04",
+   "gcv_kcal_per_scm",
+   "9530"
+  ],
+  [
+   "gas-2026-04",
+   "mmbtu",
+   "545.223"
+  ],
+  [
+   "gas-2026-04",
+   "rate_inr_per_scm",
+   "53.15"
+  ],
+  [
+   "gas-2026-05",
+   "invoice_no",
+   "KCG/CBE/2605/70559"
+  ],
+  [
+   "gas-2026-05",
+   "bill_date",
+   "05-06-2026"
+  ],
+  [
+   "gas-2026-05",
+   "period_start",
+   "01-05-2026"
+  ],
+  [
+   "gas-2026-05",
+   "period_end",
+   "31-05-2026"
+  ],
+  [
+   "gas-2026-05",
+   "scm",
+   "14817"
+  ],
+  [
+   "gas-2026-05",
+   "gcv_kcal_per_scm",
+   "9488"
+  ],
+  [
+   "gas-2026-05",
+   "mmbtu",
+   "557.881"
+  ],
+  [
+   "gas-2026-05",
+   "rate_inr_per_scm",
+   "54.20"
+  ],
+  [
+   "gas-2026-06",
+   "invoice_no",
+   "KCG/CBE/2606/70596"
+  ],
+  [
+   "gas-2026-06",
+   "bill_date",
+   "05-07-2026"
+  ],
+  [
+   "gas-2026-06",
+   "period_start",
+   "01-06-2026"
+  ],
+  [
+   "gas-2026-06",
+   "period_end",
+   "30-06-2026"
+  ],
+  [
+   "gas-2026-06",
+   "scm",
+   "14655"
+  ],
+  [
+   "gas-2026-06",
+   "gcv_kcal_per_scm",
+   "9502"
+  ],
+  [
+   "gas-2026-06",
+   "mmbtu",
+   "552.596"
+  ],
+  [
+   "gas-2026-06",
+   "rate_inr_per_scm",
+   "54.20"
+  ],
+  [
+   "elec-2026-03",
+   "invoice_no",
+   "TNP/CBE/0326/55821"
+  ],
+  [
+   "elec-2026-03",
+   "period_start",
+   "01-03-2026"
+  ],
+  [
+   "elec-2026-03",
+   "period_end",
+   "31-03-2026"
+  ],
+  [
+   "elec-2026-03",
+   "kwh",
+   "41860"
+  ],
+  [
+   "elec-2026-03",
+   "md_kva",
+   "182"
+  ],
+  [
+   "rod-CWR-0187",
+   "supplier",
+   "Cauvery Wire Rods Pvt Ltd (TEST)"
+  ],
+  [
+   "rod-CWR-0187",
+   "invoice_no",
+   "CWR/25-26/0187"
+  ],
+  [
+   "rod-CWR-0187",
+   "invoice_date",
+   "08-01-2026"
+  ],
+  [
+   "rod-CWR-0187",
+   "cn_code",
+   "7213 91 49"
+  ],
+  [
+   "rod-CWR-0187",
+   "grade",
+   "SAE 1010, 5.5 mm"
+  ],
+  [
+   "rod-CWR-0187",
+   "tonnes",
+   "450.000"
+  ],
+  [
+   "rod-CWR-0187",
+   "mn_pct",
+   "0.42"
+  ],
+  [
+   "rod-CWR-0187",
+   "cr_pct",
+   "0.03"
+  ],
+  [
+   "rod-CWR-0187",
+   "ni_pct",
+   "0.02"
+  ],
+  [
+   "rod-CWR-0187",
+   "other_alloy_pct",
+   "0.15"
+  ],
+  [
+   "rod-CWR-0042",
+   "supplier",
+   "Cauvery Wire Rods Pvt Ltd (TEST)"
+  ],
+  [
+   "rod-CWR-0042",
+   "invoice_no",
+   "CWR/26-27/0042"
+  ],
+  [
+   "rod-CWR-0042",
+   "invoice_date",
+   "06-04-2026"
+  ],
+  [
+   "rod-CWR-0042",
+   "cn_code",
+   "7213 91 49"
+  ],
+  [
+   "rod-CWR-0042",
+   "grade",
+   "SAE 1010, 5.5 mm"
+  ],
+  [
+   "rod-CWR-0042",
+   "tonnes",
+   "400.000"
+  ],
+  [
+   "rod-CWR-0042",
+   "mn_pct",
+   "0.45"
+  ],
+  [
+   "rod-CWR-0042",
+   "cr_pct",
+   "0.04"
+  ],
+  [
+   "rod-CWR-0042",
+   "ni_pct",
+   "0.02"
+  ],
+  [
+   "rod-CWR-0042",
+   "other_alloy_pct",
+   "0.14"
+  ],
+  [
+   "rod-NSR-1109",
+   "supplier",
+   "Nilgiri Stainless Rods Ltd (TEST)"
+  ],
+  [
+   "rod-NSR-1109",
+   "invoice_no",
+   "NSR/2026/1109"
+  ],
+  [
+   "rod-NSR-1109",
+   "invoice_date",
+   "12-02-2026"
+  ],
+  [
+   "rod-NSR-1109",
+   "cn_code",
+   "7221 00 10"
+  ],
+  [
+   "rod-NSR-1109",
+   "grade",
+   "AISI 304, 5.5 mm"
+  ],
+  [
+   "rod-NSR-1109",
+   "tonnes",
+   "160.000"
+  ],
+  [
+   "rod-NSR-1109",
+   "mn_pct",
+   "1.62"
+  ],
+  [
+   "rod-NSR-1109",
+   "cr_pct",
+   "18.12"
+  ],
+  [
+   "rod-NSR-1109",
+   "ni_pct",
+   "8.05"
+  ],
+  [
+   "rod-NSR-1109",
+   "other_alloy_pct",
+   "0.70"
+  ],
+  [
+   "rod-NSR-1473",
+   "supplier",
+   "Nilgiri Stainless Rods Ltd (TEST)"
+  ],
+  [
+   "rod-NSR-1473",
+   "invoice_no",
+   "NSR/2026/1473"
+  ],
+  [
+   "rod-NSR-1473",
+   "invoice_date",
+   "11-05-2026"
+  ],
+  [
+   "rod-NSR-1473",
+   "cn_code",
+   "7221 00 10"
+  ],
+  [
+   "rod-NSR-1473",
+   "grade",
+   "AISI 304, 5.5 mm"
+  ],
+  [
+   "rod-NSR-1473",
+   "tonnes",
+   "150.000"
+  ],
+  [
+   "rod-NSR-1473",
+   "mn_pct",
+   "1.58"
+  ],
+  [
+   "rod-NSR-1473",
+   "cr_pct",
+   "18.20"
+  ],
+  [
+   "rod-NSR-1473",
+   "ni_pct",
+   "8.10"
+  ],
+  [
+   "rod-NSR-1473",
+   "other_alloy_pct",
+   "0.68"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "supplier",
+   "Nilgiri Stainless Rods Ltd (TEST)"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "doc_no",
+   "NSR-CBAM-2026-H1-031"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "product_cn",
+   "7221 00 10"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "period",
+   "01-01-2026 to 30-06-2026"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "route",
+   "Electric arc furnace + AOD, scrap-based"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "see",
+   "2.150"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "sefa",
+   "0.880"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "reducing_agent",
+   "None (scrap-based EAF)"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "scrap_per_t",
+   "0.96"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "pre_consumer_pct",
+   "35"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "verifier",
+   "Meridian Verification Services GmbH (TEST — fictional verifier)"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "verification_ref",
+   "MVS-VR-2026-0412"
+  ],
+  [
+   "stmt-NSR-2026-H1",
+   "opinion",
+   "Positive opinion with reasonable assurance"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "110.0",
+   "2026-01",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "40.0",
+   "2026-01",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "128.0",
+   "2026-01",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "45.5",
+   "2026-01",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "18.0",
+   "2026-01",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "5.5",
+   "2026-01",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "120.0",
+   "2026-02",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "45.0",
+   "2026-02",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "139.5",
+   "2026-02",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "51.0",
+   "2026-02",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "19.5",
+   "2026-02",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "6.0",
+   "2026-02",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "130.0",
+   "2026-03",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "50.0",
+   "2026-03",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "151.0",
+   "2026-03",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "56.8",
+   "2026-03",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "26.0",
+   "2026-03",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "6.8",
+   "2026-03",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "125.0",
+   "2026-04",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "42.0",
+   "2026-04",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "145.0",
+   "2026-04",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "47.6",
+   "2026-04",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "20.0",
+   "2026-04",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "5.6",
+   "2026-04",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "115.0",
+   "2026-05",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "48.0",
+   "2026-05",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "133.5",
+   "2026-05",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "54.4",
+   "2026-05",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "13.5",
+   "2026-05",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "6.4",
+   "2026-05",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "120.0",
+   "2026-06",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "produced_t",
+   "45.0",
+   "2026-06",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "139.5",
+   "2026-06",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "rod_consumed_t",
+   "51.0",
+   "2026-06",
+   "P2"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "19.5",
+   "2026-06",
+   "P1"
+  ],
+  [
+   "scrap-2026-01-to-06",
+   "scrap_t",
+   "6.0",
+   "2026-06",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "opening_stock_t",
+   "60.0",
+   "None",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "closing_stock_t",
+   "73.5",
+   "None",
+   "P1"
+  ],
+  [
+   "register-2026-01-to-06",
+   "opening_stock_t",
+   "60.0",
+   "None",
+   "P2"
+  ],
+  [
+   "register-2026-01-to-06",
+   "closing_stock_t",
+   "63.7",
+   "None",
+   "P2"
+  ],
+  [
+   "export-2026-Q1",
+   "invoice_no",
+   "KPF/EXP/2026/007"
+  ],
+  [
+   "export-2026-Q1",
+   "invoice_date",
+   "27-03-2026"
+  ],
+  [
+   "export-2026-Q1",
+   "buyer",
+   "Lindqvist Fästelement AB (TEST), Importgatan 14, 417 05 Göteborg, Sweden"
+  ],
+  [
+   "export-2026-Q1",
+   "country_of_origin",
+   "India"
+  ],
+  [
+   "export-2026-Q1",
+   "cn_code",
+   "7318 16 92",
+   "2026-Q1",
+   "P1"
+  ],
+  [
+   "export-2026-Q1",
+   "net_mass_kg",
+   "180000",
+   "2026-Q1",
+   "P1"
+  ],
+  [
+   "export-2026-Q1",
+   "cn_code",
+   "7318 16 39",
+   "2026-Q1",
+   "P2"
+  ],
+  [
+   "export-2026-Q1",
+   "net_mass_kg",
+   "70000",
+   "2026-Q1",
+   "P2"
+  ],
+  [
+   "export-2026-Q2",
+   "invoice_no",
+   "KPF/EXP/2026/019"
+  ],
+  [
+   "export-2026-Q2",
+   "invoice_date",
+   "25-06-2026"
+  ],
+  [
+   "export-2026-Q2",
+   "buyer",
+   "Lindqvist Fästelement AB (TEST), Importgatan 14, 417 05 Göteborg, Sweden"
+  ],
+  [
+   "export-2026-Q2",
+   "country_of_origin",
+   "India"
+  ],
+  [
+   "export-2026-Q2",
+   "cn_code",
+   "7318 16 92",
+   "2026-Q2",
+   "P1"
+  ],
+  [
+   "export-2026-Q2",
+   "net_mass_kg",
+   "210000",
+   "2026-Q2",
+   "P1"
+  ],
+  [
+   "export-2026-Q2",
+   "cn_code",
+   "7318 16 39",
+   "2026-Q2",
+   "P2"
+  ],
+  [
+   "export-2026-Q2",
+   "net_mass_kg",
+   "85000",
+   "2026-Q2",
+   "P2"
+  ]
+ ],
+ "n_fields": 162
+}

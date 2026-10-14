@@ -13,6 +13,16 @@ API, on two targets:
 (CI green). **The live link does not have the fixes or the newest features yet: it needs a redeploy**
 (see *Do next*).
 
+**Afternoon, 14 Oct: a factory the app had never seen.** Its inputs and expected outputs were made
+independently of the app (*Independent new-factory test* below). Pramaan's numbers matched an
+independent calculator to 6 decimals, and the AI read 158 of 162 values right (none wrong). The reports
+for a non-sample factory were incomplete in 9 ways, for example:
+* no supplier lever;
+* months out of balance were not named;
+* the text said "bolts" for a nut maker.
+
+All 9 are fixed in 45dd60c.
+
 Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not on live until the redeploy · – not run on live
 
 ## Do next (team)
@@ -33,6 +43,7 @@ Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not 
    * `prj_67753707f825` (a rate-limit probe)
    * a project named with 120 "x"
    * one named "QA call"
+   * `prj_baa99ca68fcc`, "Kaveri QA run (TEST)", the independent new-factory test (passcode in the session notes)
 
    Visitor copies of the sample expire by themselves.
 5. **Demo video**: at 0:45 the captured live run shows *both* readers reading 15.4, with the second reader
@@ -82,6 +93,75 @@ Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not 
 | 36 | Robustness: bad input, server errors, a page that fails to load | ✅ | ⏳ | 500s, silent failures and blank-page cases fixed (below) |
 | 37 | Storage: in-memory, Firestore emulator, live Firestore + Cloud Storage | ✅ | ✅ | API check: 224 checks, 0 failed on both local stores |
 
+## Independent new-factory test (14 Oct, afternoon)
+
+**Question:** are the numbers and the reports right for an exporter the app was never tuned on? This
+test does not use the bundled sample.
+
+**The test factory.** Kaveri Precision Fasteners (TEST, fictional) in Coimbatore makes carbon and
+stainless hexagon **nuts** (CN 7318 16 92 and 7318 16 39), Jan–Jun 2026:
+* the carbon rod has no supplier data (India default + 10 %);
+* the stainless rod comes with a verified statement (SEE 2.150, SEFA 0.880).
+
+Every input differs from the sample: the region, suppliers, document layouts, period and handwriting
+(a Tamil scrap log with one figure struck out). There are two planted faults:
+* the carbon scrap log is 5 t off in March and in May, though the six-month totals balance;
+* March gas runs hot.
+
+**How the answer was checked.** `scripts/qa/independent/oracle.py` computes the expected results. It
+does not use the app's engine. It reads the Commission's own default-value and benchmark files, and it
+reproduces EC Examples 1–3 before anything else is trusted. The 16 photographed documents went through
+the live service with real Gemini (6c6df4e, an own private project). The live readings are now a CI
+test (`backend/tests/test_independent_factory.py`).
+
+| Checked | Expected (independent) | Pramaan | |
+|---|---|---|---|
+| Values read from the 16 photos | 162 on the documents | 158 right, **0 wrong**, 4 missed (Mn/Cr/Ni/other % on one stainless invoice) | ⚠️ |
+| Values sent to a person | 1: the struck-out Tamil scrap figure (5.9 → 5.6) | that one + 4 false alarms (fixed, below) | ✅ |
+| Product lines proposed by Gemini from the documents | 2 CNs, 2 rods, 2 suppliers | all right | ✅ |
+| SEE, carbon / stainless nuts | 5.642014 / 2.624069 t CO2/t | 5.642014 / 2.624069 | ✅ |
+| Own process (gas), rod per tonne (m) | 0.185013; 1.161806 / 1.134444 | same | ✅ |
+| SEFA; SEFA 2026 | 1.622703 / 1.036311; 1.582135 / 1.010403 | same | ✅ |
+| Buyer cost per t, own data vs EU default | €305.78 vs €325.68; €121.54 vs €341.10 | same | ✅ |
+| Certificates; buyer cost 2026 | 1,583.4 / 250.1; €119,253 / €18,838 | same | ✅ |
+| Saving a year for the buyer | €15,522 + €68,064 = **€83,586** | €83,586 | ✅ |
+| Years 2027–2034 (mark-up, CBAM factor) | e.g. 2027 €378 vs €401 | same (2027, 2030, 2034 checked) | ✅ |
+| If the carbon rod supplier sends verified data | €42.30/t, +€205,512 a year | missing before the fix; now same | ✅ |
+| Alloy content (Guidance 5d Table 3-1) | tonnes-weighted: Ni 8.07, Mn 0.43 | plain mean before the fix (8.08, 0.44); now same | ✅ |
+| Plant pulse | March +20.7 %, 118.8 GJ, ₹1,76,194; best April | same | ✅ |
+| Control checks | monthly balance off in Mar and May; supplier data missing for the carbon rod | warns on both; the months were not named before the fix | ✅ |
+| Live run time | under 2 min target | **345 s**: two Gemini calls stalled (167 s, 260 s) and were retried | ⚠️ |
+
+**Found and fixed** (45dd60c, CI green):
+
+| Problem on the new factory | Fix |
+|---|---|
+| **No supplier lever.** The "if the rod supplier sends verified data" figures existed only for the sample, so there was no "More within reach", no "Ask … for verified data" step and no what-if row | A rod on its default value gets the Commission's worked example (Guidance 5d Example 1; Example 2 / Table 4-14 for stainless) unless the owner sets a scenario |
+| **Monthly mass balance** said "4/6 months" and "Missing months:" with nothing after it; the scrap line in the checklist said OK | Names "2026-03 (125.0 vs 130.0 t), 2026-05 (120.0 vs 115.0 t)" and links the 6 values; the checklist flags the scrap line with "Mar 2026, May 2026". Shown on screen, in the PDF and in the pack's CSV |
+| The PDF did not print check notes or the rod's own SEE (only m × SEE) | Printed |
+| Alloy % was a plain mean across invoices | Weighted by the tonnes on each invoice |
+| **"Bolts" for a nut maker**: the explanations (4 languages), the supplier letter (EN/HI), the monitoring plan (also "Two production processes" whatever the count), "Rod per t of bolts", the pulse caption, a call suggestion | Product-neutral |
+| Assumptions said "none is claimed for the sample factory" and cited 3.5 GJ/t of gas (this plant's bills give 3.30) | Reworded |
+| PDF: "Mode: None · run None" after a recalculation; "-0 %" in the pulse | Fixed |
+| Second reader: "53.15 per SCM" vs INR/SCM, and the buyer's name vs name + address, sent 4 correctly read values to a person | Unit aliases; a leading part of the second reading may match |
+| A next step called a hand-corrected value one that "the two AI readers could not settle" | Reworded |
+
+**How the fixes were checked:**
+* 10 tests in `tests/test_independent_factory.py` and 2 in `tests/test_two_reader.py`. The 8 that
+  cover these fixes fail on the previous code; the engine-accuracy tests pass on both.
+* The full suite (229 tests), the Firestore emulator test, ruff, mypy and the refdata rebuild.
+* i18n, `check:format`, the build, the UI smoke test, and `api_check.py` (224 checks, 0 failed).
+* The factory in a browser on a local server: 25 of 25 checks with no console errors. This covered the
+  report, the checklist with the Tamil crop on the review card, Hindi, Tamil and Vietnamese, a 390 px
+  phone, the PDF (every page looked at, figures recomputed by hand) and the verifier pack.
+
+**Still open:**
+* The 4 alloy values Gemini missed on one invoice are not flagged. The average then uses the invoices
+  that have them.
+* Live run time depends on Gemini's slowest call. Each call times out at 75 s, has a hedge at 30 s and
+  gets 3 attempts.
+* The live service has none of these fixes until the redeploy.
+
 ## Problems found and fixed (all pushed, CI green)
 
 | Severity | Problem (as found) | Fix |
@@ -101,6 +181,7 @@ Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not 
 | Low | Sample chip "Live Gemini run · 02:13 pm" vs Metrics "02:15 pm" for the same run | 40752d8 (dated by finish) |
 | Low | Wording: "1 need review", "1 official values" | 484ee51, 40752d8 |
 | Low | Source link 404 (landing + README) | e8f8cab |
+| Low | Landing: the hero demo's pause and step buttons could not be clicked | c54c02a |
 
 ## Known limitations (not changed)
 
