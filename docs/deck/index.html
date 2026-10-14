@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pramaan — CBAM proof from a phone photo</title>
+<meta name="description" content="Pramaan pitch deck — Google Cloud AI Builder Cup 2026, Manufacturing: Intelligent Operations & Industrial Efficiency. Team Innovative Warriors.">
+
+<!-- ===========================================================
+     FONTS
+     IBM Plex (the app's own family) carries the certificate voice:
+       - IBM Plex Sans Condensed: headlines, labels, table cells
+       - IBM Plex Sans: running text (plus Devanagari / Gurmukhi / Tamil fallbacks)
+       - IBM Plex Mono: every figure, code, chrome and "typed" form value
+       - Tiro Devanagari Hindi: the प्रमाण wordmark
+       - Stardos Stencil: rubber stamps
+     =========================================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Devanagari:wght@400;500&family=Noto+Sans+Gurmukhi:wght@400;500&family=Noto+Sans+Tamil:wght@400;500&family=Stardos+Stencil:wght@700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — "Mill Certificate"
+   Paper, navy ink, and colour that carries status only
+   (green = verified, amber = needs a person, red = default/missing).
+   Change these to re-skin the whole deck.
+   =========================================================== */
+:root{
+  --paper:#F2EEE4; --paper2:#E9E3D4; --paper3:#FBF9F3;
+  --ink:#1B2A5E; --ink2:#4E587A; --ink3:#7A829B;
+  --faint:rgba(27,42,94,.22); --faint2:rgba(27,42,94,.10);
+  --green:#2E7D4F; --green-bg:rgba(46,125,79,.10);
+  --amber:#AE7614; --amber-bg:rgba(185,128,26,.12);
+  --red:#B3362C;   --red-bg:rgba(179,54,44,.09);
+  --hi:#2F4BD8;    --hi-bg:rgba(47,75,216,.14);
+
+  --f-disp:'IBM Plex Sans Condensed','IBM Plex Sans Devanagari',sans-serif;
+  --f-body:'IBM Plex Sans','IBM Plex Sans Devanagari','Noto Sans Gurmukhi','Noto Sans Tamil',sans-serif;
+  --f-mono:'IBM Plex Mono',monospace;
+  --f-deva:'Tiro Devanagari Hindi',serif;
+  --f-stamp:'Stardos Stencil','IBM Plex Sans Condensed',sans-serif;
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --stage-bg:#cbc4b3; --slide-bg:var(--paper);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===========================================================
+   FIXED 16:9 STAGE — viewport-base.css (mandatory, in full)
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000)}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000)}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff)}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff)}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1}
+img,video,canvas,svg{max-width:100%;max-height:100%}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000}
+@page{size:1920px 1080px;margin:0}
+@media print{
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible;background:#fff}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none}
+  .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .deck-controls{display:none!important}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important}}
+
+/* ===========================================================
+   PAPER + CERTIFICATE SHEET
+   Every slide is a sheet: grain, a double-rule frame,
+   a header band (brand · section · sheet no.), body, footer (sources).
+   =========================================================== */
+body{font-family:var(--f-body);color:var(--ink);-webkit-font-smoothing:antialiased}
+.grain{position:absolute;inset:0;opacity:.55;mix-blend-mode:multiply;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .40 0 0 0 0 .30 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.sheet{position:absolute;inset:44px;border:2px solid var(--ink);display:grid;grid-template-rows:96px 1fr 56px}
+.sheet::after{content:"";position:absolute;inset:7px;border:1px solid var(--faint2);pointer-events:none}
+
+/* header band */
+.hdr{display:grid;grid-template-columns:330px 1fr 230px;border-bottom:2px solid var(--ink);position:relative;z-index:1}
+.hdr>div{padding:0 32px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--faint)}
+.hdr>div:last-child{border-right:0;align-items:flex-end}
+.h-brand{flex-direction:row!important;align-items:center;justify-content:flex-start!important;gap:16px}
+.mark{width:50px;height:50px;background:var(--ink);border-radius:10px;display:grid;place-items:center;flex:none}
+.mark i{width:28px;height:28px;border:2.5px solid var(--paper);border-radius:50%;display:grid;place-items:center;color:var(--paper);font:700 16px/1 var(--f-disp);font-style:normal}
+.h-brand b{display:block;font:700 30px/1 var(--f-disp);letter-spacing:.03em}
+.h-brand span{display:block;font:400 19px/1 var(--f-deva);color:var(--ink2);margin-top:4px}
+.h-sec .t{font:600 27px/1.1 var(--f-disp);letter-spacing:.02em;text-transform:uppercase;margin-top:7px}
+.h-no .v{font:500 27px/1 var(--f-mono);margin-top:7px}
+
+/* body + footer */
+.body{position:relative;padding:32px 54px 26px;display:flex;flex-direction:column;gap:26px;min-height:0}
+.ftr{border-top:1px solid var(--ink);display:flex;justify-content:space-between;align-items:center;gap:40px;padding:0 32px;font:400 14.5px/1.3 var(--f-mono);color:var(--ink2);position:relative;z-index:1}
+.ftr .src{flex:1;min-width:0}
+.ftr .pg{white-space:nowrap;color:var(--ink3)}
+
+/* ===========================================================
+   TYPOGRAPHY
+   =========================================================== */
+.lbl{font:500 14px/1.2 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+h2{font:700 52px/1.06 var(--f-disp);letter-spacing:-.005em;color:var(--ink);max-width:1640px}
+h2 .u{background:linear-gradient(transparent 68%,var(--hi-bg) 68%)}
+h3{font:600 26px/1.15 var(--f-disp);letter-spacing:.01em}
+p,li{font:400 20px/1.45 var(--f-body);color:var(--ink2)}
+p b,li b{color:var(--ink);font-weight:600}
+.mono{font-family:var(--f-mono)}
+.note{font:400 17px/1.45 var(--f-body);color:var(--ink2)}
+sup{font:500 12px var(--f-mono);color:var(--ink3);vertical-align:super;margin-left:2px}
+
+/* ===========================================================
+   COMPONENTS
+   =========================================================== */
+/* form cells (the certificate grid) */
+.cells{display:grid;border:1px solid var(--ink);background:rgba(251,249,243,.45)}
+.cell{padding:20px 24px;border-right:1px solid var(--faint);border-bottom:1px solid var(--faint);display:flex;flex-direction:column;gap:8px;min-width:0}
+.fig{font:600 54px/1 var(--f-mono);letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.fig small{font:500 22px var(--f-mono);letter-spacing:0;margin-left:6px;color:var(--ink2)}
+.fig.g{color:var(--green)} .fig.r{color:var(--red)} .fig.a{color:var(--amber)}
+
+/* tables (mill-certificate results) */
+table{width:100%;border-collapse:collapse}
+th{font:500 13.5px/1.2 var(--f-mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:10px 12px 9px;border-bottom:2px solid var(--ink)}
+td{font:400 19px/1.3 var(--f-disp);color:var(--ink);padding:11px 12px;border-bottom:1px solid var(--faint);vertical-align:top}
+td.n{font:500 19px/1.3 var(--f-mono);white-space:nowrap}
+td.big{font:600 24px/1.2 var(--f-mono)}
+th.rt,td.rt{text-align:right}
+tr:last-child td{border-bottom:1px solid var(--ink)}
+
+/* status chips — colour carries status only */
+.chip{display:inline-block;font:600 12.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border:1.5px solid currentColor;border-radius:3px;white-space:nowrap;vertical-align:middle}
+.chip.g{color:var(--green);background:var(--green-bg)} .chip.a{color:var(--amber);background:var(--amber-bg)}
+.chip.r{color:var(--red);background:var(--red-bg)} .chip.n{color:var(--ink);background:var(--hi-bg)}
+
+/* exhibits — screenshots mounted like attached evidence */
+.ex{position:relative;background:var(--paper3);border:1px solid var(--ink);box-shadow:7px 7px 0 rgba(27,42,94,.07);margin:0;flex:none}
+.ex figcaption{display:flex;justify-content:space-between;align-items:center;gap:16px;height:36px;padding:0 14px;border-bottom:1px solid var(--ink);font:500 13px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.ex figcaption b{color:var(--ink);font-weight:600}
+.ex .pic{position:relative;overflow:hidden}
+.ex img{display:block;width:100%;height:auto;max-height:none}
+.ex .scan{position:absolute;left:0;right:0;top:-4px;height:4px;background:linear-gradient(90deg,transparent,rgba(47,75,216,.75),transparent);box-shadow:0 0 18px rgba(47,75,216,.45);opacity:0}
+.visible .ex .scan{animation:scan 1.5s ease-in-out .5s 1 both}
+@keyframes scan{0%{top:-4px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+.hl{position:absolute;border:3px solid var(--hi);border-radius:5px;opacity:0;transform:scale(1.25);transition:opacity .5s var(--ease),transform .5s var(--ease);transition-delay:1.3s}
+.hl.a{border-color:var(--amber)}
+.visible .hl{opacity:1;transform:none}
+
+/* rubber stamp — ink texture via noise mask */
+.stamp{position:absolute;z-index:5;--rot:-8deg;--c:var(--green);border:5px solid var(--c);color:var(--c);border-radius:12px;padding:14px 26px 12px;text-align:center;transform:rotate(var(--rot));opacity:0;pointer-events:none;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.stamp::before{content:"";position:absolute;inset:6px;border:2px solid var(--c);border-radius:7px}
+.stamp .a{font:700 46px/1 var(--f-stamp);letter-spacing:.07em;white-space:nowrap}
+.stamp .b{font:600 14px/1 var(--f-mono);letter-spacing:.2em;margin-top:8px;white-space:nowrap}
+.stamp.r{--c:var(--red)} .stamp.a{--c:var(--amber)} .stamp.n{--c:var(--ink)}
+.visible .stamp{animation:thunk .45s cubic-bezier(.3,1.6,.5,1) var(--sd,1.5s) forwards}
+@keyframes thunk{0%{opacity:0;transform:rotate(calc(var(--rot) - 6deg)) scale(1.9)}60%{opacity:.92}100%{opacity:.86;transform:rotate(var(--rot)) scale(1)}}
+
+/* numbered procedure steps */
+.steps{list-style:none;display:flex;flex-direction:column;gap:0;border-top:2px solid var(--ink)}
+.steps li{display:grid;grid-template-columns:46px 1fr;gap:14px;padding:14px 0;border-bottom:1px solid var(--faint)}
+.steps li.plain::before{display:none}
+.steps li::before{content:attr(data-n);width:34px;height:34px;border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center;font:600 16px/1 var(--f-mono);color:var(--ink);margin-top:1px}
+
+/* panels with a label tab */
+.panel{border:1px solid var(--ink);background:rgba(251,249,243,.55);position:relative}
+.panel>.cap{display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 18px;border-bottom:1px solid var(--ink)}
+.panel>.in{padding:18px 22px}
+.panel.ink{background:var(--ink);color:var(--paper)}
+.panel.ink .lbl{color:rgba(242,238,228,.7)}
+.panel.ink p{color:rgba(242,238,228,.85)}
+.panel.ink b{color:var(--paper)}
+
+/* code line */
+.code{font:500 16px/1.5 var(--f-mono);background:var(--ink);color:#E7E3D8;padding:14px 18px;border-radius:4px;white-space:pre-wrap;word-break:break-all}
+.code .ok{color:#8FD3A8}
+
+/* bars (CSS charts) */
+.bar{height:34px;background:var(--faint2);position:relative}
+.bar>i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.2s var(--ease) .5s}
+.visible .bar>i{width:var(--w)}
+
+/* vertically centred cells */
+.cells.mid .cell{justify-content:center}
+/* vertical bars (slide 03 schedule) */
+.vb{transform:scaleY(0);transform-origin:bottom;transition:transform 1s var(--ease) .5s}
+.visible .vb{transform:none}
+html.static .vb{transform:none!important;transition:none!important}
+@media print{.vb{transform:none!important}}
+
+/* agent graph nodes */
+.node{border:2px solid var(--ink);padding:10px 12px 11px;background:var(--paper3);min-width:0}
+.node b{display:block;font:600 21px/1.1 var(--f-disp)}
+.node span{display:block;font:400 13.5px/1.3 var(--f-mono);color:var(--ink2);margin-top:5px}
+.node.ai{background:var(--ink);color:var(--paper)}
+.node.ai span{color:rgba(242,238,228,.75)}
+.node.hu{border-style:dashed;border-color:var(--amber);background:var(--amber-bg)}
+.arr{font:500 26px/1 var(--f-mono);color:var(--ink2);display:grid;place-items:center}
+
+/* ===========================================================
+   ANIMATION — staggered reveals (set --d per element)
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--d,0) * 110ms + 120ms)}
+.visible .reveal{opacity:1;transform:none}
+h2.wipe{clip-path:inset(0 100% 0 0);transition:clip-path 1s cubic-bezier(.7,0,.2,1) .15s}
+.visible h2.wipe{clip-path:inset(-10px -10px -10px -10px)}
+
+/* static mode: PDF export / automation / print — everything final */
+html.static .reveal,html.static h2.wipe{opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important}
+html.static .stamp{animation:none!important;opacity:.86!important}
+html.static .bar>i{width:var(--w)!important;transition:none!important}
+html.static .hl{opacity:1!important;transform:none!important;transition:none!important}
+html.static .ex .scan{display:none}
+@media print{.reveal,h2.wipe{opacity:1!important;transform:none!important;clip-path:none!important}.stamp{animation:none!important;opacity:.86!important}.bar>i{width:var(--w)!important}.hl{opacity:1!important;transform:none!important}}
+
+/* ===========================================================
+   SLIDE 1 — COVER (the certificate itself)
+   =========================================================== */
+.cover .frame{position:absolute;inset:44px;border:2px solid var(--ink)}
+.cover .frame::after{content:"";position:absolute;inset:8px;border:1px solid var(--faint)}
+.cv-head{position:absolute;left:44px;right:44px;top:44px;height:150px;display:grid;grid-template-columns:480px 1fr 600px;border-bottom:2px solid var(--ink)}
+.cv-head>div,.cv-form>div{padding:28px 40px;border-right:1px solid var(--faint)}
+.cv-head>div:last-child,.cv-form>div:last-child{border-right:0}
+.cv-brand{display:flex;align-items:center;gap:22px}
+.cv-brand .mark{width:76px;height:76px;border-radius:14px}
+.cv-brand .mark i{width:44px;height:44px;border-width:3px;font-size:24px}
+.cv-brand .nm{font:700 52px/1 var(--f-disp);letter-spacing:.02em}
+.cv-brand .hi{font:400 28px/1 var(--f-deva);color:var(--ink2);margin-top:6px}
+.cv-title{display:flex;flex-direction:column;justify-content:center}
+.cv-title .t{font:600 28px/1.15 var(--f-disp);margin-top:10px;letter-spacing:.03em;text-transform:uppercase}
+.cv-theme .v{font:500 27px/1.1 var(--f-mono);margin-top:9px}
+.cv-theme .v2{font:400 17px/1.3 var(--f-mono);color:var(--ink2);margin-top:6px}
+.cv-form{position:absolute;left:44px;right:44px;top:194px;height:104px;display:grid;grid-template-columns:480px 1fr 600px;border-bottom:1px solid var(--ink)}
+.cv-form>div{padding:20px 40px}
+.cv-form .v{font:500 24px/1.25 var(--f-mono);margin-top:10px;white-space:nowrap}
+.cover h1{position:absolute;left:100px;top:352px;width:1000px;font:700 128px/.98 var(--f-disp);letter-spacing:-.01em;color:var(--ink)}
+.cover h1 .u{background:linear-gradient(transparent 70%,var(--hi-bg) 70%)}
+.cover .desc{position:absolute;left:104px;top:640px;width:910px;font:400 27px/1.45 var(--f-body);color:var(--ink2)}
+.cover .desc b{color:var(--ink);font-weight:600}
+.cv-results{position:absolute;left:1140px;top:352px;width:680px}
+.cv-results .capr{display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid var(--ink)}
+.cv-results td{font:400 22px/1.3 var(--f-disp);padding:19px 0}
+.cv-results th{padding:13px 0 10px;border-bottom:1px solid var(--faint)}
+.cv-results td.res{font:600 38px/1 var(--f-mono);text-align:right;white-space:nowrap}
+.cv-results td.req{font:400 19px var(--f-mono);color:var(--ink2)}
+.cv-results th:last-child{text-align:right}
+.cv-sig{position:absolute;left:44px;right:44px;bottom:44px;height:118px;border-top:2px solid var(--ink);display:grid;grid-template-columns:1fr 1fr 1fr}
+.cv-sig>div{padding:24px 40px;border-right:1px solid var(--faint)}
+.cv-sig>div:last-child{border-right:0}
+.cv-sig .v{font:500 21px/1.2 var(--f-mono);margin-top:10px;white-space:nowrap}
+.cover h1{clip-path:inset(0 100% 0 0);transition:clip-path 1.1s cubic-bezier(.7,0,.2,1) .35s}
+.visible.cover h1{clip-path:inset(-10px)}
+html.static .cover h1{clip-path:none!important;transition:none!important}
+
+/* ===========================================================
+   DECK CHROME (outside the stage) + INLINE EDITING
+   =========================================================== */
+.progress{position:fixed;left:0;top:0;height:3px;background:var(--hi);z-index:1001;transition:width .4s var(--ease)}
+.deck-controls{display:flex;gap:10px;align-items:center;font:500 13px var(--f-mono);color:#3d4566;background:rgba(242,238,228,.85);border:1px solid rgba(27,42,94,.25);padding:6px 12px;border-radius:999px;opacity:.0;transition:opacity .3s}
+body:hover .deck-controls{opacity:1}
+.deck-controls button{all:unset;cursor:pointer;padding:2px 8px;font:600 15px var(--f-mono);color:var(--ink)}
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer}
+.edit-toggle{position:fixed;top:16px;left:16px;z-index:10001;opacity:0;pointer-events:none;transition:opacity .3s ease;font:600 13px var(--f-mono);letter-spacing:.08em;background:var(--ink);color:var(--paper);border:0;border-radius:6px;padding:9px 12px;cursor:pointer}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto}
+html.editing [contenteditable="true"]{outline:1px dashed rgba(47,75,216,.55);outline-offset:3px;cursor:text}
+html.editing [contenteditable="true"]:focus{outline:2px solid var(--hi);background:rgba(47,75,216,.05)}
+.edit-hint{position:fixed;top:16px;left:110px;z-index:10001;font:500 12px var(--f-mono);color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:8px 10px;border-radius:6px;display:none}
+html.editing .edit-hint{display:block}
+@media print{.progress,.edit-hotzone,.edit-toggle,.edit-hint{display:none!important}
+  /* the grain's blend mode makes Chrome rasterize whole pages: flat paper keeps the PDF small and vector */
+  .grain{display:none!important}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="edit-hotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">EDIT</button>
+<div class="edit-hint">Editing · click any text · Ctrl/⌘+S saves a copy · E or Esc to finish</div>
+
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- =====================================================================
+     01 · COVER — the submission as a certificate
+     ===================================================================== -->
+<section class="slide cover active" data-title="Cover" aria-label="Cover">
+  <div class="grain"></div>
+  <div class="frame"></div>
+  <div class="cv-head">
+    <div class="cv-brand reveal" style="--d:0"><div class="mark"><i>✓</i></div><div><div class="nm">PRAMAAN</div><div class="hi">प्रमाण · proof</div></div></div>
+    <div class="cv-title reveal" style="--d:1"><div class="lbl">Google Cloud AI Builder Cup 2026 · Submission</div><div class="t">Certificate of embedded emissions · EU CBAM</div></div>
+    <div class="cv-theme reveal" style="--d:2"><div class="lbl">Theme</div><div class="v">Manufacturing:</div><div class="v2">Intelligent Operations &amp; Industrial Efficiency</div></div>
+  </div>
+  <div class="cv-form">
+    <div class="reveal" style="--d:1"><div class="lbl">Submitted by</div><div class="v">Team Innovative Warriors</div></div>
+    <div class="reveal" style="--d:2"><div class="lbl">Built for</div><div class="v">Small steel-goods exporters · India &amp; JAPAC</div></div>
+    <div class="reveal" style="--d:3"><div class="lbl">Source code</div><div class="v">github.com/JeyaanthAnandan/pramaan</div></div>
+  </div>
+
+  <h1>CBAM proof from<br>a <span class="u">phone photo.</span></h1>
+  <p class="desc reveal" style="--d:5">An agentic Gemini copilot that turns photos of bills, invoices and handwritten logs into <b>verifier-ready EU CBAM data</b>. Every number traces back to the exact spot on the page it was read from, and shows what it is worth in € and ₹.</p>
+
+  <div class="cv-results">
+    <div class="capr reveal" style="--d:4"><span class="lbl">Results · sample factory, Jan–Sep 2026</span><span class="lbl">Ludhiana</span></div>
+    <table>
+      <tr class="reveal" style="--d:5"><th>Check</th><th>Required</th><th>Result</th></tr>
+      <tr class="reveal" style="--d:6"><td>Values read right, live Gemini</td><td class="req">≥ 95 %</td><td class="res">222/222</td></tr>
+      <tr class="reveal" style="--d:7"><td>EC worked examples reproduced</td><td class="req">all</td><td class="res">8/8 <span class="chip g">pass</span></td></tr>
+      <tr class="reveal" style="--d:8"><td>Saved for the EU buyer, a year</td><td class="req">—</td><td class="res"><span class="count" data-to="409545" data-prefix="€">€409,545</span></td></tr>
+    </table>
+  </div>
+
+  <div class="stamp" style="left:1400px;top:716px;--rot:-9deg;--sd:1.7s"><div class="a">VERIFIED</div><div class="b">TWO READERS · KMS-SIGNED</div></div>
+
+  <div class="cv-sig">
+    <div class="reveal" style="--d:6"><div class="lbl">Report signing key · Cloud KMS · EC P-256</div><div class="v">9451 0f5b bdf0 d336 3ef1 eef8 02c9 ff32</div></div>
+    <div class="reveal" style="--d:7"><div class="lbl">Live on Cloud Run · Singapore</div><div class="v" style="font-size:18.5px">pramaan-646454690406.asia-southeast1.run.app</div></div>
+    <div class="reveal" style="--d:8"><div class="lbl">Built on</div><div class="v">Gemini 3.8 · ADK 2.11 · KMS</div></div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     02 · THE PROBLEM
+     ===================================================================== -->
+<section class="slide" data-title="The problem">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 1 · Problem alignment</span><span class="t">Who pays for the carbon in a bolt</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">02 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">EU buyers now pay for the carbon in every bolt. <span class="u">Small exporters can't prove theirs</span>, so they are priced on penalty defaults.</h2>
+      <div style="display:grid;grid-template-columns:1030px 1fr;gap:40px;flex:1;min-height:0">
+        <div class="cells mid reveal" style="--d:2;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr">
+          <div class="cell"><span class="lbl">Definitive phase</span><div class="fig">1 Jan<small>2026</small></div><p class="note">EU importers now pay for the emissions embedded in steel imports<sup>3</sup></p></div>
+          <div class="cell"><span class="lbl">Indian MSMEs at risk</span><div class="fig"><span class="count" data-to="25">25</span>–30<small>k</small></div><p class="note">Fasteners, wire, pipes and more, mostly family-run<sup>1</sup></p></div>
+          <div class="cell" style="border-right:0"><span class="lbl">EU share of exports</span><div class="fig">32–45<small>%</small></div><p class="note">of India's steel exports go to the EU<sup>1</sup></p></div>
+          <div class="cell" style="border-bottom:0"><span class="lbl">Price cut at stake</span><div class="fig r">15–22<small>%</small></div><p class="note">that exporters may need to absorb to keep EU orders<sup>1</sup></p></div>
+          <div class="cell" style="border-bottom:0"><span class="lbl">Compliance cost / MSME</span><div class="fig">₹15–20<small>lakh</small></div><p class="note">India is working on a scheme to reimburse 90 %<sup>2</sup></p></div>
+          <div class="cell" style="border:0"><span class="lbl">Mark-up on EU defaults</span><div class="fig r">+10→30<small>%</small></div><p class="note">2026 → 2028+, on top of already conservative default values<sup>3</sup></p></div>
+        </div>
+        <div class="panel reveal" style="--d:4">
+          <div class="cap"><span class="lbl">Today · a bolt maker in Ludhiana</span><span class="chip r">non-conformance</span></div>
+          <ol class="steps in" style="border-top:0;padding-top:4px">
+            <li data-n="1"><p>The German buyer writes: <b>send verified CBAM data per CN code</b>, or we use EU default values and you take the price cut.</p></li>
+            <li data-n="2"><p>The data exists, on paper: gas and power bills, rod invoices, a <b>Hindi production register</b>, a <b>handwritten Punjabi scrap log</b>.</p></li>
+            <li data-n="3"><p>A consultant quotes <b>₹15–20 lakh</b> and months of spreadsheets. Verifiers are booked out<sup>4</sup>.</p></li>
+            <li data-n="4" style="border-bottom:0"><p>Nobody asks the rod supplier, the source of <b>90 % of the emissions</b>. Exporters in Vietnam, China, Korea and Indonesia face the same defaults.</p></li>
+          </ol>
+          <div class="stamp r" style="right:30px;bottom:26px;--rot:-7deg;--sd:1.6s"><div class="a" style="font-size:38px">ON DEFAULTS</div><div class="b">+10 % MARK-UP · 2026</div></div>
+        </div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">¹ Business Standard via Vision IAS, 29 Jan 2026 · ² The Indian Express via Business Standard, 30 Jun 2026 · ³ European Commission, CBAM Guidance No. 3, p. 115 · ⁴ EFDA via Eurometal</span><span class="pg">Pramaan · AI Builder Cup 2026</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     03 · WHY NOW — the money mechanics
+     ===================================================================== -->
+<section class="slide" data-title="Why now">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 1 · Problem alignment</span><span class="t">Why now: the bill has arrived</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">03 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Defaults are a penalty that <span class="u">grows every year</span>, and most quick estimates get the maths wrong.</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;flex:1;min-height:0">
+        <!-- left: buyer cost per tonne, actual vs default -->
+        <div class="panel reveal" style="--d:2">
+          <div class="cap"><span class="lbl">Buyer's CBAM cost, 2026 imports · carbon-steel bolts, CN 7318 15 82</span></div>
+          <div class="in" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:grid;grid-template-columns:250px 1fr 110px;align-items:center;gap:16px"><span class="note"><b>On the exporter's own data</b></span><div class="bar"><i style="--w:11.7%;background:var(--green)"></i></div><span class="mono" style="font:600 26px var(--f-mono);text-align:right">€45/t</span></div>
+            <div style="display:grid;grid-template-columns:250px 1fr 110px;align-items:center;gap:16px"><span class="note"><b>On EU default values +10 %</b></span><div class="bar"><i style="--w:100%;background:var(--red)"></i></div><span class="mono" style="font:600 26px var(--f-mono);text-align:right;color:var(--red)">€386/t</span></div>
+            <div style="display:flex;align-items:baseline;gap:18px;border-top:1px solid var(--faint);padding-top:16px">
+              <div class="fig g" style="font-size:60px">€341<small>/t</small></div>
+              <p class="note" style="font-size:19px">on the table, <b>₹36,994 per tonne</b>, which is <b>≈ €<span class="count" data-to="409545">409,545</span> a year</b> at the sample factory's volumes</p>
+            </div>
+            <p class="note">2026 certificate price: Q1 €75.36 · Q2 €75.28 · Q3 €82.32, weighted by export quarter = <b>€77.85</b>.</p>
+            <div style="border-top:1px solid var(--faint);padding-top:14px"><span class="lbl">The trap · stainless bolts, rod on India's default</span><p class="note" style="margin-top:6px">On current data the buyer would pay <b>€576/t</b>, more than the EU default (<b>€402/t</b>). Pramaan shows the cheaper path, and the step that changes it: verified rod data → <b>€97/t</b>.</p></div>
+          </div>
+        </div>
+        <!-- right: phase-out schedule chart -->
+        <div class="panel reveal" style="--d:3">
+          <div class="cap"><span class="lbl">Free allocation still deducted (CBAM factor) · default mark-up</span></div>
+          <div class="in">
+            <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:10px;align-items:end;height:250px;border-bottom:2px solid var(--ink)" id="sched"></div>
+            <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-top:8px" id="schedYears"></div>
+            <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-top:6px" id="schedMk"></div>
+            <p class="note" style="margin-top:14px">Every year less is deducted, so every tonne above the benchmark costs more, while the default mark-up triples.</p>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.35fr 1fr;gap:40px">
+        <div class="panel reveal" style="--d:4;border-color:var(--amber);background:var(--amber-bg)">
+          <div class="in" style="display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center">
+            <span class="chip a" style="font-size:14px">myth-buster</span>
+            <p style="font-size:19px">"Buyers pay <b>2.5 %</b> in 2026" is wrong. The Commission's formula subtracts a benchmark-based free allocation, so everything above the benchmark is payable: EC Example 1 has <b>3,690 certificates on 15,670 t</b> embedded, <b>23.5 %</b>.</p>
+          </div>
+        </div>
+        <div class="cells reveal" style="--d:5;grid-template-columns:1fr 1fr">
+          <div class="cell" style="border-bottom:0"><span class="lbl">Certificates on sale</span><div class="fig" style="font-size:34px">1 Feb 2027</div></div>
+          <div class="cell" style="border:0"><span class="lbl">First declaration due</span><div class="fig" style="font-size:34px">30 Sep 2027</div><p class="note" style="font-size:15px">for goods imported in 2026</p></div>
+        </div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Schedule: EC Guidance No. 4, Table 2-1, p. 13 · mark-ups: Guidance No. 3, p. 115 · prices: EC certificate-price page · example: Guidance No. 5d, p. 44 · dates: Reg. (EU) 2023/956 as amended by 2025/2083 · costs: Pramaan sample factory (fictional)</span><span class="pg">03</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     04 · SOLUTION IN ONE PICTURE
+     ===================================================================== -->
+<section class="slide" data-title="Solution">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 2 · The solution</span><span class="t">Three steps, one question each</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">04 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Photos in, verifier-ready CBAM data out, with <span class="u">every number traced to its pixel</span>.</h2>
+      <!-- flow: inputs → 3 steps → outputs -->
+      <div style="display:grid;grid-template-columns:270px 36px 1fr 36px 1fr 36px 1fr 36px 300px;align-items:stretch">
+        <div class="panel reveal" style="--d:1">
+          <div class="cap"><span class="lbl">In · 24 phone photos</span></div>
+          <div class="in" style="padding:14px 18px"><p class="note" style="line-height:1.6">Gas &amp; power bills<br>Rod invoices<br>Supplier statements<br>Hindi production register<br>Handwritten Punjabi scrap log<br>Export invoices</p></div>
+        </div>
+        <div class="arr reveal" style="--d:2">→</div>
+        <div class="panel reveal" style="--d:2"><div class="cap"><span class="lbl">Step 1 · Capture</span><span class="chip n">agents live</span></div><div class="in"><h3>"Add your documents."</h3><p class="note" style="margin-top:10px">Phone camera or upload: JPG, PNG, HEIC, PDF. The agent timeline shows each Gemini step as it runs. Laptop? A QR code continues on the phone.</p></div></div>
+        <div class="arr reveal" style="--d:3">→</div>
+        <div class="panel reveal" style="--d:3"><div class="cap"><span class="lbl">Step 2 · Close gaps</span><span class="chip a">your tap</span></div><div class="in"><h3>"What's missing?"</h3><p class="note" style="margin-top:10px">Green: two readers agree. Amber: needs your tap. Red: missing or on defaults. Answer by voice in Hindi, Punjabi or Tamil.</p></div></div>
+        <div class="arr reveal" style="--d:4">→</div>
+        <div class="panel reveal" style="--d:4"><div class="cap"><span class="lbl">Step 3 · Report</span><span class="chip g">99 % ready</span></div><div class="in"><h3>"Here's your proof."</h3><p class="note" style="margin-top:10px">The verdict first, then <b>What to do next</b> with € attached. SEE per CN code. The Evidence Lens on every number.</p></div></div>
+        <div class="arr reveal" style="--d:5">→</div>
+        <div class="panel reveal" style="--d:5">
+          <div class="cap"><span class="lbl">Out · to three parties</span></div>
+          <div class="in" style="padding:12px 18px;display:flex;flex-direction:column;gap:10px">
+            <p class="note"><b>EU buyer link</b><br>summary only, no plant data</p>
+            <p class="note"><b>Verifier pack</b><br>signed, with a spot-check sample</p>
+            <p class="note"><b>Supplier letter</b> EN / हिंदी<br>with a no-account upload link</p>
+          </div>
+        </div>
+      </div>
+      <!-- theme fit, in the theme's own words -->
+      <div class="reveal" style="--d:6">
+        <div style="margin-bottom:10px"><span class="lbl">The theme, literally · "transform operational data into meaningful insights, recommendations, or actions"</span></div>
+        <div class="cells" style="grid-template-columns:repeat(4,1fr)">
+          <div class="cell" style="border-bottom:0"><span class="lbl">Operational data</span><h3>Bills, registers, scrap logs</h3><p class="note">Photographed on the shop floor, in four languages and two scripts, some of it handwritten.</p></div>
+          <div class="cell" style="border-bottom:0"><span class="lbl">Insights</span><h3>SEE per product, and where it comes from</h3><p class="note">The rod is 90 % of a carbon bolt's emissions. June's furnace ran 18.5 % hot.</p></div>
+          <div class="cell" style="border-bottom:0"><span class="lbl">Recommendations</span><h3>"What to do next", priced</h3><p class="note">Ask the stainless rod supplier for verified data: −€306/t for the buyer.</p></div>
+          <div class="cell" style="border:0"><span class="lbl">Actions</span><h3>Letter, link, levers</h3><p class="note">Supplier letter on WhatsApp, buyer link, signed verifier pack, operations levers.</p></div>
+        </div>
+      </div>
+      <!-- who it is for -->
+      <div class="reveal" style="--d:7;display:grid;grid-template-columns:repeat(4,1fr);gap:24px">
+        <div style="border-top:2px solid var(--ink);padding-top:10px"><span class="lbl">Owner / accountant · Ludhiana</span><p class="note" style="margin-top:4px">Phone-first, Hindi or Punjabi. Needs: what to upload, what's missing, what it costs.</p></div>
+        <div style="border-top:2px solid var(--ink);padding-top:10px"><span class="lbl">EU importer · the declarant</span><p class="note" style="margin-top:4px">Needs SEE per CN code and the data status, without the plant's secrets.</p></div>
+        <div style="border-top:2px solid var(--ink);padding-top:10px"><span class="lbl">Accredited verifier</span><p class="note" style="margin-top:4px">Needs source records and controls: a signed pack and a sample to check.</p></div>
+        <div style="border-top:2px solid var(--ink);padding-top:10px"><span class="lbl">Rod supplier</span><p class="note" style="margin-top:4px">One clear request, one upload on a phone, no account, sees only its own reading.</p></div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">All factory data shown in this deck is the fictional sample "Shivalik Fasteners Pvt Ltd (SAMPLE)", Ludhiana; ratios mirror EC Guidance 5d Example 3 so judges can check the numbers.</span><span class="pg">04</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     05 · THE REPORT (happy path)
+     ===================================================================== -->
+<section class="slide" data-title="The report">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 2 · The solution</span><span class="t">What the owner sees</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">05 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">The report answers first: <span class="u">what the data is worth</span> to the buyer, and what to do next.</h2>
+      <div style="display:grid;grid-template-columns:900px 1fr;gap:48px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <figure class="ex reveal" style="--d:1;width:900px">
+            <figcaption><span><b>Exhibit A</b> · Report · live Gemini run, 13 Oct 2026</span><span>pramaan…run.app</span></figcaption>
+            <div class="pic"><img src="assets/report-verdict.jpg" alt="Pramaan report: your data saves your buyer €409,545 a year; €163,002 more within reach; 1 of 2 product lines ready to declare; what to do next."><div class="scan"></div>
+              <div class="hl" style="left:1.9%;top:16.4%;width:31.6%;height:28%"></div></div>
+          </figure>
+          <p class="note reveal" style="--d:3;max-width:500px"><b>99 % of SEE inputs</b> are verified by two readers or approved, yet only <b>1 of 2 lines</b> can be declared on actual data: the stainless rod is still on its default. Pramaan says so instead of rounding up.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <table class="reveal" style="--d:2">
+            <tr><th>Product line</th><th class="rt">Carbon bolts</th><th class="rt">Stainless bolts</th></tr>
+            <tr><td>CN code</td><td class="n rt">7318 15 82</td><td class="n rt">7318 15 75</td></tr>
+            <tr><td>SEE, t CO₂ per t</td><td class="n rt">2.040</td><td class="n rt">8.889</td></tr>
+            <tr><td>Rod's share of SEE</td><td class="n rt">90 %</td><td class="n rt">98 %</td></tr>
+            <tr><td>Buyer pays, 2026</td><td class="n rt">€45/t</td><td class="n rt">€402/t</td></tr>
+            <tr><td>Basis</td><td class="rt"><span class="chip g">actual · verified</span></td><td class="rt"><span class="chip r">EU default</span></td></tr>
+          </table>
+          <div class="panel reveal" style="--d:3">
+            <div class="cap"><span class="lbl">What to do next · top of the report</span></div>
+            <ol class="steps in" style="border-top:0;padding:4px 20px 6px">
+              <li data-n="1"><p><b>Ask Indus Stainless Rods for verified data.</b> −€306/t for the buyer, ≈ €163,002 a year.</p></li>
+              <li data-n="2"><p><b>Approve one value:</b> a scrap figure corrected by hand on the page.</p></li>
+              <li data-n="3" style="border-bottom:0"><p><b>Send the carbon-steel data to the buyer:</b> €341/t below the EU default.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="stamp a" style="left:590px;top:668px;--rot:-4deg;--sd:1.8s"><div class="a" style="font-size:32px">1 OF 2 LINES READY</div><div class="b">STAINLESS ROD ON DEFAULT</div></div>
+    </div>
+    <footer class="ftr"><span class="src">SEE 2.040 equals EC Guidance 5d Example 3 at full precision (2.0399). Stainless: rod on India's default value 6.480 + 10 %, so the cheaper path for the buyer is the EU default (€402/t, vs €576/t on current data).</span><span class="pg">05</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     06 · GEN AI CORE 1 — the blind two-reader check
+     ===================================================================== -->
+<section class="slide" data-title="Two readers">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 3 · Gen AI core · 1 of 3</span><span class="t">Multimodal reading, checked blind</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">06 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Two different Gemini models read every value. <span class="u">The second one sees only the crop.</span></h2>
+      <div style="display:grid;grid-template-columns:960px 1fr;gap:44px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <figure class="ex reveal" style="--d:1;width:960px">
+            <figcaption><span><b>Exhibit B</b> · Close gaps · handwritten Hindi scrap log</span><span>live Gemini run</span></figcaption>
+            <div class="pic"><img src="assets/two-readers.jpg" alt="A handwritten scrap log with 13.4 crossed out and 15.4 written; reader 1 (Gemini 3.8 Flash) and reader 2 (Gemini 3.5 Flash-Lite, crop only) both read 15.4; mass balance supports reader 1."><div class="scan"></div>
+              <div class="hl a" style="left:16.2%;top:70.8%;width:15.2%;height:12.6%"></div></div>
+          </figure>
+          <div class="cells reveal" style="--d:3;grid-template-columns:repeat(4,1fr)">
+            <div class="cell" style="border-bottom:0"><span class="lbl">Values read</span><div class="fig" style="font-size:42px"><span class="count" data-to="222">222</span></div></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Readers agree</span><div class="fig g" style="font-size:42px">99.5<small>%</small></div></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Sent to a person</span><div class="fig a" style="font-size:42px">1</div></div>
+            <div class="cell" style="border:0"><span class="lbl">24 docs → report</span><div class="fig" style="font-size:42px">96.8<small>s</small></div></div>
+          </div>
+        </div>
+        <ol class="steps reveal" style="--d:2">
+          <li data-n="1"><p><b>Gemini 3.8 Flash</b> classifies each page and reads every required value with its <span class="mono">box_2d</span>: JSON schema, high media resolution, Hindi, Punjabi and English on one page.</p></li>
+          <li data-n="2"><p>Each box is cropped with 15 % padding. <b>Gemini 3.5 Flash-Lite</b> re-reads <b>only the crop</b> and never sees the first answer.</p></li>
+          <li data-n="3"><p>Agree within 0.5 % → <span class="chip g">verified · 2 readers</span>. Disagree, or corrected by hand on the page → <span class="chip a">needs your tap</span>. A tap → <span class="chip n">approved</span>, with who and when.</p></li>
+          <li data-n="4"><p>On screen: <b>13.4 struck out, 15.4 written.</b> A deterministic mass balance, rod 85.4 − produced 70.0 = <b>15.4 t</b>, shows which reading closes. The owner decides.</p></li>
+          <li class="plain" style="display:block;border-bottom:0;padding:16px 0 0"><div class="panel ink"><div class="in" style="padding:16px 22px"><span class="lbl">What the model does that OCR and rules can't</span><p style="font-size:18.5px;margin-top:6px">Reads crossed-out handwriting in Devanagari and Gurmukhi, tells the GCV from the meter reading, files each value to its month and product line, and returns a box we can crop and prove.</p></div></div></li>
+        </ol>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Numbers from backend/eval/report.md, live run 13 Oct 2026 (gemini-3.8-flash + gemini-3.5-flash-lite) on the 24-document photographed sample set with 222 ground-truth fields.</span><span class="pg">06</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     07 · EVIDENCE LENS + deterministic engine
+     ===================================================================== -->
+<section class="slide" data-title="Evidence Lens">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 4 · Innovation</span><span class="t">The Evidence Lens</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">07 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Click any number: its formula, every value behind it, and <span class="u">the exact pixel it came from</span>.</h2>
+      <div style="display:grid;grid-template-columns:1fr 360px 360px;gap:32px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div class="panel reveal" style="--d:1"><div class="in" style="display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:14px 20px"><span class="lbl">Report</span><p style="font-size:21px"><b class="mono" style="font-size:30px">2.040</b> t CO₂/t · SEE, carbon-steel bolts</p></div></div>
+          <div class="arr reveal" style="--d:2;height:34px">↓</div>
+          <div class="panel reveal" style="--d:2"><div class="in" style="display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:14px 20px"><span class="lbl">Formula</span><p style="font-size:20px"><span class="mono" style="color:var(--ink)">AttrEm/AL + Σ mᵢ × SEEᵢ</span> = <b>0.196</b> own process + <b>1.844</b> wire rod</p></div></div>
+          <div class="arr reveal" style="--d:3;height:34px">↓</div>
+          <div class="panel reveal" style="--d:3"><div class="in" style="display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:14px 20px"><span class="lbl">Inputs</span><p style="font-size:20px"><b>38 values from 12 documents</b>, 1 official value, 3 stated assumptions</p></div></div>
+          <div class="arr reveal" style="--d:4;height:34px">↓</div>
+          <div class="panel reveal" style="--d:4;border-color:var(--green)"><div class="in" style="display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;padding:14px 20px"><span class="lbl">Source</span><p style="font-size:20px">March gas bill: <b class="mono">803.543 MMBtu</b>, boxed on the photo <span class="chip g">2 readers</span></p></div></div>
+          <div class="panel ink reveal" style="--d:6;margin-top:26px">
+            <div class="in" style="padding:20px 24px">
+              <span class="lbl">The rule</span>
+              <p style="font-size:21px;margin-top:8px"><b>The LLM never computes a compliance number.</b> A Decimal engine does: 380 nodes, each tied to a photo region, an official EC file (with its SHA-256) or a stated assumption. No regulatory value is typed by hand.</p>
+            </div>
+          </div>
+          <p class="note reveal" style="--d:7;margin-top:16px"><b>Verifier spot-check:</b> Pramaan draws the sample a verifier would (every value a person touched, the supplier's data, then the rest by weight). Each one is shown as its crop, so a year of paper becomes a dozen crops checked in minutes.</p>
+        </div>
+        <figure class="ex reveal" style="--d:3;width:360px">
+          <figcaption><span><b>Exhibit C</b> · the lens</span></figcaption>
+          <div class="pic"><img src="assets/lens-see.jpg" alt="Evidence Lens: SEE 2.040, formula, inputs and 38 values read from 12 documents shown as crops."></div>
+        </figure>
+        <figure class="ex reveal" style="--d:5;width:360px">
+          <figcaption><span><b>Exhibit D</b> · the source</span></figcaption>
+          <div class="pic"><img src="assets/lens-source.jpg" alt="Evidence Lens source view: gas energy 803.543 MMBtu highlighted on the photographed gas bill, verified by two readers."><div class="scan"></div></div>
+        </figure>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Each step down is one click: report → formula → inputs → the crop on the original photo, with both readings, who approved it and when.</span><span class="pg">07</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     08 · GEN AI CORE 2 — the ADK agent graph + numbers guard
+     ===================================================================== -->
+<section class="slide" data-title="Agent workflow">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 3 · Gen AI core · 2 of 3</span><span class="t">The agent workflow</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">08 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">An ADK agent graph does the work. <span class="u">Gemini reads and explains; code computes and checks.</span></h2>
+      <div style="display:grid;grid-template-columns:1000px 1fr;gap:40px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="reveal" style="display:flex;justify-content:space-between;--d:1"><span class="lbl">ADK 2.11 Workflow graph · route-based branching</span><span style="display:flex;gap:14px"><span class="chip n" style="background:var(--ink);color:var(--paper);border-color:var(--ink)">Gemini</span><span class="chip n" style="background:var(--paper3)">code</span><span class="chip a">person</span></span></div>
+          <!-- row 1 -->
+          <div class="reveal" style="display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr 30px 1fr;align-items:stretch;--d:2">
+            <div class="node"><b>Intake</b><span>photos, PDFs, HEIC</span></div><div class="arr">→</div>
+            <div class="node ai"><b>Classifier</b><span>3.8 Flash · 7 kinds</span></div><div class="arr">→</div>
+            <div class="node ai"><b>ProductLines</b><span>3.8 Flash · CN checked vs EC files</span></div><div class="arr">→</div>
+            <div class="node ai"><b>Extractor</b><span>3.8 Flash · box_2d per value</span></div>
+          </div>
+          <div class="arr reveal" style="--d:3;justify-items:end;padding-right:110px;height:22px">↓</div>
+          <!-- row 2 -->
+          <div class="reveal" style="display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr 30px 1fr;align-items:stretch;--d:3">
+            <div class="node"><b>GapFinder</b><span>checklist, questions EN/HI/TA/VI</span></div><div class="arr">←</div>
+            <div class="node"><b>ControlChecks</b><span>mass balance, coverage</span></div><div class="arr">←</div>
+            <div class="node hu"><b>HumanReview</b><span>only on mismatch</span></div><div class="arr">⇠</div>
+            <div class="node ai"><b>SecondReader</b><span>3.5 Flash-Lite · crop only</span></div>
+          </div>
+          <div class="arr reveal" style="--d:4;justify-items:start;padding-left:110px;height:22px">↓</div>
+          <!-- row 3 -->
+          <div class="reveal" style="display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;align-items:stretch;--d:4">
+            <div class="node"><b>Calculator</b><span>ADK FunctionTool · Decimal engine</span></div><div class="arr">→</div>
+            <div class="node ai"><b>Explainer</b><span>3.8 Flash + numbers guard</span></div><div class="arr">→</div>
+            <div class="node"><b>Reporter</b><span>PDF · Excel · verifier pack · buyer link</span></div>
+          </div>
+          <p class="note reveal" style="--d:5;margin-top:6px">google-genai <b>Interactions API</b>: JSON-schema output, a thinking level per agent, high media resolution for documents. Only Gemini 3.x is allowed, and a test rejects anything else. Every node streams to the live timeline with agent, model, time and tokens.</p>
+          <div class="cells reveal" style="--d:6;grid-template-columns:1fr 1fr 1fr">
+            <div class="cell" style="border-bottom:0;padding:14px 18px"><span class="lbl">Agent scenarios in CI</span><p class="note" style="font-size:16px">skewed handwritten log → HumanReview; Hindi-headed register; a bill with two periods</p></div>
+            <div class="cell" style="border-bottom:0;padding:14px 18px"><span class="lbl">…and as an adk eval set</span><p class="note" style="font-size:16px">missing supplier statement → default + lever; mismatched unit → review</p></div>
+            <div class="cell" style="border:0;padding:14px 18px"><span class="lbl">Hard limits</span><p class="note" style="font-size:16px">every Gemini call has a time limit and retry; a backup request after 30 s, first answer wins</p></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <span class="lbl reveal" style="--d:2">Numbers guard · every number tied to its own source</span>
+          <table class="reveal" style="--d:3">
+            <tr><th>Where</th><th>The check</th><th>If it fails</th></tr>
+            <tr><td>Ask about this report</td><td style="font-size:17px">each number cites the fact <span class="mono">[F:id]</span> that shows it</td><td style="font-size:17px">one repair, then withheld</td></tr>
+            <tr><td>Rules copilot</td><td style="font-size:17px">printed on the EC page cited in that sentence</td><td style="font-size:17px">the pages are shown instead</td></tr>
+            <tr><td>Narrative</td><td style="font-size:17px">only its template's numbers; keeps the SEE</td><td style="font-size:17px">template text</td></tr>
+            <tr><td>Call Pramaan</td><td style="font-size:17px">spoken numbers are report facts or tool answers</td><td style="font-size:17px">flagged; it corrects itself aloud</td></tr>
+          </table>
+          <div class="cells reveal" style="--d:5;grid-template-columns:repeat(3,1fr)">
+            <div class="cell" style="border-bottom:0"><span class="lbl">Passed 1st time</span><div class="fig g" style="font-size:40px">11<small>/12</small></div></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Repaired</span><div class="fig a" style="font-size:40px">1</div></div>
+            <div class="cell" style="border:0"><span class="lbl">Withheld</span><div class="fig" style="font-size:40px">0</div></div>
+          </div>
+          <p class="note reveal" style="--d:6">Live questions in English, Hindi, Tamil and Vietnamese. Text typed by owners and suppliers, and text written on a photo, goes into prompts as data, never as instructions.</p>
+        </div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Agent contracts and guards: docs/ARCHITECTURE.md · app/agents/*, app/copilot/*, app/agents/call.py::check_spoken · live guard review 14 Oct 2026.</span><span class="pg">08</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     09 · GEN AI CORE 3 — Call Pramaan + Try one photo
+     ===================================================================== -->
+<section class="slide" data-title="Call Pramaan">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 3 · Gen AI core · 3 of 3</span><span class="t">Voice and live vision</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">09 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Talk to your report in five languages. <span class="u">Every number it says is checked.</span></h2>
+      <div style="display:grid;grid-template-columns:330px 1fr 600px;gap:40px;align-items:start">
+        <figure class="ex reveal" style="--d:1;width:330px">
+          <figcaption><span><b>Exhibit E</b> · a call in Hindi</span></figcaption>
+          <div class="pic"><img src="assets/call-hindi.jpg" alt="Call Pramaan in Hindi: the caller asks how much the buyer saves a year; the agent answers out loud and the figures 409,545 EUR and 4,43,93,192 INR appear as cards."></div>
+        </figure>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="reveal" style="--d:2;display:flex;flex-wrap:wrap;gap:8px"><span class="chip n">English</span><span class="chip n">हिंदी</span><span class="chip n">ਪੰਜਾਬੀ</span><span class="chip n">தமிழ்</span><span class="chip n">Tiếng Việt</span></div>
+          <ol class="steps reveal" style="--d:3">
+            <li data-n="1"><p><b>Gemini 3.8 Live</b> on Agent Platform answers out loud in <b>1.1–2.3 s</b>, and the caller can interrupt.</p></li>
+            <li data-n="2"><p><b>Four tools run in our code:</b> <span class="mono" style="font-size:16px">explain_number · open_evidence · search_guidance · open_items</span>. It cannot compute, approve or send.</p></li>
+            <li data-n="3"><p>The server transcribes the agent's own voice and matches every number to the report. A number that isn't in it is flagged, and <b>the agent corrects itself aloud</b>.</p></li>
+            <li data-n="4"><p>Credentials stay on Cloud Run: 16 kHz audio over a WebSocket, a 5-minute cap, no recording kept.</p></li>
+          </ol>
+          <div class="panel reveal" style="--d:5">
+            <div class="cap"><span class="lbl">From a live call · Hindi</span><span class="chip g">matched to the report</span></div>
+            <div class="in" style="display:flex;flex-direction:column;gap:8px;padding:14px 20px">
+              <p style="font-size:19px"><b>Caller:</b> मेरे खरीदार को हर साल कितनी बचत होगी? <span style="color:var(--ink3)">(How much will my buyer save a year?)</span></p>
+              <p style="font-size:19px"><b>Pramaan</b> answers aloud in Hindi; the card <span class="mono" style="color:var(--ink)">409,545 EUR/year · 4,43,93,192 INR/year</span> appears and opens its proof.</p>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <figure class="ex reveal" style="--d:4;width:600px">
+            <figcaption><span><b>Exhibit F</b> · /try · one photo, two models</span><span>bundled replay</span></figcaption>
+            <div class="pic"><img src="assets/try-one-photo.jpg" alt="Try one photo: a handwritten scrap log with boxes; classify, read and box every value, re-read each box blind; a table of reader 1 and reader 2 values."><div class="scan"></div></div>
+          </figure>
+          <p class="note reveal" style="--d:5"><b>Try one photo</b> streams the three reading steps on a single page in seconds: boxes appear, then turn green or amber. A judge's own bill is <b>read in memory and never stored</b>.</p>
+          <div class="cells reveal" style="--d:6;grid-template-columns:1fr 1fr 1fr">
+            <div class="cell" style="border-bottom:0;padding:14px 16px"><span class="lbl">Reader 1</span><p class="note" style="font-size:16px">3.8 Flash classifies, reads and boxes</p></div>
+            <div class="cell" style="border-bottom:0;padding:14px 16px"><span class="lbl">Reader 2</span><p class="note" style="font-size:16px">3.5 Flash-Lite, each crop, blind</p></div>
+            <div class="cell" style="border:0;padding:14px 16px"><span class="lbl">Capped</span><p class="note" style="font-size:16px">20 live tries per address an hour</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Tested live 13 Oct 2026: spoken questions in English, Hindi, Tamil and Vietnamese, typed in Punjabi; answers in the caller's language with the right figures and no false warnings. gemini-3.8-live is served from us-central1.</span><span class="pg">09</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     10 · RECOMMENDATIONS → ACTIONS — supplier loop + Plant pulse
+     ===================================================================== -->
+<section class="slide" data-title="Actions">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 4 · Innovation · intelligent operations</span><span class="t">From insight to action</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">10 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Recommendations with the money attached, and <span class="u">actions that move it</span>.</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:44px">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <span class="lbl reveal" style="--d:1">Action · close the loop with the rod supplier</span>
+          <figure class="ex reveal" style="--d:2">
+            <figcaption><span><b>Exhibit G</b> · after the supplier uploads</span><span>bundled replay</span></figcaption>
+            <div class="pic"><img src="assets/supplier-money-moves.jpg" alt="The exporter's report after the supplier uploads verified data: €572,546 a year, +€163,002, 2 of 2 product lines ready, 100 %."><div class="scan"></div></div>
+          </figure>
+          <div class="cells reveal" style="--d:3;grid-template-columns:1fr 1.25fr 1fr">
+            <div class="cell" style="border-bottom:0"><span class="lbl">Stainless, buyer €/t</span><div class="fig" style="font-size:34px">402 → <span style="color:var(--green)">97</span></div></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Saved a year</span><div class="fig" style="font-size:34px">€<span class="count" data-to="572546">572,546</span></div></div>
+            <div class="cell" style="border:0"><span class="lbl">Lines ready</span><div class="fig g" style="font-size:34px">2 of 2</div></div>
+          </div>
+          <p class="note reveal" style="--d:4">The letter (EN / हिंदी) carries an upload link, sent on WhatsApp. The supplier uploads on a phone with no account; the same agents read it; the exporter's open report moves by itself. <b>The supplier never sees plant data; the buyer never sees the supplier's.</b></p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <span class="lbl reveal" style="--d:2">Insight · Plant pulse: the same gas bills show how the furnace ran</span>
+          <figure class="ex reveal" style="--d:3">
+            <figcaption><span><b>Exhibit H</b> · gas per tonne, month by month</span></figcaption>
+            <div class="pic"><img src="assets/plant-pulse.jpg" alt="Plant pulse: heat-treatment gas per tonne by month; June ran 18.5 % above the median month, ₹2,00,905 of gas; April best at 3.26 GJ/t."></div>
+          </figure>
+          <div class="cells reveal" style="--d:4;grid-template-columns:1fr 1.2fr 1fr">
+            <div class="cell" style="border-bottom:0"><span class="lbl">June ran hot</span><div class="fig a" style="font-size:34px">+18.5<small>%</small></div></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Gas above median</span><div class="fig" style="font-size:34px">₹2,00,905</div></div>
+            <div class="cell" style="border:0"><span class="lbl">Wasted</span><div class="fig" style="font-size:34px">7.6<small>t CO₂</small></div></div>
+          </div>
+          <p class="note reveal" style="--d:5"><b>Operations levers</b> on the same engine: EC Example 2 rod data plus electric heat treatment take the stainless bolts from SEE 8.889 to <b>2.174</b> and the buyer's cost from €402 to <b>€81/t</b>. Cutting scrap from 15 % to 10 % saves <b>111 t of rod a year</b>.</p>
+        </div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Sample factory (fictional), Jan–Sep 2026. Exhibit G replays the bundled supplier statement ("Open as the supplier"); live, the same flow runs Gemini on the supplier's upload.</span><span class="pg">10</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     11 · TRUST, SAFETY, RISKS & GATES
+     ===================================================================== -->
+<section class="slide" data-title="Trust">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 5 · Technical merit · trust</span><span class="t">Risks and the gates against them</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">11 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Reports nobody can quietly change, and <span class="u">numbers the AI can't invent</span>.</h2>
+      <div style="display:grid;grid-template-columns:820px 1fr;gap:44px">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <span class="lbl reveal" style="--d:1">Change log · each entry carries the SHA-256 of the one before</span>
+          <div class="reveal" style="--d:2;display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr;align-items:stretch">
+            <div class="node"><b>Value read</b><span>by a run</span></div><div class="arr">⛓</div>
+            <div class="node hu"><b>Approved</b><span>or changed by hand</span></div><div class="arr">⛓</div>
+            <div class="node"><b>Spot-check</b><span>verifier's mark</span></div><div class="arr">⛓</div>
+            <div class="node ai"><b>Report issued</b><span>PDF · pack · link</span></div>
+          </div>
+          <div class="panel reveal" style="--d:3">
+            <div class="cap"><span class="lbl">Receipt on every report · signed in Cloud KMS</span><span class="chip n">ECDSA P-256</span></div>
+            <div class="in"><p style="font-size:19px">Headline figures + how each value was confirmed (two readers / approved / <b>changed by hand</b> / waiting) + SHA-256 of the calculation tree, the values, <b>every source photo</b>, the refdata, the log head and each file issued. <b>The private key never leaves KMS.</b></p></div>
+          </div>
+          <div class="reveal" style="--d:4"><div class="code">$ openssl dgst -sha256 -verify receipt/public_key.pem \
+    -signature receipt/statement.sig receipt/statement.json
+<span class="ok">Verified OK</span></div></div>
+          <p class="note reveal" style="--d:5"><span class="mono">/r/{id}</span> checks the signature in the reader's own browser (WebCrypto) and compares a dropped-in PDF byte for byte. Key fingerprint <b class="mono">9451 0f5b bdf0 d336 3ef1 eef8 02c9 ff32</b>, published in the README.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span class="lbl reveal" style="--d:2">Risk register</span>
+          <table class="reveal" style="--d:3">
+            <tr><th style="width:230px">Risk</th><th>Gate</th></tr>
+            <tr><td><b>Hallucinated numbers</b></td><td style="font-size:17.5px">LLM never computes; numbers guard on text and speech</td></tr>
+            <tr><td><b>Misread documents</b></td><td style="font-size:17.5px">blind crop re-read, mass-balance checks, a person for hand corrections</td></tr>
+            <tr><td><b>Wrong regulation values</b></td><td style="font-size:17.5px">parsed from EC files with SHA-256 manifest; CI fails on drift; 8 golden tests</td></tr>
+            <tr><td><b>Prompt injection</b></td><td style="font-size:17.5px">document and typed text enter prompts as data, never instructions</td></tr>
+            <tr><td><b>Plant data leaking</b></td><td style="font-size:17.5px">passcode (hash only), HttpOnly cookie; buyer sees a summary, supplier sees its own reading; delete for good</td></tr>
+            <tr><td><b>Abuse and cost</b></td><td style="font-size:17.5px">per-address caps; uploads validated; 5-min calls; nothing stored on /try</td></tr>
+            <tr><td><b>Over-claiming</b></td><td style="font-size:17.5px">"provisional until verified"; not a substitute for an accredited verifier</td></tr>
+          </table>
+          <div class="panel reveal" style="--d:5;margin-top:8px;border-color:var(--green)"><div class="in" style="padding:14px 20px"><span class="lbl">Answering the verification bottleneck</span><p style="font-size:18px;margin-top:6px">The verifier's marks go on the same hash chain, print as a record and ship in the pack as <span class="mono">spot_check.csv</span>. Site visits stay the verifier's job; the desk review gets fast.</p></div></div>
+        </div>
+      </div>
+      <div class="stamp n" style="left:470px;top:640px;--rot:-5deg;--sd:1.6s"><div class="a" style="font-size:36px">KMS-SIGNED</div><div class="b">TAMPER-EVIDENT</div></div>
+    </div>
+    <footer class="ftr"><span class="src">app/evidence/ledger.py (hash chain) · app/evidence/attest.py (receipts) · key: projects/copilot-manufacturing/…/keyRings/pramaan/cryptoKeys/report-signing, asia-southeast1.</span><span class="pg">11</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     12 · GOOGLE CLOUD ARCHITECTURE
+     ===================================================================== -->
+<section class="slide" data-title="Architecture">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 5 · Technical merit · Google Cloud</span><span class="t">Architecture</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">12 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">One Cloud Run service, Gemini on Agent Platform, and <span class="u">no API keys in production</span>.</h2>
+      <div style="display:grid;grid-template-columns:1fr 330px;gap:40px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:grid;grid-template-columns:270px 40px 1fr 40px 380px;align-items:stretch">
+            <!-- users -->
+            <div class="panel reveal" style="--d:1"><div class="cap"><span class="lbl">Who uses it</span></div>
+              <div class="in" style="display:flex;flex-direction:column;gap:12px;padding:14px 18px">
+                <div class="node" style="border-width:1.5px"><b>Exporter</b><span>phone PWA · EN/HI/TA/VI</span></div>
+                <div class="node" style="border-width:1.5px"><b>Rod supplier</b><span>upload link, no account</span></div>
+                <div class="node" style="border-width:1.5px"><b>EU buyer</b><span>summary link</span></div>
+                <div class="node" style="border-width:1.5px"><b>Verifier</b><span>signed pack, spot-check</span></div>
+              </div></div>
+            <div class="arr reveal" style="--d:2">⇄</div>
+            <!-- cloud run -->
+            <div class="panel reveal" style="--d:2;border-width:2px"><div class="cap"><span class="lbl">Cloud Run · pramaan · asia-southeast1</span><span class="chip n">1 container</span></div>
+              <div class="in" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 18px">
+                <div class="node" style="grid-column:1/3"><b>FastAPI + SSE + React PWA</b><span>one service, one cold start · min-instances 1 for judging</span></div>
+                <div class="node ai" style="grid-column:1/3"><b>ADK 2.11 Workflow</b><span>Classifier · ProductLines · Extractor · SecondReader · Explainer</span></div>
+                <div class="node"><b>Decimal engine</b><span>refdata + SHA-256 manifest</span></div>
+                <div class="node"><b>Ask + Rules copilot</b><span>facts · EC pages</span></div>
+                <div class="node"><b>Try one photo</b><span>SSE, nothing stored</span></div>
+                <div class="node"><b>Call Pramaan</b><span>WebSocket audio</span></div>
+              </div></div>
+            <div class="arr reveal" style="--d:3">⇄</div>
+            <!-- google cloud services -->
+            <div class="panel reveal" style="--d:3"><div class="cap"><span class="lbl">Google Cloud</span></div>
+              <div class="in" style="display:flex;flex-direction:column;gap:10px;padding:14px 18px">
+                <div class="node ai"><b>Agent Platform · global</b><span>gemini-3.8-flash · gemini-3.5-flash-lite</span></div>
+                <div class="node ai"><b>Agent Platform · us-central1</b><span>gemini-3.8-live (voice)</span></div>
+                <div class="node"><b>Firestore · Cloud Storage</b><span>native mode · private bucket</span></div>
+                <div class="node"><b>Cloud KMS</b><span>EC P-256 report signing</span></div>
+                <div class="node"><b>Logging · Trace · IAM</b><span>least-privilege service account</span></div>
+              </div></div>
+          </div>
+          <div class="cells reveal" style="--d:5;grid-template-columns:repeat(3,1fr)">
+            <div class="cell" style="border-bottom:0"><span class="lbl">Build &amp; deploy</span><p class="note">Cloud Build + Artifact Registry; <span class="mono">deploy.sh</span>: golden tests → <span class="mono">gcloud run deploy</span> → smoke test (sample, buyer link, receipts trusted)</p></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">CI on every push</span><p class="note">ruff · mypy · pytest (245) · golden tests · refdata drift · gitleaks · logged-out UI smoke on desktop and a 360 px phone</p></div>
+            <div class="cell" style="border:0"><span class="lbl">Scales by design</span><p class="note">Stateless container, runs followed across instances via Firestore; 15 visitors at once, 0 errors in the load test</p></div>
+          </div>
+        </div>
+        <figure class="ex reveal" style="--d:4;width:330px">
+          <figcaption><span><b>Exhibit I</b> · run trace</span></figcaption>
+          <div class="pic" style="height:470px"><img style="height:100%;width:100%;object-fit:cover;object-position:top" src="assets/run-receipt.jpg" alt="Run receipt: Intake, Classifier 24/24 6.6 s gemini-3.8-flash 24,417 tokens, ProductLines, Extractor 41.1 s 222 values, SecondReader 20.4 s 221 agree, HumanReview, ControlChecks 14/16."></div>
+          <p class="note" style="padding:12px 14px;border-top:1px solid var(--ink)">Every run leaves a receipt: agent, model, time, tokens.</p>
+        </figure>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">Project copilot-manufacturing · scripts/gcp_setup.sh creates the APIs, Firestore (asia-southeast1), a private bucket, the service account and the KMS key.</span><span class="pg">12</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     13 · PROOF — golden tests + live eval + quality
+     ===================================================================== -->
+<section class="slide" data-title="Proof">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 5 · Technical merit · evidence</span><span class="t">How we know it works</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">13 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Checked against <span class="u">the Commission's own worked examples</span>, and measured on live Gemini.</h2>
+      <div style="display:grid;grid-template-columns:900px 1fr;gap:44px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="reveal" style="--d:1;display:flex;justify-content:space-between"><span class="lbl">Golden tests · EC Guidance 5d (14 Aug 2026) · also live on the EC proof page</span><span class="chip g">8 / 8 pass</span></div>
+          <table class="reveal" style="--d:2">
+            <tr><th>ID</th><th>EC example</th><th class="rt">Expected</th><th class="rt">Pramaan</th></tr>
+            <tr><td class="n">G1</td><td>Ex. 3 · carbon screws &amp; nuts · p. 53</td><td class="n rt">SEE 2.039</td><td class="n rt">2.0399 ✓</td></tr>
+            <tr><td class="n">G2</td><td>Ex. 3 · high-alloy screws &amp; nuts · p. 53</td><td class="n rt">SEE 2.371</td><td class="n rt">2.3707 ✓</td></tr>
+            <tr><td class="n">G3</td><td>Ex. 1 · SEFA rails · pp. 43–44</td><td class="n rt">1.261 → 1.198</td><td class="n rt">1.2616 → 1.1985 ✓</td></tr>
+            <tr><td class="n">G4</td><td>Ex. 1 · certificates, rails · p. 44</td><td class="n rt">3,690</td><td class="n rt">3,690.0 ✓</td></tr>
+            <tr><td class="n">G5</td><td>Ex. 2 · certificates, pipes · p. 51</td><td class="n rt">95.9</td><td class="n rt">95.93 ✓</td></tr>
+            <tr><td class="n">G6</td><td>Ex. 1 · SEFA sheets &amp; bars · p. 43</td><td class="n rt">1.248 · 1.242</td><td class="n rt">1.2486 · 1.2426 ✓</td></tr>
+            <tr><td class="n">G7</td><td>Ex. 3 · SEFA screws · p. 54</td><td class="n rt">1.499 · 1.159</td><td class="n rt">1.4992 · 1.1587 ✓</td></tr>
+            <tr><td class="n">G8</td><td>Benchmarks &amp; gas EF, re-read from official files</td><td class="n rt">0.057 … 56.1</td><td class="n rt">exact ✓</td></tr>
+          </table>
+          <p class="note reveal" style="--d:3">We also found <b>two inconsistencies in the EC's own examples</b> (FeCr SEE 2.280 vs an implied 2.820; pipes 1.783 vs 1.803), logged and kept out of the tests.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <span class="lbl reveal" style="--d:2">Extraction eval · live run, 13 Oct · 24 photos, 222 fields</span>
+          <table class="reveal" style="--d:3">
+            <tr><th>Metric</th><th class="rt">Result</th><th class="rt">Target</th></tr>
+            <tr><td>Field accuracy</td><td class="n rt big">100 %</td><td class="n rt">≥ 95 % ✓</td></tr>
+            <tr><td>Region hit, IoU ≥ 0.5</td><td class="n rt big">98.6 %</td><td class="n rt">—</td></tr>
+            <tr><td>Two-reader agreement</td><td class="n rt big">99.5 %</td><td class="n rt">—</td></tr>
+            <tr><td>24 documents → report</td><td class="n rt big">96.8 s</td><td class="n rt">&lt; 120 s ✓</td></tr>
+          </table>
+          <div class="panel reveal" style="--d:4"><div class="in" style="padding:14px 20px"><span class="lbl">A factory the app had never seen</span><p style="font-size:19px;margin-top:6px"><b>158 of 162</b> values right, <b>0 wrong</b>; results match an independent calculator to <b>6 decimals</b>.</p></div></div>
+          <div class="reveal" style="--d:5">
+            <span class="lbl">Honest learning curve · field accuracy, live runs</span>
+            <div style="display:grid;grid-template-columns:150px 1fr 80px;gap:12px;align-items:center;margin-top:10px;row-gap:8px">
+              <span class="note">1st live run</span><div class="bar" style="height:22px"><i style="--w:83.6%;background:var(--amber)"></i></div><span class="mono" style="text-align:right">83.6 %</span>
+              <span class="note">after clean-up</span><div class="bar" style="height:22px"><i style="--w:98.1%;background:var(--ink2)"></i></div><span class="mono" style="text-align:right">98.1 %</span>
+              <span class="note">13 Oct run</span><div class="bar" style="height:22px"><i style="--w:100%;background:var(--green)"></i></div><span class="mono" style="text-align:right">100 %</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cells reveal" style="--d:6;grid-template-columns:repeat(5,1fr)">
+        <div class="cell" style="border-bottom:0;padding:14px 20px"><span class="lbl">Automated tests</span><div class="fig" style="font-size:32px">245</div></div>
+        <div class="cell" style="border-bottom:0;padding:14px 20px"><span class="lbl">axe · WCAG A/AA</span><div class="fig" style="font-size:32px">0<small>violations</small></div></div>
+        <div class="cell" style="border-bottom:0;padding:14px 20px"><span class="lbl">Lighthouse · mobile</span><div class="fig" style="font-size:32px">91·100·100·100</div></div>
+        <div class="cell" style="border-bottom:0;padding:14px 20px"><span class="lbl">First load · gzip</span><div class="fig" style="font-size:32px">151<small>KB JS</small></div></div>
+        <div class="cell" style="border:0;padding:14px 20px"><span class="lbl">Static checks</span><div class="fig" style="font-size:22px;padding-top:6px">ruff·mypy·gitleaks</div></div>
+      </div>
+    </div>
+    <footer class="ftr"><span class="src">backend/tests/test_golden_ec.py · backend/eval/report.md · docs/TEST_REPORT.md (independent new-factory test, 14 Oct) · tolerance ±0.002 t CO₂/t (EC tables round intermediates).</span><span class="pg">13</span></footer>
+  </div>
+</section>
+
+<!-- =====================================================================
+     14 · IMPACT, DIFFERENTIATION, PILOT, ASK
+     ===================================================================== -->
+<section class="slide" data-title="Impact and ask">
+  <div class="grain"></div>
+  <div class="sheet">
+    <header class="hdr">
+      <div class="h-brand"><div class="mark"><i>✓</i></div><div><b>PRAMAAN</b><span>प्रमाण</span></div></div>
+      <div class="h-sec"><span class="lbl">§ 6 · Impact &amp; scale</span><span class="t">Why Pramaan, why now</span></div>
+      <div class="h-no"><span class="lbl">Sheet</span><span class="v">14 / 14</span></div>
+    </header>
+    <div class="body">
+      <h2 class="wipe">Built for every small exporter <span class="u">between a CBAM bill and a phone camera</span>.</h2>
+      <div style="display:grid;grid-template-columns:500px 1fr 470px;gap:36px;flex:1;min-height:0">
+        <!-- impact -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span class="lbl reveal" style="--d:1">Impact model</span>
+          <div class="cells reveal" style="--d:2;grid-template-columns:1fr">
+            <div class="cell"><span class="lbl">Per factory (sample)</span><div class="fig g" style="font-size:40px">€409,545<small>/yr</small></div><p class="note" style="font-size:16px">kept off the buyer's CBAM bill today, +€163,002 within reach: margin the exporter need not give away</p></div>
+            <div class="cell"><span class="lbl">Reach</span><div class="fig" style="font-size:40px">25–30k<small>MSMEs</small></div><p class="note" style="font-size:16px">in India alone; the same defaults hit Vietnam, China, Korea, Indonesia</p></div>
+            <div class="cell" style="border-bottom:0"><span class="lbl">Scale path</span><p class="note" style="font-size:16px">Proposed downstream extension (~180 product categories from 2028), UK CBAM from 2027, then aluminium, cement and fertilisers on the same engine</p></div>
+          </div>
+        </div>
+        <!-- differentiation -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span class="lbl reveal" style="--d:2">Differentiation</span>
+          <table class="reveal" style="--d:3">
+            <tr><th></th><th>Consultant + spreadsheet</th><th>Generic AI chat / OCR</th><th style="color:var(--ink)">Pramaan</th></tr>
+            <tr><td style="font-size:17px"><b>Reads photos, handwriting</b></td><td style="font-size:16.5px">by hand</td><td style="font-size:16.5px">yes, unchecked</td><td style="font-size:16.5px"><b>two blind readers</b></td></tr>
+            <tr><td style="font-size:17px"><b>Number → source</b></td><td style="font-size:16.5px">binder of copies</td><td style="font-size:16.5px">no</td><td style="font-size:16.5px"><b>the pixel, signed</b></td></tr>
+            <tr><td style="font-size:17px"><b>Who does the maths</b></td><td style="font-size:16.5px">a spreadsheet</td><td style="font-size:16.5px">the LLM</td><td style="font-size:16.5px"><b>Decimal engine, 8/8 EC</b></td></tr>
+            <tr><td style="font-size:17px"><b>Buyer's € and next step</b></td><td style="font-size:16.5px">rarely</td><td style="font-size:16.5px">no</td><td style="font-size:16.5px"><b>on every line</b></td></tr>
+            <tr><td style="font-size:17px"><b>Languages</b></td><td style="font-size:16.5px">English</td><td style="font-size:16.5px">varies</td><td style="font-size:16.5px"><b>EN·HI·PA·TA·VI, voice</b></td></tr>
+            <tr><td style="font-size:17px"><b>Cost, time</b></td><td style="font-size:16.5px">₹15–20 lakh, months</td><td style="font-size:16.5px">low, no audit trail</td><td style="font-size:16.5px"><b>minutes, on existing bills</b></td></tr>
+          </table>
+          <div class="cells reveal" style="--d:5;grid-template-columns:1fr 1fr;margin-top:6px">
+            <div class="cell" style="border-bottom:0;padding:14px 18px"><span class="lbl" style="color:var(--green)">Real today</span><p class="note" style="font-size:16px">Live Gemini on Agent Platform, Cloud Run, KMS-signed receipts, refdata parsed from the EC's files, own-factory projects</p></div>
+            <div class="cell" style="border:0;padding:14px 18px"><span class="lbl" style="color:var(--amber)">Sample</span><p class="note" style="font-size:16px">The factory and its 24 documents are fictional and watermarked; "Load sample factory" serves a captured live run, and says so</p></div>
+          </div>
+        </div>
+        <!-- pilot + ask -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span class="lbl reveal" style="--d:3">Proposed 90-day pilot</span>
+          <ol class="steps reveal" style="--d:4">
+            <li data-n="30"><p style="font-size:17.5px"><b>10 fastener exporters</b> in Ludhiana with their EU buyers, on their own bills, with consent.</p></li>
+            <li data-n="60"><p style="font-size:17.5px"><b>One accredited verifier</b> runs the spot-check on real verifier packs.</p></li>
+            <li data-n="90" style="border-bottom:0"><p style="font-size:17.5px">Measure <b>hours to verifier-ready</b>, € per tonne moved, desk-review time.</p></li>
+          </ol>
+          <p class="note reveal" style="--d:5;font-size:16px;border-top:1px solid var(--faint);padding-top:12px"><b>Already built for it:</b> private own-factory projects, product lines proposed from invoices, supplier upload links, the verifier spot-check, and delete-for-good.</p>
+          <div class="panel ink reveal" style="--d:6;margin-top:auto">
+            <div class="in" style="padding:20px 24px">
+              <span class="lbl">The ask</span>
+              <p style="font-size:21px;line-height:1.4;margin-top:8px"><b>Shortlist Pramaan:</b> it turns the paper a small factory already keeps into proof Europe accepts, and puts the money on every line.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stamp" style="left:70px;top:640px;--rot:-6deg;--sd:1.9s"><div class="a" style="font-size:38px">READY TO PILOT</div><div class="b">LIVE · SIGNED · TESTED</div></div>
+    </div>
+    <footer class="ftr"><span class="src">Live: pramaan-646454690406.asia-southeast1.run.app · Code: github.com/JeyaanthAnandan/pramaan (MIT) · Market figures: sources on sheet 02 · Pramaan is not a substitute for an accredited verifier.</span><span class="pg">Team Innovative Warriors</span></footer>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="deck-controls" aria-label="Slide controls">
+  <button id="prevBtn" aria-label="Previous slide">‹</button>
+  <span id="counter">1 / 14</span>
+  <button id="nextBtn" aria-label="Next slide">›</button>
+</div>
+
+<script>
+/* ===========================================================
+   STATIC MODE
+   Under automation (PDF export, screenshots) everything renders
+   in its final state; add ?anim to the URL to force animations.
+   =========================================================== */
+(function(){
+  const q = new URLSearchParams(location.search);
+  if ((navigator.webdriver && !q.has('anim')) || q.has('static')) document.documentElement.classList.add('static');
+})();
+const STATIC = () => document.documentElement.classList.contains('static');
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===========================================================
+   SLIDE 03 CHART — CBAM factor & default mark-up by year
+   Values from refdata/json/cbam_schedule.json (EC Guidance 4 Table 2-1;
+   Guidance 3 p. 115).
+   =========================================================== */
+(function buildSchedule(){
+  const rows=[[2026,.975,10],[2027,.95,20],[2028,.9,30],[2029,.775,30],[2030,.515,30],[2031,.39,30],[2032,.265,30],[2033,.14,30],[2034,0,30]];
+  const s=document.getElementById('sched'), y=document.getElementById('schedYears'), m=document.getElementById('schedMk');
+  rows.forEach(([yr,f,mk])=>{
+    const col=document.createElement('div');
+    col.style.cssText='display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:6px';
+    col.innerHTML=`<span style="font:600 15px var(--f-mono);color:var(--ink)">${(f*100).toFixed(f*100%1?1:0)}%</span>`+
+      `<div style="width:100%;height:200px;display:flex;align-items:flex-end"><i class="vb" style="display:block;width:100%;height:${Math.max(f*200,2)}px;background:${f>.5?'var(--ink)':'var(--ink2)'}"></i></div>`;
+    s.appendChild(col);
+    const yl=document.createElement('span'); yl.style.cssText='font:500 15px var(--f-mono);text-align:center;color:var(--ink2)'; yl.textContent=yr; y.appendChild(yl);
+    const ml=document.createElement('span'); ml.className='chip '+(mk>=30?'r':'a'); ml.style.cssText='text-align:center;font-size:12px;padding:4px 0'; ml.textContent='+'+mk+'%'; m.appendChild(ml);
+  });
+})();
+
+/* ===========================================================
+   COUNTERS — numbers settle into place (HTML holds the final
+   value, so print/PDF/no-JS always show the right figure)
+   =========================================================== */
+function runCounters(slide){
+  if (STATIC() || REDUCED) return;
+  slide.querySelectorAll('.count').forEach(el=>{
+    if (el.dataset.edited) return;
+    const to=parseFloat(el.dataset.to), pre=el.dataset.prefix||'', t0=performance.now(), dur=1300;
+    const fmt=v=>pre+Math.round(v).toLocaleString('en-US');
+    const step=t=>{const p=Math.min((t-t0)/dur,1), e=1-Math.pow(2,-10*p); el.textContent=fmt(to*(p>=1?1:e)); if(p<1) requestAnimationFrame(step);};
+    el.textContent=fmt(0); requestAnimationFrame(step);
+  });
+}
+
+/* ===========================================================
+   SLIDE PRESENTATION CONTROLLER
+   Keyboard, wheel, touch, hash (#3), progress, stage scaling.
+   =========================================================== */
+class SlidePresentation{
+  constructor(){
+    this.slides=[...document.querySelectorAll('.slide')];
+    this.stage=document.getElementById('deckStage');
+    this.current=0; this.lock=false;
+    this.setupStageScale(); this.setupKeyboardNav(); this.setupWheel(); this.setupTouchNav();
+    document.getElementById('prevBtn').onclick=()=>this.prev();
+    document.getElementById('nextBtn').onclick=()=>this.next();
+    window.addEventListener('hashchange',()=>this.fromHash());
+    this.fromHash(true);
+  }
+  setupStageScale(){
+    const scale=()=>{const f=Math.min(innerWidth/1920,innerHeight/1080);
+      this.stage.style.transform=`translate(${(innerWidth-1920*f)/2}px,${(innerHeight-1080*f)/2}px) scale(${f})`;};
+    scale(); addEventListener('resize',scale);
+  }
+  setupKeyboardNav(){
+    document.addEventListener('keydown',e=>{
+      if (document.documentElement.classList.contains('editing')) return;
+      if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.next();}
+      else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+      else if (e.key==='Home') this.goToSlide(0);
+      else if (e.key==='End') this.goToSlide(this.slides.length-1);
+    });
+  }
+  setupWheel(){
+    addEventListener('wheel',e=>{
+      if (document.documentElement.classList.contains('editing')||this.lock||Math.abs(e.deltaY)<30) return;
+      this.lock=true; setTimeout(()=>this.lock=false,700);
+      e.deltaY>0?this.next():this.prev();
+    },{passive:true});
+  }
+  setupTouchNav(){
+    let x0=null,y0=null;
+    addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+    addEventListener('touchend',e=>{
+      if (x0===null) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
+      if (Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)) dx<0?this.next():this.prev(); x0=null;
+    },{passive:true});
+  }
+  fromHash(first){const n=parseInt(location.hash.slice(1),10); this.goToSlide(isNaN(n)?(first?0:this.current):n-1, true);}
+  next(){this.goToSlide(this.current+1);} prev(){this.goToSlide(this.current-1);}
+  goToSlide(i, fromHash){
+    i=Math.max(0,Math.min(i,this.slides.length-1));
+    this.slides.forEach((s,k)=>{s.classList.toggle('active',k===i); if(k!==i) s.classList.remove('visible');});
+    const s=this.slides[i]; this.current=i;
+    // restart entrance animations
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{s.classList.add('visible'); runCounters(s);}));
+    document.getElementById('counter').textContent=`${i+1} / ${this.slides.length}`;
+    document.getElementById('progress').style.width=`${(i+1)/this.slides.length*100}%`;
+    if (!fromHash && history.replaceState) history.replaceState(null,'',`#${i+1}`);
+  }
+}
+
+/* ===========================================================
+   INLINE EDITING
+   Hover the top-left corner or press E. Edits auto-save to
+   localStorage; Ctrl/⌘+S downloads a copy with edits baked in.
+   =========================================================== */
+class InlineEditor{
+  constructor(){
+    this.key='pramaan-deck-edits-v1'; this.isActive=false;
+    this.sel='.slide h1,.slide h2,.slide h3,.slide p,.slide td,.slide th,.slide .lbl,.slide .fig,.slide .t,.slide .v,.slide .v2,.slide .nm,.slide figcaption span,.slide .node b,.slide .node span,.slide .stamp .a,.slide .stamp .b,.slide .chip';
+    this.els=[...document.querySelectorAll(this.sel)].filter(el=>!el.closest('.code'));
+    this.els.forEach((el,i)=>el.dataset.eid=i);
+    this.restore(); this.wire();
+  }
+  load(){try{return JSON.parse(localStorage.getItem(this.key)||'{}');}catch(e){return {};}}
+  save(map){try{localStorage.setItem(this.key,JSON.stringify(map));}catch(e){}}
+  restore(){const map=this.load(); for(const [id,html] of Object.entries(map)){const el=document.querySelector(`[data-eid="${id}"]`); if(el){el.innerHTML=html; el.querySelectorAll('.count').forEach(c=>c.dataset.edited=1);}}}
+  toggleEditMode(force){
+    this.isActive=force===undefined?!this.isActive:force;
+    document.documentElement.classList.toggle('editing',this.isActive);
+    document.getElementById('editToggle').classList.toggle('active',this.isActive);
+    document.getElementById('editToggle').textContent=this.isActive?'DONE':'EDIT';
+    // edit leaf-most elements only, so nested editable regions don't fight
+    this.els.forEach(el=>{ if(this.isActive && !el.querySelector('[data-eid]')) el.contentEditable='true'; else el.removeAttribute('contenteditable'); });
+  }
+  wire(){
+    let t=null;
+    document.addEventListener('input',e=>{const el=e.target.closest('[data-eid]'); if(!el) return; el.querySelectorAll('.count').forEach(c=>c.dataset.edited=1);
+      clearTimeout(t); t=setTimeout(()=>{const map=this.load(); map[el.dataset.eid]=el.innerHTML; this.save(map);},300);});
+    document.addEventListener('keydown',e=>{
+      if ((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault(); this.download(); return;}
+      const editing=e.target.isContentEditable;
+      if (e.key==='Escape'&&this.isActive){this.toggleEditMode(false); return;}
+      if ((e.key==='e'||e.key==='E')&&!editing&&!e.ctrlKey&&!e.metaKey) this.toggleEditMode();
+    });
+    const hz=document.querySelector('.edit-hotzone'), tg=document.getElementById('editToggle'); let hide=null;
+    hz.addEventListener('mouseenter',()=>{clearTimeout(hide); tg.classList.add('show');});
+    hz.addEventListener('mouseleave',()=>{hide=setTimeout(()=>{if(!this.isActive) tg.classList.remove('show');},400);});
+    tg.addEventListener('mouseenter',()=>clearTimeout(hide));
+    tg.addEventListener('mouseleave',()=>{hide=setTimeout(()=>{if(!this.isActive) tg.classList.remove('show');},400);});
+    hz.addEventListener('click',()=>this.toggleEditMode());
+    tg.addEventListener('click',()=>this.toggleEditMode());
+  }
+  download(){
+    const was=this.isActive; this.toggleEditMode(false);
+    const clone=document.documentElement.cloneNode(true);
+    clone.classList.remove('editing','static');
+    clone.querySelectorAll('.slide').forEach((s,i)=>{s.classList.remove('visible'); s.classList.toggle('active',i===0);});
+    const html='<!DOCTYPE html>\n'+clone.outerHTML;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download='pramaan-pitch.html'; a.click();
+    if (was) this.toggleEditMode(true);
+  }
+}
+
+window.presentation=new SlidePresentation();
+window.editor=new InlineEditor();
+</script>
+</body>
+</html>

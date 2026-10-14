@@ -12,7 +12,7 @@ supplier letter in English and Hindi, the buyer link, the operations levers).
 Built for the **Google Cloud AI Builder Cup 2026** (Manufacturing: Intelligent Operations &
 Industrial Efficiency) by team **Innovative Warriors**.
 
-**Live demo:** [pramaan-646454690406.asia-southeast1.run.app](https://pramaan-646454690406.asia-southeast1.run.app) (Cloud Run, asia-southeast1) · **3-min video:** _to be recorded_ ·
+**Live demo:** [pramaan-646454690406.asia-southeast1.run.app](https://pramaan-646454690406.asia-southeast1.run.app) (Cloud Run, asia-southeast1) · **3-min video:** _to be recorded_ · **Deck:** [PDF](docs/deck/Pramaan-pitch-deck.pdf) (14 slides; the HTML version is [docs/deck/index.html](docs/deck/index.html)) ·
 **Try it locally in 60 s:** see [Run locally](#run-locally) · **Two minutes?** On the live site press **Take the 90-second tour**: eight stops, from the verdict through a voice call to the Commission's examples. **One photo?** Open [`/try`](https://pramaan-646454690406.asia-southeast1.run.app/try) and watch two Gemini models read one page, or your own bill, in seconds.
 
 ![Pramaan landing](docs/screenshots/landing.jpg)
@@ -366,7 +366,7 @@ On Cloud Run the health check is `GET /api/health`: the front end reserves some 
 backend/   app/ (api, agents, cbam engine, evidence store, exports, copilot, demo) · refdata/ · tests/ · eval/ · adk_eval/
 frontend/  React + Vite + TypeScript + Tailwind PWA (Evidence Lens, AgentTimeline, MoneyChart, GapChecklist, i18n)
 demo/      factory.py · templates/ · generate_docs.py · out/ (24 photos) · ground_truth.json
-docs/      BUILD_BRIEF · ARCHITECTURE · EC_EXAMPLE_NOTES · DEMO_SCRIPT · DECK_NOTES · PROGRESS · regulation/
+docs/      BUILD_BRIEF · ARCHITECTURE · EC_EXAMPLE_NOTES · DEMO_SCRIPT · DECK_NOTES · PROGRESS · regulation/ · deck/ (pitch deck, HTML + PDF)
 ```
 
 ## Limitations
