@@ -26,7 +26,7 @@ All 9 are fixed in 45dd60c. Two more failures came from live Gemini:
   default.
 * A correct Tamil answer was withheld by the number guard.
 
-Both are fixed in the commit after 93e95c4.
+Both are fixed in c891237.
 
 Legend: ✅ works · ⚠️ works with a caveat (see notes) · ⏳ on main, not on live until the redeploy · – not run on live
 

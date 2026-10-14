@@ -17,7 +17,12 @@ The factory then went through the live service with real Gemini. Details and the
 * **Reports:** a non-sample factory got incomplete ones. There was no supplier lever, months out of
   balance were not named, and "bolts" appeared everywhere. All fixed in 45dd60c. Also: tonnes-weighted
   alloy %, the PDF prints check notes and the rod SEE, and 4 false reviews from the second reader.
-* **Tests:** `backend/tests/test_independent_factory.py` (10 tests) replays the live readings in CI.
+* **Tests:** `backend/tests/test_independent_factory.py` (11 tests) replays the live readings in CI.
+* **Live supplier reply:** Cauvery's verified statement was read in part, 6 of 13 values: no SEFA, verifier
+  or report number. The report rightly stayed on the default, but nothing said why. Fixed in c891237:
+  * a page missing an essential value is read again for just those values;
+  * the checklist names a statement that came without its verification;
+  * a Tamil Ask answer withheld for "A2-70" in a product name is now allowed.
 
 ## 2026-10-14 (01:55–08:00) — overnight QA pass: every feature, as a tester
 
