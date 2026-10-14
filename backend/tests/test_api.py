@@ -212,6 +212,19 @@ def test_each_visitor_gets_a_private_sample(client: TestClient) -> None:
     assert ev and len(still_amber) == len(ev)  # b is unaffected by a's approval (replay or captured live sample)
 
 
+def test_yesterdays_sample_copies_are_removed_after_the_load_answers(client: TestClient) -> None:
+    from app.demo import loader
+    from app.evidence.store import store
+
+    yesterday = client.post("/api/demo/load", json={}).json()["project_id"]
+    p = store().get_project(yesterday)
+    assert p
+    store().put_project(p.model_copy(update={"created_at": "2026-01-01T00:00:00+00:00"}))
+    today = client.post("/api/demo/load", json={}).json()["project_id"]  # the cleanup is a background task
+    assert store().get_project(yesterday) is None and store().get_project(today)
+    assert store().get_project(loader.DEMO_ID)  # the shared sample is never removed
+
+
 def test_upload_normalises_png_and_pdf(client: TestClient) -> None:
     import io as _io
 

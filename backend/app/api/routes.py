@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import threading
 import time
 from collections import defaultdict, deque
 from decimal import Decimal, InvalidOperation
@@ -903,8 +904,24 @@ def _client_ip(request: Request) -> str:
     return client_ip(request.headers.get("x-forwarded-for", ""), request.client.host if request.client else None)
 
 
+_cleanup_lock = threading.Lock()
+
+
+def _cleanup_old_demos() -> None:
+    """Runs after the response: removing a day of visitors' copies took 57 s, and the first visitor of the
+    morning waited for it. One cleanup at a time; a second load meanwhile has nothing to add."""
+    if not _cleanup_lock.acquire(blocking=False):
+        return
+    try:
+        loader.cleanup_old_demos()
+    except Exception:  # noqa: S110 - cleanup is best effort
+        pass
+    finally:
+        _cleanup_lock.release()
+
+
 @router.post("/demo/load")
-async def demo_load(request: Request, body: DemoLoad | None = None) -> dict[str, Any]:
+async def demo_load(request: Request, background: BackgroundTasks, body: DemoLoad | None = None) -> dict[str, Any]:
     body = body or DemoLoad()
     ip = _client_ip(request)
     window, t = _demo_log[ip], time.time()
@@ -915,10 +932,7 @@ async def demo_load(request: Request, body: DemoLoad | None = None) -> dict[str,
     window.append(t)
     if body.shared:
         return await loader.load(force_replay=body.replay)
-    try:
-        loader.cleanup_old_demos()
-    except Exception:  # noqa: S110 - cleanup must never block a judge from loading the sample
-        pass
+    background.add_task(_cleanup_old_demos)
     return await loader.load(force_replay=body.replay, project_id=loader.new_demo_id())
 
 

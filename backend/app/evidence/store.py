@@ -233,12 +233,17 @@ class FirestoreStore:
         return [Project(**(s.to_dict() or {})) for s in self.db.collection("projects").stream()]
 
     def delete_project(self, pid: str) -> None:
-        for sub in ["documents", "evidence", "runs", "results"]:
-            for s in self._p(pid).collection(sub).stream():
-                s.reference.delete()
-        for s in self.db.collection("share_links").where("project_id", "==", pid).stream():  # buyer + supplier links
-            s.reference.delete()
-        self._p(pid).delete()
+        # batched: a sample copy is ~250 records, and deleting them one call at a time took ~2 s per copy
+        refs = [s.reference for sub in ["documents", "evidence", "runs", "results"] for s in self._p(pid).collection(sub).stream()]
+        refs += [s.reference for s in self.db.collection("share_links").where("project_id", "==", pid).stream()]  # buyer + supplier links
+        refs.append(self._p(pid))
+        batch = self.db.batch()
+        for n, ref in enumerate(refs, 1):
+            batch.delete(ref)
+            if n % 400 == 0:
+                batch.commit()
+                batch = self.db.batch()
+        batch.commit()
 
     def put_document(self, d: Document) -> None:
         self._p(d.project_id).collection("documents").document(d.id).set(d.model_dump())
