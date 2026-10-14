@@ -255,7 +255,9 @@ Pramaan (PDF, verifier pack, buyer link) carries a receipt (`app/evidence/attest
 figures, how each of the values behind them was confirmed (two readers / approved as read / **changed by hand** /
 waiting), and SHA-256 fingerprints of the calculation tree, the values, every source photo, the reference data,
 the change log's head and each file issued, signed with an EC P-256 key in **Cloud KMS** (the private key never
-leaves KMS). The receipt id is printed on the PDF; `/r/{id}` checks the signature *in the reader's own browser*
+leaves KMS). The live service's key is `projects/copilot-manufacturing/locations/asia-southeast1/keyRings/pramaan/
+cryptoKeys/report-signing/cryptoKeyVersions/1`, public-key fingerprint **`9451 0f5b bdf0 d336 3ef1 eef8 02c9 ff32`**
+(SHA-256 of the DER key, as `/r/{id}` and every PDF show it): compare it here, not only on our own server. The receipt id is printed on the PDF; `/r/{id}` checks the signature *in the reader's own browser*
 (WebCrypto), compares a dropped-in PDF byte for byte with the one issued, and lists anything changed since. The
 verifier pack carries the statement, signature and public key, so a verifier checks it with no Pramaan at all:
 
